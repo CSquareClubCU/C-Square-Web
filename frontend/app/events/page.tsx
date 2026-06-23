@@ -34,16 +34,18 @@ export default function EventsPage() {
   return (
     <div className="w-full">
       {/* Page Header */}
-      <section className="w-full bg-black text-white dot-grid py-16 md:py-24 border-b border-[var(--c-border)]">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10">
+      <section className="w-full bg-black text-white noise-overlay py-20 md:py-28 border-b border-white/[0.04] relative overflow-hidden">
+        <div className="absolute inset-0 code-grid" />
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
           <FadeUp>
-            <span className="text-xs font-semibold tracking-[0.2em] uppercase text-white/60 mb-4 inline-block">
+            <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase text-white/40 mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
               Discover
             </span>
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 gradient-text">
               Upcoming Events
             </h1>
-            <p className="text-lg text-white/70 max-w-[600px]">
+            <p className="text-lg text-white/40 max-w-[600px]">
               Browse hackathons, workshops, and seminars. Register with one click and get your QR code instantly.
             </p>
           </FadeUp>
@@ -107,19 +109,20 @@ export default function EventsPage() {
                 <TiltCard className="h-full">
                   <div className="h-full flex flex-col rounded-[24px] border border-[var(--c-border)] bg-white overflow-hidden hover:shadow-xl transition-shadow duration-500">
                     {/* Banner Area */}
-                    <div className="h-40 bg-[var(--c-surface)] mesh-gradient flex items-center justify-center relative">
-                      <span className="text-4xl font-bold text-[var(--c-accent)]/10 tracking-tighter">
+                    <div className="h-40 bg-black flex items-center justify-center relative overflow-hidden">
+                      <div className="absolute inset-0 code-grid" />
+                      <span className="text-5xl font-black text-white/[0.04] tracking-tighter relative z-10">
                         {event.event_type.toUpperCase()}
                       </span>
-                      <div className="absolute top-4 left-4">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-white bg-[var(--c-accent)] px-3 py-1 rounded-full">
+                      <div className="absolute top-4 left-4 z-10">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-black bg-white px-3 py-1 rounded-full">
                           {event.event_type}
                         </span>
                       </div>
                       {event.status === "published" && (
-                        <div className="absolute top-4 right-4">
-                          <span className="text-xs font-medium text-[var(--c-success)] bg-green-50 px-3 py-1 rounded-full flex items-center">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--c-success)] mr-1.5" />
+                        <div className="absolute top-4 right-4 z-10">
+                          <span className="text-xs font-medium text-white bg-white/10 border border-white/10 px-3 py-1 rounded-full flex items-center">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white mr-1.5" />
                             Open
                           </span>
                         </div>

@@ -18,7 +18,7 @@ export function Header() {
   const pathname = usePathname();
 
   // Pages that have a dark hero section
-  const isDarkHero = pathname === "/";
+  const isDarkHero = pathname === "/" || pathname === "/events" || pathname === "/team" || pathname.startsWith("/events/");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);

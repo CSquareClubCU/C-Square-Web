@@ -31,16 +31,18 @@ export default function TeamPage() {
   return (
     <div className="w-full">
       {/* Page Header */}
-      <section className="w-full bg-[var(--c-surface)] dot-grid py-16 md:py-24 border-b border-[var(--c-border)]">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10 text-center">
+      <section className="w-full bg-black text-white noise-overlay py-20 md:py-28 border-b border-white/[0.04] relative overflow-hidden">
+        <div className="absolute inset-0 code-grid" />
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10 text-center relative z-10">
           <FadeUp>
-            <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
+            <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase text-white/40 mb-6 mx-auto">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
               Our People
             </span>
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 gradient-text">
               Meet the Team
             </h1>
-            <p className="text-lg text-[var(--c-secondary-text)] max-w-[600px] mx-auto">
+            <p className="text-lg text-white/40 max-w-[600px] mx-auto">
               The passionate individuals working behind the scenes to bring you the best events at Chandigarh University.
             </p>
           </FadeUp>

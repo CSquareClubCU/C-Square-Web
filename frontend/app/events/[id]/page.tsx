@@ -75,37 +75,38 @@ export default function EventDetailPage() {
   return (
     <div className="w-full">
       {/* Header background */}
-      <section className="w-full bg-[var(--c-surface)] dot-grid border-b border-[var(--c-border)] py-12 md:py-20">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10">
+      <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-16 md:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 code-grid" />
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
           <FadeUp>
             <Link
               href="/events"
-              className="text-sm text-[var(--c-muted-text)] hover:text-[var(--c-accent)] transition-colors flex items-center mb-8"
+              className="text-sm text-white/40 hover:text-white transition-colors flex items-center mb-8"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               All Events
             </Link>
 
             <div className="flex flex-wrap items-center gap-3 mb-6">
-              <span className="text-xs font-semibold uppercase tracking-wider text-white bg-[var(--c-accent)] px-3 py-1 rounded-full">
+              <span className="text-xs font-semibold uppercase tracking-wider text-black bg-white px-3 py-1 rounded-full">
                 {event.event_type}
               </span>
               {event.is_team_event && (
-                <span className="text-xs font-medium text-[var(--c-secondary-text)] bg-white px-3 py-1 rounded-full border border-[var(--c-border)]">
+                <span className="text-xs font-medium text-white/60 bg-white/[0.06] px-3 py-1 rounded-full border border-white/10">
                   Team Event
                 </span>
               )}
               {event.is_open_to_external && (
-                <span className="text-xs font-medium text-[var(--c-secondary-text)] bg-white px-3 py-1 rounded-full border border-[var(--c-border)]">
+                <span className="text-xs font-medium text-white/60 bg-white/[0.06] px-3 py-1 rounded-full border border-white/10">
                   Open to All
                 </span>
               )}
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 leading-tight">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 leading-tight gradient-text">
               {event.title}
             </h1>
-            <p className="text-xl text-[var(--c-secondary-text)]">
+            <p className="text-xl text-white/40">
               {formatDate(event.start_datetime)} &middot; {event.venue}
             </p>
           </FadeUp>
