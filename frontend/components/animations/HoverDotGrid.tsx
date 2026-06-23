@@ -19,16 +19,25 @@ export function HoverDotGrid() {
     let centerX = 0;
     let centerY = 0;
 
-    // Particle settings
     const spacing = 32; // Spacing between dashes
     const dashLength = 8;
-    const dashWidth = 2;
+    const baseDashWidth = 1.5;
     const hoverRadius = 300;
-    const maxRepel = 40; // How far they push away
+    const repelForce = 40; // Max pixels to push away
 
-    let particles: { baseX: number; baseY: number; angle: number; color: string; hoverColor: string }[] = [];
+    // Store actual properties and target properties for each dash
+    let particles: { 
+      baseX: number; 
+      baseY: number; 
+      baseAngle: number;
+      baseOpacity: number;
+      x: number; 
+      y: number; 
+      angle: number;
+      opacity: number;
+      width: number;
+    }[] = [];
 
-    // Mouse state
     let mouse = { x: -1000, y: -1000 };
     let targetMouse = { x: -1000, y: -1000 };
 
@@ -44,8 +53,6 @@ export function HoverDotGrid() {
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
       particles = [];
-
-      // Create grid of dashes with organic jitter
       for (let x = 0; x < width; x += spacing) {
         for (let y = 0; y < height; y += spacing) {
           const jitterX = (Math.random() - 0.5) * spacing * 0.6;
@@ -53,18 +60,23 @@ export function HoverDotGrid() {
           const baseX = x + jitterX;
           const baseY = y + jitterY;
 
-          // Flow field angle: tangential to concentric circles around the center
+          // Flow field angle: tangential to concentric circles
           const dx = baseX - centerX;
           const dy = baseY - centerY;
-          const angle = Math.atan2(dy, dx) + Math.PI / 2 + (Math.random() - 0.5) * 0.15;
+          const baseAngle = Math.atan2(dy, dx) + Math.PI / 2 + (Math.random() - 0.5) * 0.15;
+          const baseOpacity = 0.15 + Math.random() * 0.25;
 
-          // Color based on X position to mimic the screenshot's gradient
-          const hue = (baseX / width) * 360;
-          const opacity = 0.3 + Math.random() * 0.4;
-          const color = `hsla(${hue}, 80%, 65%, ${opacity})`;
-          const hoverColor = `hsla(${hue}, 100%, 80%, 1)`;
-
-          particles.push({ baseX, baseY, angle, color, hoverColor });
+          particles.push({ 
+            baseX, 
+            baseY, 
+            baseAngle,
+            baseOpacity,
+            x: baseX, 
+            y: baseY, 
+            angle: baseAngle,
+            opacity: baseOpacity,
+            width: baseDashWidth
+          });
         }
       }
     };
@@ -91,54 +103,58 @@ export function HoverDotGrid() {
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Lerp mouse for buttery smooth animation
-      mouse.x += (targetMouse.x - mouse.x) * 0.12;
-      mouse.y += (targetMouse.y - mouse.y) * 0.12;
+      // Lerp mouse
+      mouse.x += (targetMouse.x - mouse.x) * 0.15;
+      mouse.y += (targetMouse.y - mouse.y) * 0.15;
 
       for (const p of particles) {
         const dx = mouse.x - p.baseX;
         const dy = mouse.y - p.baseY;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        let drawX = p.baseX;
-        let drawY = p.baseY;
-        let drawAngle = p.angle;
-        let isHovered = false;
-        let easeFactor = 0;
+        let targetX = p.baseX;
+        let targetY = p.baseY;
+        let targetAngle = p.baseAngle;
+        let targetOpacity = p.baseOpacity;
+        let targetWidth = baseDashWidth;
 
         if (distance < hoverRadius) {
-          isHovered = true;
           const factor = 1 - distance / hoverRadius;
-          easeFactor = factor * factor; // ease-in
+          const easeFactor = factor * factor; // ease-in curve
+          
+          targetOpacity = p.baseOpacity + ((1 - p.baseOpacity) * easeFactor);
+          targetWidth = baseDashWidth + (1.5 * easeFactor);
 
-          // Repel effect (push away from cursor)
+          // Repel from cursor
           if (distance > 0) {
-            drawX -= (dx / distance) * (maxRepel * easeFactor);
-            drawY -= (dy / distance) * (maxRepel * easeFactor);
+            targetX = p.baseX - (dx / distance) * (repelForce * easeFactor);
+            targetY = p.baseY - (dy / distance) * (repelForce * easeFactor);
           }
-
-          // Slightly rotate based on repel force
-          drawAngle += easeFactor * (Math.PI / 6);
+          
+          // Rotate slightly when repelling for a dynamic twisting feel
+          targetAngle = p.baseAngle + (easeFactor * Math.PI / 4);
         }
 
+        // Lerp physical properties for buttery smoothness
+        p.x += (targetX - p.x) * 0.15;
+        p.y += (targetY - p.y) * 0.15;
+        p.angle += (targetAngle - p.angle) * 0.15;
+        p.opacity += (targetOpacity - p.opacity) * 0.15;
+        p.width += (targetWidth - p.width) * 0.15;
+
         ctx.save();
-        ctx.translate(drawX, drawY);
-        ctx.rotate(drawAngle);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
 
         ctx.beginPath();
         ctx.moveTo(-dashLength / 2, 0);
         ctx.lineTo(dashLength / 2, 0);
 
-        if (isHovered) {
-          ctx.strokeStyle = p.hoverColor;
-          ctx.lineWidth = dashWidth + (1.5 * easeFactor);
-        } else {
-          ctx.strokeStyle = p.color;
-          ctx.lineWidth = dashWidth;
-        }
-
+        ctx.strokeStyle = `rgba(255, 255, 255, ${p.opacity})`;
+        ctx.lineWidth = p.width;
         ctx.lineCap = "round";
         ctx.stroke();
+
         ctx.restore();
       }
 
