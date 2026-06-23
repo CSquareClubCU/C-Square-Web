@@ -149,7 +149,7 @@ export function HoverDotGrid() {
           ctx.moveTo(-p.length / 2, 0);
           ctx.lineTo(p.length / 2, 0);
 
-          ctx.strokeStyle = `rgba(255, 255, 255, ${p.opacity})`;
+          ctx.strokeStyle = `rgba(0, 0, 0, ${p.opacity})`;
           ctx.lineWidth = 2; // Thicker lines for brightness
           ctx.lineCap = "round";
           ctx.stroke();
@@ -174,7 +174,7 @@ export function HoverDotGrid() {
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 z-0 overflow-hidden bg-black pointer-events-none"
+      className="absolute inset-0 z-0 overflow-hidden bg-transparent pointer-events-none"
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
     </div>

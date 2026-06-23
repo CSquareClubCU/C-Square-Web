@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center w-full overflow-hidden">
       {/* ─── HERO SECTION ─── */}
-      <section className="relative w-full min-h-[100vh] flex flex-col items-center justify-center text-center px-5 md:px-10 bg-black text-white noise-overlay">
+      <section className="relative w-full min-h-[100vh] flex flex-col items-center justify-center text-center px-5 md:px-10 bg-white text-black noise-overlay">
         {/* Interactive dots background */}
         <HoverDotGrid />
         {/* Subtle white ambient glows */}
@@ -45,41 +45,27 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold tracking-[0.15em] uppercase text-white/60 mb-8 px-5 py-2.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-sm"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
-            Chandigarh University&apos;s Tech Club
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15 }}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold tracking-tighter leading-[1.05] mb-8"
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="mb-8"
           >
-            <span className="gradient-text">Build the future,</span>
-            <br />
-            <span className="relative">
-              <span className="gradient-text">one line at a time</span>
-              <motion.span
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.9,
-                  ease: [0.23, 1, 0.32, 1],
-                }}
-                className="absolute -bottom-2 left-0 right-0 h-1.5 bg-white/20 -z-10 origin-left rounded-sm"
-              />
-            </span>
-            .
-          </motion.h1>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/5 border border-black/10 text-xs font-semibold tracking-wider text-gray-600 mb-6">
+              <span className="w-2 h-2 rounded-full bg-black" />
+              CHANDIGARH UNIVERSITY'S TECH CLUB
+            </div>
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] text-black">
+              <span>Build the future,</span>
+              <br />
+              <span className="text-black/80">one line at a time.</span>
+            </h1>
+          </motion.div>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            className="text-lg md:text-xl text-white/40 max-w-[600px] mx-auto mb-12 leading-relaxed"
+            transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
+            className="text-lg md:text-xl text-gray-600 max-w-[600px] mx-auto mb-10 leading-relaxed font-medium"
           >
             We host hackathons, coding competitions, and workshops to help you
             level up your skills. Register, get your QR code, and check in
@@ -89,23 +75,20 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
+            className="flex items-center justify-center gap-4 flex-col sm:flex-row"
           >
             <Link href="/events">
-              <Button
-                size="lg"
-                className="group px-8 bg-white text-black hover:bg-gray-100 font-semibold shadow-[0_0_40px_rgba(255,255,255,0.06)]"
-              >
+              <Button size="lg" className="group bg-black text-white hover:bg-gray-800">
                 Explore Events
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="/team">
               <Button
-                variant="secondary"
+                variant="outline"
                 size="lg"
-                className="px-8 border-white/10 text-white/70 hover:text-white hover:bg-white/[0.06] bg-transparent"
+                className="border-black/10 text-black hover:bg-black/5"
               >
                 Meet the Team
               </Button>
@@ -123,9 +106,9 @@ export default function Home() {
           <motion.div
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-6 h-10 rounded-full border-2 border-white/15 flex items-start justify-center pt-2"
+            className="w-6 h-10 rounded-full border-2 border-black/15 flex items-start justify-center pt-2"
           >
-            <div className="w-1 h-2 rounded-full bg-white/50" />
+            <div className="w-1 h-2 rounded-full bg-black/50" />
           </motion.div>
         </motion.div>
 
