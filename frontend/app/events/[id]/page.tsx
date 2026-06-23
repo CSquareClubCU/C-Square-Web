@@ -199,7 +199,17 @@ export default function EventDetailPage() {
                   </Button>
                 </Link>
 
-                <Button variant="ghost" className="w-full text-[var(--c-muted-text)]" size="sm">
+                <Button 
+                  variant="ghost" 
+                  className="w-full text-[var(--c-muted-text)]" 
+                  size="sm"
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      navigator.clipboard.writeText(window.location.href);
+                      alert("Event link copied to clipboard!");
+                    }
+                  }}
+                >
                   <Share2 className="w-4 h-4 mr-2" />
                   Share Event
                 </Button>
