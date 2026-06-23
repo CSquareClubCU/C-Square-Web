@@ -34,16 +34,16 @@ export default function EventsPage() {
   return (
     <div className="w-full">
       {/* Page Header */}
-      <section className="w-full bg-[var(--c-surface)] dot-grid py-16 md:py-24 border-b border-[var(--c-border)]">
+      <section className="w-full bg-black text-white dot-grid py-16 md:py-24 border-b border-[var(--c-border)]">
         <div className="max-w-[1200px] mx-auto px-5 md:px-10">
           <FadeUp>
-            <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
+            <span className="text-xs font-semibold tracking-[0.2em] uppercase text-white/60 mb-4 inline-block">
               Discover
             </span>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
               Upcoming Events
             </h1>
-            <p className="text-lg text-[var(--c-secondary-text)] max-w-[600px]">
+            <p className="text-lg text-white/70 max-w-[600px]">
               Browse hackathons, workshops, and seminars. Register with one click and get your QR code instantly.
             </p>
           </FadeUp>
