@@ -33,20 +33,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-[calc(100vh-80px)] flex relative overflow-hidden">
       {/* Left side — branding */}
-      <div className="hidden lg:flex w-1/2 bg-[var(--c-accent)] text-white relative overflow-hidden flex-col justify-between p-16">
-        {/* Dot grid overlay */}
-        <div className="absolute inset-0 dot-grid opacity-[0.03]" />
-
-        {/* Floating shapes */}
-        <Float duration={7} distance={20} className="absolute top-[15%] right-[15%]">
-          <div className="w-24 h-24 rounded-3xl border border-white/10 rotate-12" />
-        </Float>
-        <Float duration={5} distance={12} className="absolute bottom-[25%] left-[10%]">
-          <div className="w-16 h-16 rounded-full border border-white/10" />
-        </Float>
-        <Float duration={6} distance={14} className="absolute top-[60%] right-[25%]">
-          <div className="w-12 h-12 rounded-lg border border-white/10 -rotate-12" />
-        </Float>
+      <div className="hidden lg:flex w-1/2 bg-black text-white relative overflow-hidden flex-col justify-between p-16 noise-overlay">
+        {/* Code grid overlay */}
+        <div className="absolute inset-0 code-grid opacity-50" />
 
         <div className="relative z-10">
           <Link href="/" className="text-xl font-bold tracking-tight opacity-90">
@@ -200,9 +189,9 @@ export default function LoginPage() {
                     damping: 15,
                     delay: 0.2,
                   }}
-                  className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-8"
+                  className="w-20 h-20 rounded-full bg-black text-white flex items-center justify-center mx-auto mb-8 shadow-lg"
                 >
-                  <CheckCircle2 className="w-10 h-10 text-[var(--c-success)]" />
+                  <CheckCircle2 className="w-10 h-10" />
                 </motion.div>
 
                 <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-4">

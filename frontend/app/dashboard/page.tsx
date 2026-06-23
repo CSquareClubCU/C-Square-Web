@@ -57,26 +57,26 @@ const statusConfig: Record<string, { label: string; icon: React.ReactNode; color
   approved: {
     label: "Approved",
     icon: <CheckCircle2 className="w-4 h-4" />,
-    color: "text-green-700",
-    bg: "bg-green-50",
+    color: "text-black",
+    bg: "bg-gray-100 border border-gray-200",
   },
   pending: {
     label: "Pending Review",
     icon: <Clock className="w-4 h-4" />,
-    color: "text-yellow-700",
-    bg: "bg-yellow-50",
+    color: "text-gray-600",
+    bg: "bg-gray-50 border border-gray-200",
   },
   rejected: {
     label: "Rejected",
     icon: <XCircle className="w-4 h-4" />,
-    color: "text-red-700",
-    bg: "bg-red-50",
+    color: "text-white",
+    bg: "bg-black",
   },
   waitlisted: {
     label: "Waitlisted",
     icon: <AlertCircle className="w-4 h-4" />,
-    color: "text-blue-700",
-    bg: "bg-blue-50",
+    color: "text-gray-600",
+    bg: "bg-white border border-gray-200 border-dashed",
   },
 };
 
@@ -91,29 +91,30 @@ export default function DashboardPage() {
   return (
     <div className="w-full">
       {/* Dashboard Header */}
-      <section className="w-full bg-[var(--c-surface)] border-b border-[var(--c-border)] py-10 md:py-14">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10">
+      <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-10 md:py-14 relative overflow-hidden">
+        <div className="absolute inset-0 code-grid" />
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
           <FadeUp>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="flex items-center space-x-5">
-                <div className="w-16 h-16 rounded-full bg-[var(--c-accent)] text-white flex items-center justify-center text-2xl font-bold">
+                <div className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center text-2xl font-bold shadow-lg">
                   {MOCK_USER.full_name.charAt(0)}
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight gradient-text">
                     Hey, {MOCK_USER.full_name.split(" ")[0]}!
                   </h1>
-                  <p className="text-sm text-[var(--c-secondary-text)]">
+                  <p className="text-sm text-white/40">
                     {MOCK_USER.email} &middot; {MOCK_USER.student_uid} &middot; {MOCK_USER.branch}
                   </p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
                   <User className="w-4 h-4 mr-2" />
                   Edit Profile
                 </Button>
-                <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                <Button variant="ghost" size="sm" className="text-white/50 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
                   <LogOut className="w-4 h-4 mr-2" />
                   Log out
                 </Button>
@@ -132,8 +133,8 @@ export default function DashboardPage() {
               onClick={() => setActiveTab(tab)}
               className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
                 activeTab === tab
-                  ? "bg-[var(--c-accent)] text-white"
-                  : "bg-[var(--c-surface)] text-[var(--c-secondary-text)] hover:bg-gray-200"
+                  ? "bg-black text-white"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
               {tab === "upcoming" ? "Upcoming" : "Past"}
