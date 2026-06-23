@@ -35,7 +35,6 @@ export default function LoginPage() {
       {/* Left side — branding */}
       <div className="hidden lg:flex w-1/2 bg-black text-white relative overflow-hidden flex-col justify-between p-16 noise-overlay">
         {/* Code grid overlay */}
-        <div className="absolute inset-0 code-grid opacity-50" />
 
         <div className="relative z-10">
           <Link href="/" className="text-xl font-bold tracking-tight opacity-90">

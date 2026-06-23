@@ -76,7 +76,6 @@ export default function EventDetailPage() {
     <div className="w-full">
       {/* Header background */}
       <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-16 md:py-24 relative overflow-hidden">
-        <div className="absolute inset-0 code-grid" />
         <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
           <FadeUp>
             <Link

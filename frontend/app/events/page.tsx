@@ -35,7 +35,6 @@ export default function EventsPage() {
     <div className="w-full">
       {/* Page Header */}
       <section className="w-full bg-black text-white noise-overlay py-20 md:py-28 border-b border-white/[0.04] relative overflow-hidden">
-        <div className="absolute inset-0 code-grid" />
         <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
           <FadeUp>
             <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase text-white/40 mb-6">
@@ -110,7 +109,6 @@ export default function EventsPage() {
                   <div className="h-full flex flex-col rounded-[24px] border border-[var(--c-border)] bg-white overflow-hidden hover:shadow-xl transition-shadow duration-500">
                     {/* Banner Area */}
                     <div className="h-40 bg-black flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute inset-0 code-grid" />
                       <span className="text-5xl font-black text-white/[0.04] tracking-tighter relative z-10">
                         {event.event_type.toUpperCase()}
                       </span>

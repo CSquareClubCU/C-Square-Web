@@ -32,7 +32,6 @@ export default function TeamPage() {
     <div className="w-full">
       {/* Page Header */}
       <section className="w-full bg-black text-white noise-overlay py-20 md:py-28 border-b border-white/[0.04] relative overflow-hidden">
-        <div className="absolute inset-0 code-grid" />
         <div className="max-w-[1200px] mx-auto px-5 md:px-10 text-center relative z-10">
           <FadeUp>
             <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase text-white/40 mb-6 mx-auto">

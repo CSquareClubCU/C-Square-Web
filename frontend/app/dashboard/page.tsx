@@ -92,7 +92,6 @@ export default function DashboardPage() {
     <div className="w-full">
       {/* Dashboard Header */}
       <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-10 md:py-14 relative overflow-hidden">
-        <div className="absolute inset-0 code-grid" />
         <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
           <FadeUp>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">

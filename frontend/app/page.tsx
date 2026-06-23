@@ -34,7 +34,6 @@ export default function Home() {
       {/* ─── HERO SECTION ─── */}
       <section className="relative w-full min-h-[100vh] flex flex-col items-center justify-center text-center px-5 md:px-10 bg-black text-white noise-overlay">
         {/* Code grid background */}
-        <div className="absolute inset-0 code-grid" />
 
         {/* Subtle white ambient glows */}
         <div className="hero-glow hero-glow-1" />
@@ -245,7 +244,6 @@ export default function Home() {
 
       {/* ─── HOW IT WORKS (Process Steps) ─── */}
       <section className="w-full bg-[var(--c-surface)] py-24 md:py-32 relative overflow-hidden">
-        <div className="absolute inset-0 dot-grid opacity-60" />
 
         <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
           <FadeUp className="text-center mb-20">
@@ -412,7 +410,6 @@ export default function Home() {
             <div className="relative rounded-[32px] overflow-hidden shimmer">
               {/* Pure black background */}
               <div className="absolute inset-0 bg-black" />
-              <div className="absolute inset-0 opacity-[0.02] dot-grid" />
 
               <div className="relative z-10 p-12 md:p-20 text-center text-white">
                 <motion.div
