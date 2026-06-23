@@ -147,7 +147,7 @@ export default function EventsPage() {
                       <div className="w-full bg-gray-100 rounded-full h-1.5 mb-6">
                         <div
                           className="bg-[var(--c-accent)] h-1.5 rounded-full transition-all duration-700"
-                          style={{ width: `${Math.min((event.registered_count / event.capacity) * 100, 100)}%` }}
+                          style={{ width: `${Math.max(0, Math.min((event.registered_count / (event.capacity || 1)) * 100, 100))}%` }}
                         />
                       </div>
 
