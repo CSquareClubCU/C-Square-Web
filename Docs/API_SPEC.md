@@ -25,7 +25,7 @@ The session cookie is set automatically after magic link verification.
 Unauthenticated requests to protected endpoints return `401`.
 
 ### Request Headers
-```
+```text
 Content-Type: application/json
 X-CSRFToken: <csrf_token>   # Required for all POST, PUT, PATCH, DELETE
 ```
@@ -40,10 +40,14 @@ Error responses always follow this shape:
   "error": {
     "code": "ERROR_CODE",
     "message": "Human readable message.",
-    "fields": {}
+    "fields": {
+      "field_name": "Specific error message for this field."
+    }
   }
 }
 ```
+
+**Note on `fields`:** The `fields` object is optional and only included for validation errors (like 400 Bad Request). It maps specific input field names (or field paths) to their respective error messages to help the frontend display inline form errors.
 
 ### Common Error Codes
 
@@ -135,7 +139,7 @@ Verify a magic link token and create a session.
 **Auth required:** No
 
 **Query params:**
-```
+```text
 ?token=<sesame_token>
 ```
 
@@ -182,7 +186,7 @@ Log out the current user. Clears the session.
 ---
 
 ### GET /auth/me/
-Get the currently logged in user's profile.
+Get the currently logged-in user's profile.
 
 **Auth required:** Yes
 
@@ -251,7 +255,7 @@ List all users.
 **Auth required:** Yes — Admin only
 
 **Query params:**
-```
+```text
 ?role=student|volunteer|admin
 ?search=<name or email>
 ?page=1
@@ -323,7 +327,7 @@ List all published events. Public endpoint.
 **Auth required:** No
 
 **Query params:**
-```
+```text
 ?status=published|completed|cancelled    # Default: published
 ?event_type=hackathon|competition|workshop|seminar
 ?upcoming=true                           # Only future events
@@ -463,7 +467,7 @@ Upload an event banner image.
 **Auth required:** Yes — Admin only
 
 **Request:** `multipart/form-data`
-```
+```text
 banner: <file>   # jpg, png, webp only — max 5MB
 ```
 
@@ -729,7 +733,7 @@ Confirm a teammate's participation via the invite link.
 **Auth required:** Yes (teammate must be logged in)
 
 **Query params:**
-```
+```text
 ?token=<confirmation_token>
 ```
 
@@ -759,12 +763,12 @@ Confirm a teammate's participation via the invite link.
 ---
 
 ### GET /registrations/me/
-Get all registrations for the currently logged in user.
+Get all registrations for the currently logged-in user.
 
 **Auth required:** Yes
 
 **Query params:**
-```
+```text
 ?status=pending|approved|rejected|waitlisted|cancelled
 ?upcoming=true
 ```
@@ -860,7 +864,7 @@ Get all registrations for a specific event.
 **Auth required:** Yes — Admin only
 
 **Query params:**
-```
+```text
 ?status=pending|approved|rejected|waitlisted|cancelled
 ?search=<name, email, or UID>
 ?page=1
@@ -1074,7 +1078,7 @@ Get the full attendance list for an event. Used for the manual check-in page.
 **Auth required:** Yes — Admin or assigned Volunteer
 
 **Query params:**
-```
+```text
 ?search=<name, email, or UID>
 ?checked_in=true|false
 ?page=1
@@ -1112,7 +1116,7 @@ Export attendance data as CSV.
 **Auth required:** Yes — Admin only
 
 **Response 200:**
-```
+```csv
 Content-Type: text/csv
 Content-Disposition: attachment; filename="hackcu-2026-attendance.csv"
 
@@ -1153,7 +1157,7 @@ Add a team member.
 **Auth required:** Yes — Admin only
 
 **Request:** `multipart/form-data`
-```
+```text
 full_name: Arjun Singh
 designation: Secretary
 display_order: 1

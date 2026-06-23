@@ -187,12 +187,16 @@ DELETE  → Delete a resource
 ```json
 {
   "error": {
-    "code": "SCREAMING_SNAKE_CASE",
+    "code": "ERROR_CODE",
     "message": "Human readable message.",
-    "fields": {}
+    "fields": {
+      "field_name": "Specific error message for this field."
+    }
   }
 }
 ```
+
+**Note on `fields`:** The `fields` object is optional and only included for validation errors (like 400 Bad Request). It maps specific input field names (or field paths) to their respective error messages to help the frontend display inline form errors.
 
 ### HTTP Status Codes
 ```

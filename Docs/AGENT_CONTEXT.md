@@ -132,7 +132,7 @@ Do not deviate from these without updating this file first.
 
 None yet — add entries as you encounter them using this format:
 
-```
+```text
 ### [Short title]
 **Date:** YYYY-MM-DD
 **Context:** What were you doing when this happened
@@ -148,7 +148,7 @@ None yet — add entries as you encounter them using this format:
 
 None yet — add entries as you make changes using this format:
 
-```
+```text
 ### [YYYY-MM-DD] — [Short description]
 - What changed
 - Which files were affected
@@ -161,22 +161,43 @@ None yet — add entries as you make changes using this format:
 
 At the start of every session, paste this into Antigravity:
 
-```
+```text
 @AGENT_CONTEXT.md @ARCHITECTURE.md @DB_SCHEMA.md @API_SPEC.md
 
 My task for this session: [your specific task here]
 ```
 
 For backend sessions, also include:
-```
+```text
 @CONVENTIONS.md
 ```
 
 For model changes, always state explicitly:
-```
+```text
 I am updating the [model_name] model. The change is:
 [describe the change]
 
 I have already updated DB_SCHEMA.md and AGENT_CONTEXT.md to reflect this.
 Please update the Django model, create a migration, and update any affected serializers.
+```
+
+### Example Session Transcript
+
+Here is a realistic, end-to-end example of a well-structured session prompt for Antigravity:
+
+```text
+@AGENT_CONTEXT.md @ARCHITECTURE.md @DB_SCHEMA.md @API_SPEC.md @CONVENTIONS.md
+
+My task for this session: Implement the `/events/{id}/volunteers/` endpoints for assigning and removing volunteers.
+
+I have already pre-updated the following docs to reflect the new API endpoints and logic:
+- DB_SCHEMA.md (checked volunteer assignment schema)
+- API_SPEC.md (added endpoints for volunteer assignment)
+- AGENT_CONTEXT.md (no model changes needed as events_volunteerassignment already exists)
+
+Please provide the following deliverables:
+1. Update `events/views.py` to add `EventVolunteerListView` and `EventVolunteerAssignmentView`.
+2. Update `events/urls.py` with the new routes.
+3. Update `events/services.py` with the business logic for assigning and removing volunteers, strictly enforcing the role check from the Active Decisions table.
+4. Add unit tests for these new endpoints in `events/tests/test_views.py`.
 ```
