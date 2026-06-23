@@ -26,10 +26,16 @@ export default function EventDetailPage() {
 
   useEffect(() => {
     if (params.id) {
-      fetchEventById(params.id as string).then((data) => {
-        setEvent(data);
-        setLoading(false);
-      });
+      fetchEventById(params.id as string)
+        .then((data) => {
+          setEvent(data);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch event:", error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
   }, [params.id]);
 
@@ -58,10 +64,12 @@ export default function EventDetailPage() {
     );
   }
 
-  const filledPercent = Math.min(
-    (event.registered_count / event.capacity) * 100,
-    100
-  );
+  const capacity = event.capacity || 1; // avoid division by zero
+  const filledPercent = Math.max(0, Math.min((event.registered_count / capacity) * 100, 100));
+  const spotsLeft = Math.max(0, event.capacity - event.registered_count);
+  const isFull = spotsLeft === 0;
+  const isPastDeadline = new Date(event.registration_deadline) < new Date();
+  const canRegister = !isFull && !isPastDeadline && event.status === "published";
 
   return (
     <div className="w-full">
@@ -173,7 +181,7 @@ export default function EventDetailPage() {
                 <div className="mb-6">
                   <div className="flex justify-between text-xs text-[var(--c-muted-text)] mb-2">
                     <span>{event.registered_count} registered</span>
-                    <span>{event.capacity - event.registered_count} spots left</span>
+                    <span>{spotsLeft} spots left</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div
@@ -183,10 +191,10 @@ export default function EventDetailPage() {
                   </div>
                 </div>
 
-                <Link href="/login">
-                  <Button className="w-full group mb-3" size="lg">
-                    Register
-                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <Link href={canRegister ? "/login" : "#"}>
+                  <Button className="w-full group mb-3" size="lg" disabled={!canRegister}>
+                    {isFull ? "Event Full" : isPastDeadline ? "Registration Closed" : "Register"}
+                    {canRegister && <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />}
                   </Button>
                 </Link>
 

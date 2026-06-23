@@ -82,6 +82,11 @@ const statusConfig: Record<string, { label: string; icon: React.ReactNode; color
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
+  
+  const filteredRegistrations = MOCK_REGISTRATIONS.filter((reg) => {
+    const isPast = new Date(reg.event.start_datetime) < new Date();
+    return activeTab === "past" ? isPast : !isPast;
+  });
 
   return (
     <div className="w-full">
@@ -138,7 +143,7 @@ export default function DashboardPage() {
 
         {/* Registrations */}
         <StaggerContainer className="space-y-4">
-          {MOCK_REGISTRATIONS.map((reg) => {
+          {filteredRegistrations.map((reg) => {
             const status = statusConfig[reg.status] || statusConfig.pending;
             return (
               <StaggerItem key={reg.id}>
@@ -189,7 +194,7 @@ export default function DashboardPage() {
         </StaggerContainer>
 
         {/* Empty State */}
-        {MOCK_REGISTRATIONS.length === 0 && (
+        {filteredRegistrations.length === 0 && (
           <FadeUp className="text-center py-20">
             <div className="w-16 h-16 rounded-full bg-[var(--c-surface)] flex items-center justify-center mx-auto mb-6">
               <CalendarDays className="w-8 h-8 text-[var(--c-muted-text)]" />

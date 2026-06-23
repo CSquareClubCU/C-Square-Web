@@ -176,7 +176,10 @@ export async function fetchEvents(): Promise<Event[]> {
   const res = await fetch(`${BASE_URL}/events/`, {
     credentials: 'include',
   });
-  if (!res.ok) throw await res.json();
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || errorData.message || `API request failed with status ${res.status}`);
+  }
   const data = await res.json();
   return data.results;
 }
@@ -192,7 +195,10 @@ export async function fetchEventById(id: string): Promise<Event> {
   const res = await fetch(`${BASE_URL}/events/${id}/`, {
     credentials: 'include',
   });
-  if (!res.ok) throw await res.json();
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || errorData.message || `API request failed with status ${res.status}`);
+  }
   return res.json();
 }
 
@@ -205,7 +211,10 @@ export async function fetchTeam() {
   const res = await fetch(`${BASE_URL}/team/`, {
     credentials: 'include',
   });
-  if (!res.ok) throw await res.json();
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || errorData.message || `API request failed with status ${res.status}`);
+  }
   const data = await res.json();
   return data.results;
 }

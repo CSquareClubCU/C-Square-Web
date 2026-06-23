@@ -6,7 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "TBD";
+  return date.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -14,7 +16,9 @@ export function formatDate(dateString: string) {
 }
 
 export function formatTime(dateString: string) {
-  return new Date(dateString).toLocaleTimeString("en-US", {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "TBD";
+  return date.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
   });

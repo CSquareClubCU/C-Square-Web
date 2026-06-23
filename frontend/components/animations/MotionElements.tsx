@@ -216,7 +216,7 @@ export function AnimatedCounter({
 
   useEffect(() => {
     if (isInView && ref.current) {
-      let start = 0;
+      let animationFrameId: number;
       const end = value;
       const duration = 2000;
       const startTime = Date.now();
@@ -227,10 +227,13 @@ export function AnimatedCounter({
         const eased = 1 - Math.pow(1 - progress, 3);
         const current = Math.floor(eased * end);
         if (ref.current) ref.current.textContent = current.toString();
-        if (progress < 1) requestAnimationFrame(tick);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(tick);
+        }
       };
 
-      requestAnimationFrame(tick);
+      animationFrameId = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(animationFrameId);
     }
   }, [isInView, value]);
 

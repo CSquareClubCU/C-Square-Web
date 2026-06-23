@@ -16,10 +16,16 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTeam().then((data) => {
-      setTeam(data);
-      setLoading(false);
-    });
+    fetchTeam()
+      .then((data) => {
+        setTeam(data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch team:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   return (
