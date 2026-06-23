@@ -52,7 +52,7 @@ export function HoverDotGrid() {
         const baseY = Math.random() * height;
 
         const baseLength = 1 + Math.random() * 4; 
-        const maxOpacity = 0.3 + Math.random() * 0.7;
+        const maxOpacity = 0.6 + Math.random() * 0.4; // Brighter
 
         particles.push({ 
           baseX, 
@@ -91,8 +91,8 @@ export function HoverDotGrid() {
       ctx.clearRect(0, 0, width, height);
 
       // Lerp mouse
-      mouse.x += (targetMouse.x - mouse.x) * 0.15;
-      mouse.y += (targetMouse.y - mouse.y) * 0.15;
+      mouse.x += (targetMouse.x - mouse.x) * 0.25; // Faster mouse follow
+      mouse.y += (targetMouse.y - mouse.y) * 0.25;
 
       for (const p of particles) {
         const dx = p.baseX - mouse.x;
@@ -116,8 +116,7 @@ export function HoverDotGrid() {
           targetOpacity = p.maxOpacity * easeFactor;
 
           // 3D effect: lines stretch as they get further from the cursor center
-          // At distance 0, they are dots. At the edges, they stretch into streaks.
-          const perspectiveStretch = (distance / hoverRadius) * 15;
+          const perspectiveStretch = (distance / hoverRadius) * 18; // More stretch
           targetLength = p.baseLength + perspectiveStretch;
 
           // Repel from cursor slightly for dynamic movement
@@ -128,17 +127,17 @@ export function HoverDotGrid() {
         }
 
         // Fast lerp for snappy but smooth updates
-        p.x += (targetX - p.x) * 0.2;
-        p.y += (targetY - p.y) * 0.2;
+        p.x += (targetX - p.x) * 0.4;
+        p.y += (targetY - p.y) * 0.4;
         
         // Handle angle lerp carefully around PI boundaries to prevent spinning
         let angleDiff = targetAngle - p.angle;
         while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
         while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-        p.angle += angleDiff * 0.2;
+        p.angle += angleDiff * 0.4;
 
-        p.opacity += (targetOpacity - p.opacity) * 0.2;
-        p.length += (targetLength - p.length) * 0.2;
+        p.opacity += (targetOpacity - p.opacity) * 0.4;
+        p.length += (targetLength - p.length) * 0.4;
 
         // Optimization: only draw if visible
         if (p.opacity > 0.01) {
@@ -151,7 +150,7 @@ export function HoverDotGrid() {
           ctx.lineTo(p.length / 2, 0);
 
           ctx.strokeStyle = `rgba(255, 255, 255, ${p.opacity})`;
-          ctx.lineWidth = 1.5;
+          ctx.lineWidth = 2; // Thicker lines for brightness
           ctx.lineCap = "round";
           ctx.stroke();
 
