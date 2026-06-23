@@ -49,7 +49,7 @@ export function HoverDotGrid() {
             baseY: y, 
             x: x, 
             y: y, 
-            size: 1.5,
+            size: 4, // Base font size
             opacity: 0
           });
         }
@@ -92,29 +92,24 @@ export function HoverDotGrid() {
 
         let targetX = dot.baseX;
         let targetY = dot.baseY;
-        let targetSize = 1.5;
+        let targetSize = 4; // Base font size
         let targetOpacity = 0; // Default invisible
 
         if (distance < hoverRadius) {
           // Wave calculations
-          // This creates a continuous outward ripple from the cursor
           const wavelength = 120; // Distance between wave peaks
           const phase = elapsed * 0.004; // Speed of the rippling
           
-          // Cosine wave based on distance gives us the concentric rings
           const wave = Math.cos(distance * (Math.PI * 2 / wavelength) - phase);
-          
-          // Smooth falloff towards the edge of the spotlight
           const falloff = 1 - (distance / hoverRadius);
-          const easeFalloff = falloff * falloff; // Smoother fade at the edge
+          const easeFalloff = falloff * falloff; 
           
-          // Map wave from [-1, 1] to [0, 1] and apply falloff
           const intensity = ((wave + 1) / 2) * easeFalloff;
 
-          // Wave peaks are larger squares
-          targetSize = 1.5 + (intensity * 7);
+          // Wave peaks make the C² font much larger
+          targetSize = 4 + (intensity * 18);
           
-          // Wave peaks are darker/more visible
+          // Wave peaks are darker
           targetOpacity = intensity * 0.8;
 
           // Wave displacement (pushes dots outward slightly on the wave peaks)
@@ -134,9 +129,10 @@ export function HoverDotGrid() {
         // Optimization: only draw if visible
         if (dot.opacity > 0.01) {
           ctx.fillStyle = `rgba(0, 0, 0, ${dot.opacity})`;
-          // Draw a perfect square centered on the dot's position
-          const s = dot.size;
-          ctx.fillRect(dot.x - s / 2, dot.y - s / 2, s, s);
+          ctx.font = `bold ${dot.size}px Inter, sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("C²", dot.x, dot.y);
         }
       }
 
