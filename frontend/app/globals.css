@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: #FFFFFF;
+  --color-surface: #F8F8F8;
+  --color-card: #FFFFFF;
+  --color-primary: #111111;
+  --color-secondary: #666666;
+  --color-muted: #888888;
+  --color-border-custom: #EAEAEA;
+  --color-accent: #111111;
+  --color-accent-hover: #222222;
+  --color-success: #0A8F5A;
+  --font-sans: "Inter", "Satoshi", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Design doc tokens as CSS variables — NOT in @theme to avoid conflicts */
+:root {
+  --c-background: #FFFFFF;
+  --c-surface: #F8F8F8;
+  --c-card: #FFFFFF;
+  --c-primary-text: #111111;
+  --c-secondary-text: #666666;
+  --c-muted-text: #888888;
+  --c-border: #EAEAEA;
+  --c-accent: #111111;
+  --c-accent-hover: #222222;
+  --c-success: #0A8F5A;
+}
+
+body {
+  background: var(--c-background);
+  color: var(--c-primary-text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Typography Scale from design doc */
+h1, .hero-text {
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h3 {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ─── 3D Perspective Container ─── */
+.perspective-container {
+  perspective: 1200px;
+  perspective-origin: center;
+}
+
+/* ─── Gradient Mesh Background ─── */
+.mesh-gradient {
+  background:
+    radial-gradient(at 20% 80%, rgba(17, 17, 17, 0.03) 0%, transparent 50%),
+    radial-gradient(at 80% 20%, rgba(17, 17, 17, 0.03) 0%, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(17, 17, 17, 0.01) 0%, transparent 70%);
+}
+
+/* ─── Subtle Dot Grid ─── */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ─── Animated Underline ─── */
+.animated-underline {
+  position: relative;
+}
+
+.animated-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--c-accent);
+  transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.animated-underline:hover::after {
+  width: 100%;
+}
+
+/* ─── Navbar Glassmorphism ─── */
+.navbar-glass {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* ─── Smooth Scroll ─── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ─── Selection Colour ─── */
+::selection {
+  background: rgba(17, 17, 17, 0.12);
+  color: var(--c-primary-text);
+}
