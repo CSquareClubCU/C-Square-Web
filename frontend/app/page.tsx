@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center w-full overflow-hidden">
       {/* ─── HERO SECTION ─── */}
-      <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center text-center px-5 md:px-10">
+      <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center text-center px-5 md:px-10 bg-[var(--c-accent)] text-white">
         {/* Dot grid background */}
         <div className="absolute inset-0 dot-grid opacity-50" />
         {/* Mesh gradient overlay */}
@@ -27,16 +27,16 @@ export default function Home() {
 
         {/* Floating geometric shapes for 3D depth */}
         <Float duration={6} distance={15} className="absolute top-[15%] left-[8%] hidden lg:block">
-          <div className="w-16 h-16 rounded-2xl border border-[var(--c-border)] bg-white/80 shadow-sm rotate-12" />
+          <div className="w-16 h-16 rounded-2xl border border-white/10 bg-white/5 shadow-sm rotate-12" />
         </Float>
         <Float duration={5} distance={10} className="absolute top-[25%] right-[10%] hidden lg:block">
-          <div className="w-12 h-12 rounded-full border border-[var(--c-border)] bg-white/80 shadow-sm" />
+          <div className="w-12 h-12 rounded-full border border-white/10 bg-white/5 shadow-sm" />
         </Float>
         <Float duration={7} distance={18} className="absolute bottom-[20%] left-[12%] hidden lg:block">
-          <div className="w-10 h-10 rounded-lg border border-[var(--c-border)] bg-white/80 shadow-sm -rotate-6" />
+          <div className="w-10 h-10 rounded-lg border border-white/10 bg-white/5 shadow-sm -rotate-6" />
         </Float>
         <Float duration={4} distance={8} className="absolute bottom-[30%] right-[8%] hidden lg:block">
-          <div className="w-20 h-20 rounded-3xl border border-[var(--c-border)] bg-white/60 shadow-sm rotate-45" />
+          <div className="w-20 h-20 rounded-3xl border border-white/10 bg-white/5 shadow-sm rotate-45" />
         </Float>
 
         <div className="relative z-10 max-w-[900px]">
@@ -44,7 +44,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-block text-xs md:text-sm font-semibold tracking-[0.2em] uppercase text-[var(--c-secondary-text)] mb-8 px-4 py-2 rounded-full border border-[var(--c-border)] bg-white/60"
+            className="inline-block text-xs md:text-sm font-semibold tracking-[0.2em] uppercase text-white/80 mb-8 px-4 py-2 rounded-full border border-white/20 bg-white/10"
           >
             Chandigarh University&apos;s Tech Club
           </motion.span>
@@ -63,7 +63,7 @@ export default function Home() {
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ duration: 0.8, delay: 0.8, ease: [0.23, 1, 0.32, 1] }}
-                className="absolute bottom-2 left-0 right-0 h-3 bg-[var(--c-accent)]/8 -z-10 origin-left rounded-sm"
+                className="absolute bottom-2 left-0 right-0 h-3 bg-white/20 -z-10 origin-left rounded-sm"
               />
             </span>
             .
@@ -73,7 +73,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-lg md:text-xl text-[var(--c-secondary-text)] max-w-[650px] mx-auto mb-12 leading-relaxed"
+            className="text-lg md:text-xl text-white/70 max-w-[650px] mx-auto mb-12 leading-relaxed"
           >
             We host hackathons, coding competitions, and workshops to help you
             level up your skills. Register, get your QR code, and check in
@@ -87,13 +87,13 @@ export default function Home() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link href="/events">
-              <Button size="lg" className="group px-8">
+              <Button size="lg" className="group px-8 bg-white text-black hover:bg-gray-200">
                 Explore Events
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="/team">
-              <Button variant="secondary" size="lg" className="px-8">
+              <Button variant="secondary" size="lg" className="px-8 border-white/20 text-white hover:bg-white/10 bg-transparent">
                 Meet the Team
               </Button>
             </Link>
@@ -110,9 +110,9 @@ export default function Home() {
           <motion.div
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-6 h-10 rounded-full border-2 border-[var(--c-border)] flex items-start justify-center pt-2"
+            className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center pt-2"
           >
-            <div className="w-1 h-2 rounded-full bg-[var(--c-accent)]" />
+            <div className="w-1 h-2 rounded-full bg-white" />
           </motion.div>
         </motion.div>
       </section>
