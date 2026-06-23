@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowUpRight, Github, Instagram, Linkedin } from "lucide-react";
+import { ArrowUpRight, Globe, Code2, ExternalLink } from "lucide-react";
 
 const footerLinks = [
   {
@@ -23,9 +22,9 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-  { icon: <Github className="w-4 h-4" />, href: "#", label: "GitHub" },
-  { icon: <Instagram className="w-4 h-4" />, href: "#", label: "Instagram" },
-  { icon: <Linkedin className="w-4 h-4" />, href: "#", label: "LinkedIn" },
+  { icon: <Code2 className="w-4 h-4" />, href: "#", label: "GitHub" },
+  { icon: <Globe className="w-4 h-4" />, href: "#", label: "Website" },
+  { icon: <ExternalLink className="w-4 h-4" />, href: "#", label: "LinkedIn" },
 ];
 
 export function Footer() {
