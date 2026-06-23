@@ -68,7 +68,7 @@ export default function Home() {
                   delay: 0.9,
                   ease: [0.23, 1, 0.32, 1],
                 }}
-                className="absolute bottom-2 left-0 right-0 h-3 bg-white/10 -z-10 origin-left rounded-sm"
+                className="absolute -bottom-2 left-0 right-0 h-1.5 bg-white/20 -z-10 origin-left rounded-sm"
               />
             </span>
             .
