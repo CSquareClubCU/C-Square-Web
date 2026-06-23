@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -14,12 +15,19 @@ const navLinks = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Pages that have a dark hero section
+  const isDarkHero = pathname === "/";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Determine text color: white on dark hero (not scrolled), else dark
+  const isTransparentOnDark = isDarkHero && !scrolled;
 
   return (
     <>
@@ -34,7 +42,9 @@ export function Header() {
           {/* Logo */}
           <Link
             href="/"
-            className="text-xl font-bold tracking-tight text-[var(--c-accent)] hover:opacity-80 transition-opacity relative z-10"
+            className={`text-xl font-bold tracking-tight hover:opacity-80 transition-all relative z-10 ${
+              isTransparentOnDark ? "text-white" : "text-[var(--c-accent)]"
+            }`}
           >
             <motion.span
               initial={{ opacity: 0, x: -20 }}
@@ -56,7 +66,11 @@ export function Header() {
               >
                 <Link
                   href={link.href}
-                  className="text-sm font-medium text-[var(--c-secondary-text)] animated-underline hover:text-[var(--c-accent)] transition-colors"
+                  className={`text-sm font-medium animated-underline transition-colors ${
+                    isTransparentOnDark
+                      ? "text-white/70 hover:text-white"
+                      : "text-[var(--c-secondary-text)] hover:text-[var(--c-accent)]"
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -72,19 +86,38 @@ export function Header() {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <Link href="/login">
-              <Button variant="ghost" size="sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={
+                  isTransparentOnDark
+                    ? "text-white/70 hover:text-white hover:bg-white/10"
+                    : ""
+                }
+              >
                 Log in
               </Button>
             </Link>
             <Link href="/login">
-              <Button size="sm">Get Started</Button>
+              <Button
+                size="sm"
+                className={
+                  isTransparentOnDark
+                    ? "bg-white text-black hover:bg-gray-200"
+                    : ""
+                }
+              >
+                Get Started
+              </Button>
             </Link>
           </motion.div>
 
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden relative z-10 p-2"
+            className={`md:hidden relative z-10 p-2 ${
+              isTransparentOnDark && !mobileOpen ? "text-white" : ""
+            }`}
             aria-label="Toggle menu"
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}

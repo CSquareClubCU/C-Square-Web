@@ -239,3 +239,138 @@ export function AnimatedCounter({
 
   return <span ref={ref} className={className}>0</span>;
 }
+
+/* ─── Marquee (Infinite Horizontal Scroll) ─── */
+export function Marquee({
+  children,
+  className = "",
+  speed = 30,
+}: {
+  children: ReactNode;
+  className?: string;
+  speed?: number;
+}) {
+  return (
+    <div className={`overflow-hidden ${className}`}>
+      <div
+        className="marquee-track"
+        style={{ animationDuration: `${speed}s` }}
+      >
+        {children}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Text Reveal (Per-Character Stagger) ─── */
+export function TextReveal({
+  text,
+  className = "",
+  delay = 0,
+}: {
+  text: string;
+  className?: string;
+  delay?: number;
+}) {
+  const words = text.split(" ");
+
+  return (
+    <motion.span
+      initial="hidden"
+      animate="visible"
+      className={className}
+      variants={{
+        hidden: {},
+        visible: {
+          transition: {
+            staggerChildren: 0.04,
+            delayChildren: delay,
+          },
+        },
+      }}
+    >
+      {words.map((word, wi) => (
+        <span key={wi} className="inline-block mr-[0.3em]">
+          {word.split("").map((char, ci) => (
+            <motion.span
+              key={ci}
+              className="inline-block"
+              variants={{
+                hidden: { opacity: 0, y: 20, filter: "blur(4px)" },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  filter: "blur(0px)",
+                  transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] },
+                },
+              }}
+            >
+              {char}
+            </motion.span>
+          ))}
+        </span>
+      ))}
+    </motion.span>
+  );
+}
+
+/* ─── Glow Card (White Glow on Hover) ─── */
+export function GlowCard({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`relative group ${className}`}>
+      <div className="relative">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Orbit Ring ─── */
+export function OrbitRing({
+  className = "",
+  size = 400,
+}: {
+  className?: string;
+  size?: number;
+}) {
+  return (
+    <div
+      className={`orbit-ring ${className}`}
+      style={{ width: size, height: size }}
+    >
+      <svg
+        viewBox="0 0 400 400"
+        fill="none"
+        className="w-full h-full"
+      >
+        <circle
+          cx="200"
+          cy="200"
+          r="180"
+          stroke="rgba(255, 255, 255, 0.15)"
+          strokeWidth="0.5"
+          strokeDasharray="4 8"
+        />
+        <circle
+          cx="200"
+          cy="200"
+          r="140"
+          stroke="rgba(255, 255, 255, 0.08)"
+          strokeWidth="0.5"
+          strokeDasharray="3 12"
+        />
+        {/* Orbiting dots */}
+        <circle cx="200" cy="20" r="3" fill="rgba(255, 255, 255, 0.3)" />
+        <circle cx="380" cy="200" r="2" fill="rgba(255, 255, 255, 0.2)" />
+        <circle cx="60" cy="300" r="2.5" fill="rgba(255, 255, 255, 0.15)" />
+      </svg>
+    </div>
+  );
+}
