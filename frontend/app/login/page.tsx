@@ -9,12 +9,20 @@ import { Float } from "@/components/animations/MotionElements";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     if (!email) return;
+    
+    if (!email.endsWith("@cuchd.in") && !email.endsWith("@cumail.in")) {
+      setError("Please use your @cuchd.in or @cumail.in email address.");
+      return;
+    }
+    
     setLoading(true);
     // Simulate API call — will be replaced with real POST /api/auth/magic-link/
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -139,6 +147,11 @@ export default function LoginPage() {
                         className="w-full pl-12 pr-4 py-4 rounded-2xl border border-[var(--c-border)] bg-white text-[var(--c-primary-text)] placeholder:text-[var(--c-muted-text)] focus:outline-none focus:ring-2 focus:ring-[var(--c-accent)]/10 focus:border-[var(--c-accent)] transition-all duration-200"
                       />
                     </div>
+                    {error && (
+                      <p className="text-sm text-red-500 font-medium">
+                        {error}
+                      </p>
+                    )}
                     <p className="text-xs text-[var(--c-muted-text)]">
                       CU students: use your @cuchd.in or @cumail.in email
                     </p>
