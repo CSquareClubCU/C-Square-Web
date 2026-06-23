@@ -17,21 +17,16 @@ export function HoverDotGrid() {
     let width = 0;
     let height = 0;
 
-    const numParticles = 2000; // High density for the spotlight
-    const hoverRadius = 350; // Spotlight size
-    const repelForce = 30;
+    const spacing = 28; // Clean grid spacing
+    const hoverRadius = 380; // Spotlight size
 
-    // Store properties for each dash
-    let particles: { 
+    let dots: { 
       baseX: number; 
       baseY: number; 
-      baseLength: number;
-      maxOpacity: number;
       x: number; 
       y: number; 
-      angle: number;
+      size: number;
       opacity: number;
-      length: number;
     }[] = [];
 
     let mouse = { x: -1000, y: -1000 };
@@ -46,25 +41,18 @@ export function HoverDotGrid() {
       canvas.height = height * window.devicePixelRatio;
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-      particles = [];
-      for (let i = 0; i < numParticles; i++) {
-        const baseX = Math.random() * width;
-        const baseY = Math.random() * height;
-
-        const baseLength = 1 + Math.random() * 4; 
-        const maxOpacity = 0.6 + Math.random() * 0.4; // Brighter
-
-        particles.push({ 
-          baseX, 
-          baseY, 
-          baseLength,
-          maxOpacity,
-          x: baseX, 
-          y: baseY, 
-          angle: 0,
-          opacity: 0,
-          length: baseLength
-        });
+      dots = [];
+      for (let x = 0; x < width; x += spacing) {
+        for (let y = 0; y < height; y += spacing) {
+          dots.push({ 
+            baseX: x, 
+            baseY: y, 
+            x: x, 
+            y: y, 
+            size: 1.5,
+            opacity: 0
+          });
+        }
       }
     };
 
@@ -86,82 +74,76 @@ export function HoverDotGrid() {
     init();
 
     let animationFrameId: number;
+    let startTime = performance.now();
 
-    const render = () => {
+    const render = (time: number) => {
       ctx.clearRect(0, 0, width, height);
+      
+      const elapsed = time - startTime;
 
       // Lerp mouse
-      mouse.x += (targetMouse.x - mouse.x) * 0.25; // Faster mouse follow
-      mouse.y += (targetMouse.y - mouse.y) * 0.25;
+      mouse.x += (targetMouse.x - mouse.x) * 0.2;
+      mouse.y += (targetMouse.y - mouse.y) * 0.2;
 
-      for (const p of particles) {
-        const dx = p.baseX - mouse.x;
-        const dy = p.baseY - mouse.y;
+      for (const dot of dots) {
+        const dx = dot.baseX - mouse.x;
+        const dy = dot.baseY - mouse.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        let targetX = p.baseX;
-        let targetY = p.baseY;
-        let targetOpacity = 0;
-        let targetLength = p.baseLength;
-        let targetAngle = p.angle;
+        let targetX = dot.baseX;
+        let targetY = dot.baseY;
+        let targetSize = 1.5;
+        let targetOpacity = 0; // Default invisible
 
         if (distance < hoverRadius) {
-          // Angle points outward from the cursor
-          targetAngle = Math.atan2(dy, dx);
+          // Wave calculations
+          // This creates a continuous outward ripple from the cursor
+          const wavelength = 120; // Distance between wave peaks
+          const phase = elapsed * 0.004; // Speed of the rippling
           
-          const factor = 1 - distance / hoverRadius;
-          const easeFactor = factor * factor; 
+          // Cosine wave based on distance gives us the concentric rings
+          const wave = Math.cos(distance * (Math.PI * 2 / wavelength) - phase);
           
-          // Fade in near the cursor
-          targetOpacity = p.maxOpacity * easeFactor;
+          // Smooth falloff towards the edge of the spotlight
+          const falloff = 1 - (distance / hoverRadius);
+          const easeFalloff = falloff * falloff; // Smoother fade at the edge
+          
+          // Map wave from [-1, 1] to [0, 1] and apply falloff
+          const intensity = ((wave + 1) / 2) * easeFalloff;
 
-          // 3D effect: lines stretch as they get further from the cursor center
-          const perspectiveStretch = (distance / hoverRadius) * 18; // More stretch
-          targetLength = p.baseLength + perspectiveStretch;
+          // Wave peaks are larger squares
+          targetSize = 1.5 + (intensity * 7);
+          
+          // Wave peaks are darker/more visible
+          targetOpacity = intensity * 0.8;
 
-          // Repel from cursor slightly for dynamic movement
+          // Wave displacement (pushes dots outward slightly on the wave peaks)
+          const displacement = intensity * 10;
           if (distance > 0) {
-            targetX = p.baseX + (dx / distance) * (repelForce * easeFactor);
-            targetY = p.baseY + (dy / distance) * (repelForce * easeFactor);
+            targetX = dot.baseX + (dx / distance) * displacement;
+            targetY = dot.baseY + (dy / distance) * displacement;
           }
         }
 
-        // Fast lerp for snappy but smooth updates
-        p.x += (targetX - p.x) * 0.4;
-        p.y += (targetY - p.y) * 0.4;
-        
-        // Handle angle lerp carefully around PI boundaries to prevent spinning
-        let angleDiff = targetAngle - p.angle;
-        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-        p.angle += angleDiff * 0.4;
-
-        p.opacity += (targetOpacity - p.opacity) * 0.4;
-        p.length += (targetLength - p.length) * 0.4;
+        // Smooth physics lerping
+        dot.x += (targetX - dot.x) * 0.35;
+        dot.y += (targetY - dot.y) * 0.35;
+        dot.size += (targetSize - dot.size) * 0.35;
+        dot.opacity += (targetOpacity - dot.opacity) * 0.35;
 
         // Optimization: only draw if visible
-        if (p.opacity > 0.01) {
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.angle);
-
-          ctx.beginPath();
-          ctx.moveTo(-p.length / 2, 0);
-          ctx.lineTo(p.length / 2, 0);
-
-          ctx.strokeStyle = `rgba(0, 0, 0, ${p.opacity})`;
-          ctx.lineWidth = 2; // Thicker lines for brightness
-          ctx.lineCap = "round";
-          ctx.stroke();
-
-          ctx.restore();
+        if (dot.opacity > 0.01) {
+          ctx.fillStyle = `rgba(0, 0, 0, ${dot.opacity})`;
+          // Draw a perfect square centered on the dot's position
+          const s = dot.size;
+          ctx.fillRect(dot.x - s / 2, dot.y - s / 2, s, s);
         }
       }
 
       animationFrameId = requestAnimationFrame(render);
     };
 
-    render();
+    animationFrameId = requestAnimationFrame(render);
 
     return () => {
       window.removeEventListener("resize", init);
