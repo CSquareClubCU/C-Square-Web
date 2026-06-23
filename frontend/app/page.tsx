@@ -112,8 +112,6 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        {/* Bottom fade transition */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-[3]" />
       </section>
 
       {/* ─── MARQUEE TICKER ─── */}
@@ -241,7 +239,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 relative">
             {/* Connecting line on desktop */}
-            <div className="hidden md:block absolute top-16 left-[20%] right-[20%] h-[1px] bg-gray-200">
+            <div className="hidden md:block absolute top-8 left-[16.5%] right-[16.5%] h-[1px] bg-gray-200 z-0">
               <motion.div
                 className="absolute top-0 left-0 h-full bg-black"
                 initial={{ width: "0%" }}
