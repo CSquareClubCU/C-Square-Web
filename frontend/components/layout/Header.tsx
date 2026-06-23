@@ -44,7 +44,7 @@ export function Header() {
           {/* Logo */}
           <Link
             href="/"
-            className={`text-xl font-bold tracking-tight hover:opacity-80 transition-all relative z-10 ${
+            className={`text-xl font-bold tracking-tight hover:opacity-80 transition-all duration-500 relative z-10 ${
               isTransparentOnDark ? "text-white" : "text-[var(--c-accent)]"
             }`}
           >
@@ -68,7 +68,7 @@ export function Header() {
               >
                 <Link
                   href={link.href}
-                  className={`text-sm font-medium animated-underline transition-colors ${
+                  className={`text-sm font-medium animated-underline transition-colors duration-500 ${
                     isTransparentOnDark
                       ? "text-white/70 hover:text-white"
                       : "text-[var(--c-secondary-text)] hover:text-[var(--c-accent)]"
@@ -91,11 +91,11 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                className={
+                className={`transition-colors duration-500 ${
                   isTransparentOnDark
                     ? "text-white/70 hover:text-white hover:bg-white/10"
                     : ""
-                }
+                }`}
               >
                 Log in
               </Button>
@@ -103,11 +103,11 @@ export function Header() {
             <Link href="/login">
               <Button
                 size="sm"
-                className={
+                className={`transition-colors duration-500 ${
                   isTransparentOnDark
                     ? "bg-white text-black hover:bg-gray-200"
                     : ""
-                }
+                }`}
               >
                 Get Started
               </Button>
@@ -117,7 +117,7 @@ export function Header() {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className={`md:hidden relative z-10 p-2 ${
+            className={`md:hidden relative z-10 p-2 transition-colors duration-500 ${
               isTransparentOnDark && !mobileOpen ? "text-white" : ""
             }`}
             aria-label="Toggle menu"
