@@ -59,6 +59,11 @@ export default function TeamPage() {
               </div>
             ))}
           </div>
+        ) : team.length === 0 ? (
+          <FadeUp className="text-center py-20">
+            <p className="text-xl font-semibold text-[var(--c-secondary-text)]">No team members found</p>
+            <p className="text-sm text-[var(--c-muted-text)] mt-2">Check back later as we update our roster.</p>
+          </FadeUp>
         ) : (
           <StaggerContainer className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
             {team.map((member) => (
