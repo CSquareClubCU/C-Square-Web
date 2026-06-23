@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center w-full overflow-hidden">
       {/* ─── HERO SECTION ─── */}
-      <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center text-center px-5 md:px-10 bg-[var(--c-accent)] text-white">
+      <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center text-center px-5 md:px-10 bg-black text-white">
         {/* Dot grid background */}
         <div className="absolute inset-0 dot-grid opacity-50" />
         {/* Mesh gradient overlay */}
