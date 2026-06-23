@@ -27,14 +27,15 @@ import {
   Marquee,
   OrbitRing,
 } from "@/components/animations/MotionElements";
+import { HoverDotGrid } from "@/components/animations/HoverDotGrid";
 
 export default function Home() {
   return (
     <div className="flex flex-col items-center w-full overflow-hidden">
       {/* ─── HERO SECTION ─── */}
       <section className="relative w-full min-h-[100vh] flex flex-col items-center justify-center text-center px-5 md:px-10 bg-black text-white noise-overlay">
-        {/* Code grid background */}
-
+        {/* Interactive dots background */}
+        <HoverDotGrid />
         {/* Subtle white ambient glows */}
         <div className="hero-glow hero-glow-1" />
         <div className="hero-glow hero-glow-2" />
