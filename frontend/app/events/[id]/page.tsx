@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import DOMPurify from "isomorphic-dompurify";
 import { fetchEventById } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/utils";
 import {
@@ -119,8 +120,8 @@ export default function EventDetailPage() {
               <div className="p-8 md:p-12 rounded-[32px] border border-[var(--c-border)] bg-white">
                 <h2 className="text-2xl font-bold mb-6">About the Event</h2>
                 <div
-                  className="text-[var(--c-secondary-text)] leading-relaxed text-lg"
-                  dangerouslySetInnerHTML={{ __html: event.description }}
+                  className="text-[var(--c-secondary-text)] leading-relaxed text-lg prose"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description) }}
                 />
               </div>
             </SlideIn>
