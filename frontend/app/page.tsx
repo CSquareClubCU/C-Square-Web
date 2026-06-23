@@ -40,41 +40,6 @@ export default function Home() {
         <div className="hero-glow hero-glow-1" />
         <div className="hero-glow hero-glow-2" />
 
-        {/* Orbit decoration */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-20 hidden lg:block">
-          <OrbitRing size={700} />
-        </div>
-
-        {/* Floating code snippets */}
-        <Float duration={8} distance={12} className="absolute top-[12%] left-[5%] hidden xl:block z-[2]">
-          <div className="bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm rounded-xl px-4 py-3 font-mono text-xs text-white/30">
-            <span className="text-white/50">const</span>{" "}
-            <span className="text-white/40">event</span> ={" "}
-            <span className="text-white/50">await</span>{" "}
-            register();
-          </div>
-        </Float>
-        <Float duration={6} distance={15} className="absolute top-[20%] right-[6%] hidden xl:block z-[2]">
-          <div className="bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm rounded-xl px-4 py-3 font-mono text-xs text-white/30">
-            <span className="text-white/60">✓</span> QR generated
-          </div>
-        </Float>
-        <Float duration={7} distance={10} className="absolute bottom-[22%] left-[8%] hidden xl:block z-[2]">
-          <div className="bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm rounded-xl px-4 py-3 font-mono text-xs text-white/30">
-            <span className="text-white/40">{"{ "}</span>
-            status: <span className="text-white/60">&quot;checked_in&quot;</span>
-            <span className="text-white/40">{" }"}</span>
-          </div>
-        </Float>
-        <Float duration={5} distance={8} className="absolute bottom-[15%] right-[10%] hidden xl:block z-[2]">
-          <div className="bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm rounded-xl px-4 py-3 font-mono text-xs text-white/30">
-            <span className="text-white/40">team</span>.
-            <span className="text-white/50">size</span>
-            {" === "}
-            <span className="text-white/60">1000</span>+
-          </div>
-        </Float>
-
         <div className="relative z-10 max-w-[900px]">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
