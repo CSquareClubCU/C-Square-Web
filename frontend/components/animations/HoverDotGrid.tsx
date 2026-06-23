@@ -19,11 +19,9 @@ export function HoverDotGrid() {
     let centerX = 0;
     let centerY = 0;
 
-    const spacing = 32; // Spacing between dashes
-    const dashLength = 8;
-    const baseDashWidth = 1.5;
-    const hoverRadius = 300;
-    const repelForce = 40; // Max pixels to push away
+    const numParticles = 1200; // Dense organic scattering like Antigravity
+    const hoverRadius = 250;
+    const repelForce = 50; 
 
     // Store actual properties and target properties for each dash
     let particles: { 
@@ -31,11 +29,12 @@ export function HoverDotGrid() {
       baseY: number; 
       baseAngle: number;
       baseOpacity: number;
+      baseLength: number;
       x: number; 
       y: number; 
       angle: number;
       opacity: number;
-      width: number;
+      length: number;
     }[] = [];
 
     let mouse = { x: -1000, y: -1000 };
@@ -53,31 +52,31 @@ export function HoverDotGrid() {
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
       particles = [];
-      for (let x = 0; x < width; x += spacing) {
-        for (let y = 0; y < height; y += spacing) {
-          const jitterX = (Math.random() - 0.5) * spacing * 0.6;
-          const jitterY = (Math.random() - 0.5) * spacing * 0.6;
-          const baseX = x + jitterX;
-          const baseY = y + jitterY;
+      for (let i = 0; i < numParticles; i++) {
+        const baseX = Math.random() * width;
+        const baseY = Math.random() * height;
 
-          // Flow field angle: tangential to concentric circles
-          const dx = baseX - centerX;
-          const dy = baseY - centerY;
-          const baseAngle = Math.atan2(dy, dx) + Math.PI / 2 + (Math.random() - 0.5) * 0.15;
-          const baseOpacity = 0.15 + Math.random() * 0.25;
+        // Angle pointing exactly away from center (starburst / hyperspace)
+        const dx = baseX - centerX;
+        const dy = baseY - centerY;
+        const baseAngle = Math.atan2(dy, dx); 
+        
+        // Randomize length and opacity for depth effect
+        const baseLength = 1 + Math.random() * 9; 
+        const baseOpacity = 0.1 + Math.random() * 0.5;
 
-          particles.push({ 
-            baseX, 
-            baseY, 
-            baseAngle,
-            baseOpacity,
-            x: baseX, 
-            y: baseY, 
-            angle: baseAngle,
-            opacity: baseOpacity,
-            width: baseDashWidth
-          });
-        }
+        particles.push({ 
+          baseX, 
+          baseY, 
+          baseAngle,
+          baseOpacity,
+          baseLength,
+          x: baseX, 
+          y: baseY, 
+          angle: baseAngle,
+          opacity: baseOpacity,
+          length: baseLength
+        });
       }
     };
 
@@ -116,14 +115,14 @@ export function HoverDotGrid() {
         let targetY = p.baseY;
         let targetAngle = p.baseAngle;
         let targetOpacity = p.baseOpacity;
-        let targetWidth = baseDashWidth;
+        let targetLength = p.baseLength;
 
         if (distance < hoverRadius) {
           const factor = 1 - distance / hoverRadius;
           const easeFactor = factor * factor; // ease-in curve
           
           targetOpacity = p.baseOpacity + ((1 - p.baseOpacity) * easeFactor);
-          targetWidth = baseDashWidth + (1.5 * easeFactor);
+          targetLength = p.baseLength + (6 * easeFactor);
 
           // Repel from cursor
           if (distance > 0) {
@@ -131,7 +130,7 @@ export function HoverDotGrid() {
             targetY = p.baseY - (dy / distance) * (repelForce * easeFactor);
           }
           
-          // Rotate slightly when repelling for a dynamic twisting feel
+          // Rotate slightly when dodging the mouse
           targetAngle = p.baseAngle + (easeFactor * Math.PI / 4);
         }
 
@@ -140,18 +139,18 @@ export function HoverDotGrid() {
         p.y += (targetY - p.y) * 0.15;
         p.angle += (targetAngle - p.angle) * 0.15;
         p.opacity += (targetOpacity - p.opacity) * 0.15;
-        p.width += (targetWidth - p.width) * 0.15;
+        p.length += (targetLength - p.length) * 0.15;
 
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.angle);
 
         ctx.beginPath();
-        ctx.moveTo(-dashLength / 2, 0);
-        ctx.lineTo(dashLength / 2, 0);
+        ctx.moveTo(-p.length / 2, 0);
+        ctx.lineTo(p.length / 2, 0);
 
         ctx.strokeStyle = `rgba(255, 255, 255, ${p.opacity})`;
-        ctx.lineWidth = p.width;
+        ctx.lineWidth = 1.5;
         ctx.lineCap = "round";
         ctx.stroke();
 
@@ -174,7 +173,7 @@ export function HoverDotGrid() {
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 z-0 overflow-hidden bg-black"
+      className="absolute inset-0 z-0 overflow-hidden bg-black pointer-events-none"
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
     </div>
