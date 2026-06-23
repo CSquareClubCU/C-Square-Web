@@ -117,7 +117,7 @@ export default function Home() {
       </section>
 
       {/* ─── MARQUEE TICKER ─── */}
-      <section className="w-full bg-black text-white py-5 border-b border-white/[0.04]">
+      <section className="w-full bg-white text-black py-5 border-b border-black/[0.04]">
         <Marquee speed={25}>
           <div className="flex items-center gap-12 px-6">
             {[
@@ -132,10 +132,10 @@ export default function Home() {
             ].map((item) => (
               <span
                 key={item}
-                className="text-sm font-semibold tracking-[0.25em] uppercase text-white/15 whitespace-nowrap flex items-center gap-4"
+                className="text-sm font-semibold tracking-[0.25em] uppercase text-black/30 whitespace-nowrap flex items-center gap-4"
               >
                 {item}
-                <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                <span className="w-1.5 h-1.5 rounded-full bg-black/10" />
               </span>
             ))}
           </div>
@@ -143,7 +143,7 @@ export default function Home() {
       </section>
 
       {/* ─── STATS BAR ─── */}
-      <section className="w-full bg-black text-white border-b border-white/[0.04]">
+      <section className="w-full bg-white text-black border-b border-black/[0.04]">
         <div className="max-w-[1200px] mx-auto px-5 md:px-10 py-16 md:py-20 grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
             { value: 1000, suffix: "+", label: "Students Registered", icon: <Users className="w-5 h-5" /> },
@@ -153,15 +153,15 @@ export default function Home() {
           ].map((stat, i) => (
             <FadeUp key={i} delay={i * 0.1} className="text-center stat-underline cursor-default">
               <div className="flex items-center justify-center mb-4">
-                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-white/40">
+                <div className="w-10 h-10 rounded-xl bg-black/[0.02] border border-black/[0.08] flex items-center justify-center text-black/40">
                   {stat.icon}
                 </div>
               </div>
-              <p className="text-4xl md:text-5xl font-bold tracking-tight text-white">
+              <p className="text-4xl md:text-5xl font-bold tracking-tight text-black">
                 <AnimatedCounter value={stat.value} />
                 {stat.suffix}
               </p>
-              <p className="text-sm text-white/30 mt-2">{stat.label}</p>
+              <p className="text-sm text-black/40 mt-2">{stat.label}</p>
             </FadeUp>
           ))}
         </div>
