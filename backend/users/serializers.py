@@ -1,0 +1,113 @@
+"""
+Users app serializers.
+
+Rules (from CONVENTIONS.md):
+- Serializers validate and transform only — no business logic here
+- Business logic lives exclusively in services.py
+"""
+
+from rest_framework import serializers
+
+from users.models import User, UserRole
+
+
+# ---------------------------------------------------------------------------
+# Auth serializers
+# ---------------------------------------------------------------------------
+
+class MagicLinkRequestSerializer(serializers.Serializer):
+    """Validates the email for POST /auth/magic-link/"""
+    email = serializers.EmailField()
+
+
+# ---------------------------------------------------------------------------
+# User profile serializers
+# ---------------------------------------------------------------------------
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    Full user profile — returned by /auth/me/ and /auth/verify/.
+    Used for the currently authenticated user.
+    """
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'email',
+            'full_name',
+            'role',
+            'is_cu_student',
+            'student_uid',
+            'branch',
+            'year',
+            'semester',
+            'batch',
+            'phone',
+        ]
+        read_only_fields = ['id', 'email', 'role', 'is_cu_student']
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """
+    Validates updates to a user's own profile via PATCH /users/me/
+    Email and role cannot be changed via this endpoint.
+    """
+
+    class Meta:
+        model = User
+        fields = [
+            'full_name',
+            'student_uid',
+            'branch',
+            'year',
+            'semester',
+            'batch',
+            'phone',
+        ]
+
+    def validate_year(self, value):
+        if value is not None and not (1 <= value <= 5):
+            raise serializers.ValidationError('Year must be between 1 and 5.')
+        return value
+
+    def validate_semester(self, value):
+        if value is not None and not (1 <= value <= 10):
+            raise serializers.ValidationError('Semester must be between 1 and 10.')
+        return value
+
+    def validate_phone(self, value):
+        if value is not None:
+            normalized = value.replace(' ', '').replace('-', '')
+            check_val = normalized[1:] if normalized.startswith('+') else normalized
+            if not check_val.isdigit() or len(check_val) < 7 or len(check_val) > 15:
+                raise serializers.ValidationError(
+                    'Enter a valid phone number (7–15 digits).'
+                )
+            return normalized
+        return value
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    """
+    Compact user representation — returned by admin's GET /users/ list.
+    """
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'email',
+            'full_name',
+            'role',
+            'is_cu_student',
+            'date_joined',
+        ]
+        read_only_fields = fields
+
+
+class UserRoleSerializer(serializers.Serializer):
+    """
+    Validates the role field for PATCH /users/{id}/role/
+    """
+    role = serializers.ChoiceField(choices=UserRole.choices)
