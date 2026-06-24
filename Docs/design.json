@@ -1,0 +1,612 @@
+{
+  "meta": {
+    "name": "C Square Club — Design System Profile",
+    "version": "1.0",
+    "project": "C Square Club Website, Chandigarh University",
+    "stack": {
+      "frontend": "Next.js 16 (App Router, TypeScript)",
+      "backend": "Django 6 + Django REST Framework",
+      "styling": "Tailwind CSS (inferred from Next.js + minimal aesthetic)",
+      "rendering": "Mixed SSG / ISR / CSR per page type"
+    },
+    "design_inspirations": ["Luma (admin experience)", "Devfolio (event registration experience)"],
+    "reference_site": "Envesty Business Suite — used as direct visual reference for design language"
+  },
+
+  "brand": {
+    "identity": "Clean, minimal, technical. Student-facing but credible. Black-and-white brand — no accent colors.",
+    "tone": "Professional with approachability. Technical club aesthetic — not corporate, not playful.",
+    "logo": {
+      "style": "Boxed monogram / icon mark",
+      "treatment": "Black on white, or white on black. High contrast only.",
+      "placement": "Top-left in navbar, always"
+    },
+    "club_name_display": "C Square Club",
+    "tagline_style": "Overline label in spaced caps above headline (e.g. 'CHANDIGARH UNIVERSITY · TECHNICAL CLUB')"
+  },
+
+  "color_system": {
+    "philosophy": "Strictly monochromatic. All UI is black, white, and grays. Zero brand accent colors.",
+    "palette": {
+      "background_primary": "#F5F5F5",
+      "background_secondary": "#FFFFFF",
+      "background_dark": "#111111",
+      "surface_card": "#FFFFFF",
+      "surface_elevated": "#FFFFFF",
+      "border_default": "#E5E5E5",
+      "border_subtle": "#EBEBEB",
+      "text_primary": "#111111",
+      "text_secondary": "#555555",
+      "text_tertiary": "#999999",
+      "text_on_dark": "#FFFFFF",
+      "fill_black": "#111111",
+      "fill_white": "#FFFFFF",
+      "fill_light_gray": "#F0F0F0"
+    },
+    "status_colors": {
+      "note": "Status badges use grayscale — avoid color-coded status in the primary UI. Use text labels.",
+      "pending": { "bg": "#F5F5F5", "text": "#555555", "border": "#D4D4D4" },
+      "approved": { "bg": "#111111", "text": "#FFFFFF" },
+      "rejected": { "bg": "#FFFFFF", "text": "#111111", "border": "#111111" },
+      "waitlisted": { "bg": "#F0F0F0", "text": "#777777" },
+      "cancelled": { "bg": "#F5F5F5", "text": "#AAAAAA", "strikethrough": true }
+    },
+    "dark_sections": {
+      "usage": "Sparingly — hero callout blocks, inverted feature cards, footer",
+      "bg": "#111111",
+      "text": "#FFFFFF",
+      "subtext": "#AAAAAA"
+    }
+  },
+
+  "typography": {
+    "philosophy": "Large, confident type. Headlines dominate. Body text is compact and gray. Spaced-caps labels for categories and overlines.",
+    "font_stack": {
+      "primary": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "mono": "'JetBrains Mono', 'Fira Code', monospace",
+      "note": "A geometric sans-serif like Inter is strongly implied by the reference site aesthetic"
+    },
+    "scale": {
+      "display": { "size": "56–72px", "weight": 700, "line_height": 1.05, "letter_spacing": "-0.03em", "usage": "Hero headline — 1–2 lines max" },
+      "h1": { "size": "40–48px", "weight": 700, "line_height": 1.1, "letter_spacing": "-0.02em", "usage": "Page headers, section heroes" },
+      "h2": { "size": "28–36px", "weight": 700, "line_height": 1.15, "letter_spacing": "-0.01em", "usage": "Section titles" },
+      "h3": { "size": "20–24px", "weight": 600, "line_height": 1.25, "usage": "Card titles, subsection headers" },
+      "body_lg": { "size": "16–18px", "weight": 400, "line_height": 1.6, "color": "text_secondary", "usage": "Hero subtext, intro paragraphs" },
+      "body": { "size": "14–15px", "weight": 400, "line_height": 1.6, "usage": "Default body copy" },
+      "label": { "size": "11–12px", "weight": 500, "letter_spacing": "0.08–0.12em", "text_transform": "uppercase", "usage": "Overlines, category labels, nav labels" },
+      "caption": { "size": "12–13px", "weight": 400, "color": "text_tertiary", "usage": "Metadata, timestamps, helper text" },
+      "stat_number": { "size": "32–48px", "weight": 700, "letter_spacing": "-0.02em", "usage": "Metric counters (200+, 40+)" }
+    },
+    "headline_treatment": {
+      "pattern": "Two-tone fade headline — first line full black, second line light gray",
+      "example": "'Building India's most ambitious' [black] / 'businesses.' [gray #CCCCCC]",
+      "application": "Page heroes and section intros"
+    },
+    "overline_pattern": {
+      "format": "SPACED CAPS LABEL above headline",
+      "style": "font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: text_tertiary",
+      "example": "C SQUARE CLUB · CHANDIGARH UNIVERSITY"
+    }
+  },
+
+  "spacing": {
+    "philosophy": "Generous whitespace. Sections breathe. Content is never crammed.",
+    "base_unit": 4,
+    "scale": {
+      "xs": "4px",
+      "sm": "8px",
+      "md": "16px",
+      "lg": "24px",
+      "xl": "32px",
+      "2xl": "48px",
+      "3xl": "64px",
+      "4xl": "96px",
+      "5xl": "128px"
+    },
+    "section_padding": {
+      "vertical": "80–128px",
+      "horizontal": "max-w-6xl mx-auto px-6"
+    },
+    "card_padding": "24–32px",
+    "component_gap": "16–24px"
+  },
+
+  "layout": {
+    "max_width": "1200px",
+    "grid": {
+      "columns": 12,
+      "gutter": "24px",
+      "common_layouts": {
+        "hero": "Full-width centered, max-w-2xl text block, flanked by floating cards",
+        "two_col": "60/40 or 50/50 split — text left, visual right",
+        "three_col": "Equal thirds — stat cards, feature cards, team member grid",
+        "cards_grid": "2–3 column responsive card grid"
+      }
+    },
+    "container": "max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8",
+    "content_width": {
+      "narrow": "max-w-2xl (hero text, centered intros)",
+      "default": "max-w-4xl",
+      "wide": "max-w-6xl"
+    }
+  },
+
+  "components": {
+    "navbar": {
+      "style": "Floating / sticky top, white background, subtle shadow or border-bottom",
+      "height": "56–64px",
+      "structure": {
+        "left": "Logo mark + optional wordmark or club name",
+        "center": "Primary navigation links (flat, no underline by default)",
+        "right": "CTA button (black pill) — e.g. 'Login' or 'Register'"
+      },
+      "nav_links": {
+        "default": "text_secondary, no underline",
+        "active": "text_primary, font-weight 500, optional underline or dot indicator",
+        "hover": "text_primary"
+      },
+      "dropdown": {
+        "trigger": "Label + chevron icon",
+        "panel": "White card, border, rounded-xl, box-shadow, 2-column or single-column list",
+        "items": "14px, text_primary, hover: bg_light_gray"
+      },
+      "cta_button": {
+        "style": "Filled black pill",
+        "bg": "#111111",
+        "text": "#FFFFFF",
+        "border_radius": "9999px",
+        "padding": "10px 20px",
+        "font_size": "14px",
+        "font_weight": 500
+      }
+    },
+
+    "hero_section": {
+      "layout": "Center-aligned text block, full viewport height or min 70vh",
+      "background": "Light gray (#F5F5F5) with subtle dot grid pattern (CSS background-image radial-gradient)",
+      "dot_grid": "background-image: radial-gradient(circle, #D4D4D4 1px, transparent 1px); background-size: 24px 24px;",
+      "overline": "Spaced-caps label, gray, above headline",
+      "headline": "2–3 lines, bold, large, -0.03em letter-spacing",
+      "subtext": "16–18px, gray, max-w-lg centered, 1–2 lines",
+      "cta_group": {
+        "layout": "Horizontal flex, gap-3, centered",
+        "primary_button": "Black filled pill",
+        "secondary_button": "White outlined pill or ghost pill"
+      },
+      "floating_testimonial_cards": {
+        "placement": "Scattered left and right columns flanking the hero center content",
+        "style": "White card, border, rounded-2xl, box-shadow-sm, slight rotation (-2deg to +3deg)",
+        "content": "Quote text (italic or normal) + attribution (em dash + name, font-weight 500)",
+        "size": "280–340px wide",
+        "animation": "Optional: subtle float or stagger on load"
+      }
+    },
+
+    "buttons": {
+      "primary": {
+        "bg": "#111111",
+        "text": "#FFFFFF",
+        "border": "none",
+        "border_radius": "9999px",
+        "padding": "12px 24px",
+        "font_size": "15px",
+        "font_weight": 500,
+        "hover": { "bg": "#333333" },
+        "with_icon": "Icon right of label, gap-2"
+      },
+      "secondary": {
+        "bg": "#FFFFFF",
+        "text": "#111111",
+        "border": "1.5px solid #E5E5E5",
+        "border_radius": "9999px",
+        "padding": "12px 24px",
+        "hover": { "bg": "#F5F5F5" }
+      },
+      "ghost": {
+        "bg": "transparent",
+        "text": "#111111",
+        "border": "none",
+        "hover": { "bg": "#F5F5F5" }
+      },
+      "icon_only": {
+        "style": "Square or circle, 36–40px, border, rounded-lg or rounded-full",
+        "bg": "#FFFFFF",
+        "border": "1px solid #E5E5E5"
+      },
+      "destructive": {
+        "bg": "#FFFFFF",
+        "text": "#111111",
+        "border": "1.5px solid #111111",
+        "note": "No red — destructive actions still use black/white in this design system"
+      }
+    },
+
+    "cards": {
+      "default": {
+        "bg": "#FFFFFF",
+        "border": "1px solid #E5E5E5",
+        "border_radius": "16px",
+        "padding": "24px",
+        "box_shadow": "0 1px 3px rgba(0,0,0,0.06)"
+      },
+      "elevated": {
+        "bg": "#FFFFFF",
+        "border": "1px solid #E8E8E8",
+        "border_radius": "20px",
+        "padding": "28–32px",
+        "box_shadow": "0 4px 16px rgba(0,0,0,0.08)"
+      },
+      "dark": {
+        "bg": "#111111",
+        "text": "#FFFFFF",
+        "border_radius": "16px",
+        "padding": "24–32px",
+        "subtext_color": "#AAAAAA"
+      },
+      "stat_card": {
+        "layout": "Horizontal row of equal-width bordered cells",
+        "border": "1px solid #E5E5E5",
+        "padding": "20px 24px",
+        "number_style": "32–40px, font-weight 700",
+        "label_style": "11px, spaced caps, text_tertiary, margin-top 4px"
+      },
+      "event_card": {
+        "structure": ["Banner image (16:9 or 4:3, rounded-xl)", "Event type badge", "Title (h3)", "Date + time", "Venue", "Capacity / registration status", "CTA button"],
+        "hover": "Slight scale(1.01) or shadow increase",
+        "badge": "Small pill — bg:#F0F0F0, text:#555, border-radius:9999px, font-size:11px"
+      },
+      "testimonial_card": {
+        "bg": "#FFFFFF",
+        "border": "1px solid #E8E8E8",
+        "border_radius": "16px",
+        "padding": "20–24px",
+        "quote_style": "14–15px, text_primary, italic optional",
+        "attribution": "13px, font-weight 500, prepended with em dash"
+      }
+    },
+
+    "forms": {
+      "input": {
+        "bg": "#FFFFFF",
+        "border": "1.5px solid #E5E5E5",
+        "border_radius": "10px",
+        "padding": "10px 14px",
+        "font_size": "15px",
+        "focus": { "border": "1.5px solid #111111", "outline": "none" },
+        "placeholder_color": "#AAAAAA",
+        "label": "13px, font-weight 500, text_primary, margin-bottom 6px"
+      },
+      "select": "Same as input, with chevron icon right-aligned",
+      "checkbox": {
+        "unchecked": "Border: 1.5px solid #D4D4D4, bg: white, rounded-md",
+        "checked": "bg: #111111, checkmark: white"
+      },
+      "form_section": {
+        "layout": "Vertical stack, gap-4 between fields",
+        "section_divider": "Optional gray border-top between logical groups",
+        "submit": "Full-width black pill button at bottom"
+      },
+      "search_input": {
+        "style": "Rounded pill or large border-radius",
+        "left_icon": "Search icon (gray)",
+        "bg": "#F5F5F5",
+        "border": "1px solid #E5E5E5"
+      }
+    },
+
+    "badges_and_pills": {
+      "default": {
+        "border_radius": "9999px",
+        "padding": "4px 10px",
+        "font_size": "11–12px",
+        "font_weight": 500
+      },
+      "variants": {
+        "neutral": { "bg": "#F0F0F0", "text": "#555555" },
+        "outlined": { "bg": "#FFFFFF", "border": "1px solid #E5E5E5", "text": "#111111" },
+        "filled_dark": { "bg": "#111111", "text": "#FFFFFF" },
+        "count_badge": { "bg": "#111111", "text": "#FFFFFF", "min_width": "20px", "text_align": "center" }
+      }
+    },
+
+    "navigation_tabs": {
+      "style": "Underline tabs or pill tabs",
+      "default": "text_secondary, no bg",
+      "active_underline": "border-bottom: 2px solid #111111, text_primary",
+      "active_pill": "bg: #111111, text: #FFFFFF, border-radius: 9999px",
+      "gap": "gap-1 or gap-2 between tabs"
+    },
+
+    "sidebar": {
+      "usage": "Admin dashboard, blog listing",
+      "bg": "#FFFFFF",
+      "border_right": "1px solid #E5E5E5",
+      "width": "240–280px",
+      "item_style": "14px, text_secondary, padding: 8px 12px, rounded-lg",
+      "item_active": "bg: #F0F0F0, text_primary, font-weight 500",
+      "section_label": "10–11px, spaced caps, text_tertiary, margin-bottom 4px"
+    },
+
+    "tables": {
+      "header": "11–12px, spaced caps, text_tertiary, border-bottom: 1px solid #E5E5E5",
+      "row": "border-bottom: 1px solid #F0F0F0, padding: 12px 0",
+      "row_hover": "bg: #FAFAFA",
+      "cell": "14px, text_primary",
+      "actions_cell": "Right-aligned, icon buttons or text links"
+    },
+
+    "modals": {
+      "overlay": "bg: rgba(0,0,0,0.4), backdrop-blur: 4px",
+      "panel": {
+        "bg": "#FFFFFF",
+        "border_radius": "20px",
+        "padding": "32px",
+        "box_shadow": "0 20px 60px rgba(0,0,0,0.15)",
+        "max_width": "480–560px"
+      },
+      "header": "h3, font-weight 600, close button top-right",
+      "footer": "flex justify-end gap-3, border-top: 1px solid #F0F0F0, padding-top: 20px"
+    },
+
+    "empty_states": {
+      "icon": "Large muted gray icon (40–56px), centered",
+      "title": "16px, font-weight 500, text_secondary",
+      "description": "14px, text_tertiary, max-w-xs centered",
+      "cta": "Optional — text link or ghost button below"
+    },
+
+    "qr_code_display": {
+      "container": "White card, centered, border, rounded-2xl, padding 32px",
+      "qr_size": "200–240px",
+      "label_below": "Registration ID or student name, 13px, text_tertiary",
+      "download_button": "Ghost or secondary button below"
+    },
+
+    "scanner_ui": {
+      "camera_viewport": "Full-width rectangle with corner guide marks (no filled overlay — just corner brackets)",
+      "guide_color": "#111111",
+      "success_state": "Brief green flash — exception to monochrome (UX critical), or white flash with checkmark",
+      "error_state": "Red flash — exception to monochrome (UX critical), or dark panel with X icon",
+      "result_card": "Slides up from bottom — student name, UID, check-in time"
+    },
+
+    "attendance_list": {
+      "search_bar": "Sticky top, full-width, pill style",
+      "list_item": {
+        "structure": "Checkbox | Avatar | Name + UID | Status pill | Check-in time",
+        "height": "56–64px",
+        "border_bottom": "1px solid #F5F5F5"
+      },
+      "checked_state": "Checkbox filled black, name slightly muted"
+    },
+
+    "logo_strip": {
+      "layout": "Horizontal scroll or flexbox row, space-evenly",
+      "item_style": "Grayscale logos, opacity 0.5–0.7, hover: opacity 1",
+      "divider": "Optional border-top and border-bottom, 1px solid #E5E5E5"
+    },
+
+    "stat_counter_row": {
+      "layout": "3-column horizontal strip inside a bordered card",
+      "dividers": "Vertical 1px border between columns",
+      "number": "36–48px, font-weight 700, text_primary",
+      "suffix": "Same size or slightly smaller, color: text_secondary (e.g. '+')",
+      "label": "11px, spaced caps, text_tertiary"
+    },
+
+    "feature_grid": {
+      "layout": "2 or 3 column grid, equal cards",
+      "card_style": "White bg, border, rounded-2xl",
+      "image_treatment": "Rounded-xl image inside card, object-cover",
+      "title": "h3, font-weight 600",
+      "body": "14–15px, text_secondary"
+    },
+
+    "footer": {
+      "bg": "#111111",
+      "text": "#FFFFFF",
+      "subtext": "#888888",
+      "layout": "4-column grid: Logo+description | Links | Links | Social",
+      "border_top": "1px solid #2A2A2A",
+      "bottom_bar": "border-top: 1px solid #2A2A2A, flex justify-between, copyright + links",
+      "link_hover": "#FFFFFF"
+    }
+  },
+
+  "page_templates": {
+    "homepage": {
+      "sections_order": [
+        "Navbar",
+        "Hero (headline + floating testimonial cards, dot-grid bg)",
+        "Logo strip (partners or CU branding)",
+        "About / Why section (2-col: text left, image+dark card right)",
+        "Stat counter row",
+        "Upcoming Events (card grid)",
+        "Team preview (3-col member cards)",
+        "CTA banner (dark bg section, centered headline + buttons)",
+        "Footer"
+      ]
+    },
+    "events_listing": {
+      "layout": "Grid of event cards, 2–3 cols",
+      "filters": "Horizontal pill tabs — All / Hackathon / Competition / Workshop / Seminar",
+      "search": "Top search bar",
+      "empty_state": "Centered icon + 'No events yet' message"
+    },
+    "event_detail": {
+      "layout": "Left: event info, Right: registration card (sticky)",
+      "header": "Full-width banner image, rounded-2xl",
+      "info_sections": ["Title + type badge", "Date/time/venue row", "Description (rich text)", "Team requirements if applicable"],
+      "registration_card": {
+        "style": "Sticky sidebar card, border, rounded-2xl, padding 24px",
+        "content": ["Status pill", "Capacity bar or count", "Deadline", "Register button"]
+      }
+    },
+    "student_dashboard": {
+      "layout": "2-col: sidebar nav + main content area",
+      "sidebar": "My Registrations, My QR Codes",
+      "registration_list": "Card list — event name, date, status badge, QR button"
+    },
+    "admin_dashboard": {
+      "layout": "Sidebar nav + main content (Luma-inspired)",
+      "nav_sections": ["Events", "Registrations", "Attendance", "Team Members", "Volunteers"],
+      "event_management": {
+        "list_view": "Table: Event name | Type | Date | Registrations | Status | Actions",
+        "detail_view": "Tabs: Overview | Registrations | Attendance | Settings"
+      },
+      "registration_management": {
+        "layout": "Filterable table: Name | UID | Branch | Year | Status | Actions",
+        "bulk_actions": "Select-all + Approve/Reject bulk",
+        "status_filter": "Pill tabs — All / Pending / Approved / Rejected / Waitlisted"
+      },
+      "checkin_dashboard": {
+        "live_counter": "Large stat display: 312 / 450 checked in",
+        "progress": "Thin horizontal bar — black fill on gray track"
+      }
+    },
+    "login_page": {
+      "layout": "Centered card, full viewport height, gray bg",
+      "card": "White, border, rounded-2xl, padding 40px, max-w-sm",
+      "content": ["Club logo", "Heading: 'Sign in to C Square'", "Email input", "Submit button (full-width black pill)", "Helper text about magic link"],
+      "post_submit_state": "Same card, confirmation message: 'Check your email for a login link'"
+    },
+    "team_page": {
+      "layout": "Intro hero + 3-column member grid",
+      "member_card": {
+        "image": "Square or circle avatar, object-cover",
+        "name": "16px, font-weight 600",
+        "designation": "13px, text_tertiary, spaced caps optional"
+      }
+    },
+    "checkin_page": {
+      "layout": "Full-screen mobile-first",
+      "sections": ["Event name header", "Camera viewport with corner guides", "Toggle: QR Scanner / Manual List", "Result card (slide-up)"],
+      "manual_list": "Sticky search + scrollable attendance list with checkboxes"
+    }
+  },
+
+  "motion": {
+    "philosophy": "Subtle and functional. Transitions signal state, not entertain.",
+    "defaults": {
+      "transition_duration": "150–200ms",
+      "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "hover_scale": "scale(1.01) for cards",
+      "button_hover": "background-color transition, 150ms"
+    },
+    "page_load": "Fade-in, 300ms, slight translateY(8px) to rest position",
+    "card_stagger": "Cards stagger in at 50ms intervals on page load",
+    "modal": "Scale from 0.95 to 1.0, opacity 0 to 1, 200ms",
+    "floating_cards": "Optional: gentle floating animation, 3–4s period, 6px vertical travel"
+  },
+
+  "icon_system": {
+    "library": "Lucide React (matches Next.js ecosystem)",
+    "style": "Stroke icons, stroke-width: 1.5–2",
+    "size_scale": {
+      "sm": "16px",
+      "md": "20px",
+      "lg": "24px",
+      "xl": "32px"
+    },
+    "color": "Inherits text color. Secondary icons use text_tertiary.",
+    "usage": {
+      "nav_arrows": "ChevronDown for dropdowns",
+      "external_links": "ArrowUpRight on link buttons",
+      "actions": "Edit2, Trash2, Eye, Download, Check, X",
+      "status": "CheckCircle (approved), XCircle (rejected), Clock (pending), AlertCircle (waitlisted)",
+      "scanner": "QrCode, Camera, ScanLine",
+      "search": "Search (left-side inside input)"
+    }
+  },
+
+  "patterns_and_textures": {
+    "dot_grid": {
+      "css": "background-image: radial-gradient(circle, #D4D4D4 1px, transparent 1px); background-size: 24px 24px;",
+      "usage": "Hero section backgrounds, full-page light sections",
+      "color": "#D4D4D4 dots on #F5F5F5 background"
+    },
+    "concentric_circles": {
+      "description": "Decorative radial rings centered behind hero content — subtle gray rings, no fill",
+      "usage": "Hero sections on partner/about pages",
+      "implementation": "SVG or CSS box-shadow rings, opacity 0.12–0.2"
+    },
+    "section_divider": "1px solid #E5E5E5, full width — no decorative dividers"
+  },
+
+  "responsive_strategy": {
+    "breakpoints": {
+      "mobile": "< 640px",
+      "tablet": "640px–1024px",
+      "desktop": "> 1024px"
+    },
+    "priority_pages_for_mobile": [
+      "Event detail + registration",
+      "Student dashboard + QR code view",
+      "QR scanner (check-in)",
+      "Manual attendance list",
+      "Login page"
+    ],
+    "desktop_first_pages": ["Admin dashboard", "Event management", "Registration management"],
+    "navbar_mobile": "Hamburger menu, full-screen slide-in overlay or bottom sheet",
+    "cards_mobile": "Single column, full-width",
+    "hero_mobile": "Stack vertically, floating cards hidden on mobile, text centered"
+  },
+
+  "accessibility": {
+    "contrast": "All text meets WCAG AA (black on white / white on black — trivially passes)",
+    "focus_rings": "2px offset ring, color: #111111",
+    "aria_labels": "All icon-only buttons must have aria-label",
+    "skip_link": "Skip to main content — visually hidden, visible on focus"
+  },
+
+  "data_display_conventions": {
+    "dates": "Format: '15 Aug 2025, 10:00 AM' — no ambiguous MM/DD",
+    "capacity": "Display as 'X / Y registered' or progress pill",
+    "registration_status": "Always show as pill badge — never plain text",
+    "empty_tables": "Centered empty state inside table area — not a raw 'no records' text",
+    "loading": "Skeleton placeholders that match the shape of the content"
+  },
+
+  "email_design": {
+    "philosophy": "Plain, functional, on-brand. No image-heavy templates.",
+    "layout": "Single-column, max-width 600px, white bg, 40px padding",
+    "header": "Club logo + name, centered, black on white",
+    "body": "16px, line-height 1.6, text_primary",
+    "cta_button": "Black pill button, centered, 280–320px wide",
+    "qr_section": "Centered QR image, 200px, bordered, labeled below",
+    "footer": "13px, text_tertiary, club email, unsubscribe link",
+    "divider": "1px solid #E5E5E5"
+  },
+
+  "django_admin_usage": {
+    "note": "Django Admin (/admin/) is used for back-office operations in Phase 1. No custom Next.js admin UI for team member management.",
+    "custom_admin_ui": "Event management, registration approval, volunteer assignment, attendance export — built as custom Next.js admin dashboard under /admin/ route",
+    "native_django_admin": "Team member CRUD only"
+  },
+
+  "implementation_notes": {
+    "tailwind_config": {
+      "colors": {
+        "primary": "#111111",
+        "secondary": "#555555",
+        "muted": "#999999",
+        "border": "#E5E5E5",
+        "surface": "#FFFFFF",
+        "bg": "#F5F5F5"
+      },
+      "border_radius": {
+        "sm": "8px",
+        "md": "12px",
+        "lg": "16px",
+        "xl": "20px",
+        "full": "9999px"
+      },
+      "font_family": {
+        "sans": ["Inter", "system-ui", "sans-serif"]
+      }
+    },
+    "component_library": "Build from scratch using Tailwind — no component library dependency. Radix UI primitives acceptable for accessible modals, dropdowns, and checkboxes.",
+    "image_handling": "Next.js Image component, object-cover, rounded-xl for event banners, rounded-full for avatars",
+    "dark_mode": "Not required in v1 — monochrome system means light mode only"
+  }
+}

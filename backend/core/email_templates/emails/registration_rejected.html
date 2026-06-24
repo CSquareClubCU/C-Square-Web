@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Registration Update</title></head>
+<body style="font-family: Arial, sans-serif; background: #f4f4f4; padding: 40px;">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; padding: 32px; border-radius: 8px;">
+    <h2 style="color: #111;">Registration Update</h2>
+    <p style="color: #444;">Hi {{ full_name }}, we regret to inform you that your registration for <strong>{{ event_title }}</strong> was not approved.</p>
+    {% if reason %}
+    <p style="color: #444;"><strong>Reason:</strong> {{ reason }}</p>
+    {% endif %}
+    <p style="color: #888; font-size: 13px;">C Square Club, Chandigarh University</p>
+  </div>
+</body>
+</html>
