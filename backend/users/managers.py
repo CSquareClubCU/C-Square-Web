@@ -26,10 +26,19 @@ class UserManager(BaseUserManager):
         """
         Creates a Django superuser for admin access.
         Used for the initial admin seed — sets role=admin and is_staff=True.
+
+        NOTE: Since this system uses magic-link login exclusively, this method sets
+        an unusable password (passwords provided via manage.py createsuperuser are discarded).
+        Admin users must authenticate via magic-link.
         """
         extra_fields.setdefault('role', 'admin')
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
 
         return self.create_user(email, full_name, password, **extra_fields)

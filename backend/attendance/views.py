@@ -11,7 +11,7 @@ Endpoints:
 
 import logging
 
-from django.http import StreamingHttpResponse
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,7 +20,7 @@ from attendance import services
 from attendance.serializers import AttendanceRecordSerializer, QRCheckinSerializer
 from core.exceptions import AppError
 from core.pagination import StandardPagination
-from core.permissions import IsAdminOrVolunteer
+from core.permissions import IsAdmin, IsAdminOrVolunteer
 from events.services import get_event_or_404
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ class QRCheckinView(APIView):
             from registrations.models import Registration
             reg = Registration.objects.get(qr_token=uuid.UUID(qr_token))
             was_already = reg.attendance_record.is_checked_in
-        except Exception:
+        except (Registration.DoesNotExist, AttributeError, ValueError, TypeError):
             pass
 
         record = services.checkin_by_qr(qr_token=qr_token, marked_by=request.user)
@@ -81,7 +81,7 @@ class ManualCheckinView(APIView):
             was_already = AttendanceRecord.objects.get(
                 registration_id=registration_id
             ).is_checked_in
-        except Exception:
+        except (AttendanceRecord.DoesNotExist, ValueError, TypeError):
             was_already = False
 
         record = services.checkin_manual(
@@ -115,15 +115,15 @@ class AttendanceExportView(APIView):
     GET /api/attendance/{event_id}/export/
     Stream a CSV export of attendance records. Admin only.
     """
-    permission_classes = [IsAdminOrVolunteer]
+    permission_classes = [IsAdmin]
 
     def get(self, request, event_id):
         event = get_event_or_404(event_id)
         buffer = services.export_attendance_csv(event=event, marked_by=request.user)
 
         filename = f'attendance_{event.title.replace(" ", "_")}_{event_id}.csv'
-        response = StreamingHttpResponse(
-            iter([buffer.getvalue()]),
+        response = HttpResponse(
+            buffer.getvalue(),
             content_type='text/csv',
         )
         response['Content-Disposition'] = f'attachment; filename="{filename}"'

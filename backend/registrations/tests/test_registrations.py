@@ -306,12 +306,11 @@ class TestRegisterIndividualView:
         response = api_client.post('/api/registrations/', {'event_id': str(open_event.id)}, format='json')
         assert response.status_code in (401, 403)
 
-    def test_nonexistent_member_returns_404(self, api_client, admin_user):
-        """Service raises AppError(NOT_FOUND) which maps to 404 HTTP response."""
-        api_client.force_authenticate(user=admin_user)
-        # Use a valid UUID that simply doesn't exist in the DB
+    def test_nonexistent_event_returns_404(self, api_client, student):
+        """Registering for a nonexistent event returns 404."""
+        api_client.force_authenticate(user=student)
         valid_nonexistent_id = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'
-        response = api_client.patch(f'/api/team/{valid_nonexistent_id}/', {'designation': 'X'}, format='json')
+        response = api_client.post('/api/registrations/', {'event_id': valid_nonexistent_id}, format='json')
         assert response.status_code == 404
 
     def test_missing_event_id_returns_400(self, api_client, student):

@@ -40,7 +40,7 @@ def create_event(validated_data: dict, created_by) -> Event:
         The created Event instance.
     """
     event = Event.objects.create(created_by=created_by, **validated_data)
-    logger.info('Event created: "%s" (id=%s) by %s', event.title, event.id, created_by.email)
+    logger.info('Event created: "%s" (id=%s) by user_id=%s', event.title, event.id, created_by.id)
     return event
 
 
@@ -161,14 +161,22 @@ def assign_volunteer(event: Event, user_id: UUID, assigned_by) -> VolunteerAssig
             status=409,
         )
 
-    assignment = VolunteerAssignment.objects.create(
-        event=event,
-        volunteer=volunteer,
-        assigned_by=assigned_by,
-    )
+    from django.db import IntegrityError
+    try:
+        assignment = VolunteerAssignment.objects.create(
+            event=event,
+            volunteer=volunteer,
+            assigned_by=assigned_by,
+        )
+    except IntegrityError:
+        raise AppError(
+            code='ALREADY_ASSIGNED',
+            message='This volunteer is already assigned to this event.',
+            status=409,
+        )
     logger.info(
-        'Volunteer %s assigned to event "%s" by %s',
-        volunteer.email, event.title, assigned_by.email,
+        'Volunteer id=%s assigned to event "%s" by user_id=%s',
+        volunteer.id, event.title, assigned_by.id,
     )
     return assignment
 
@@ -188,11 +196,11 @@ def remove_volunteer(event: Event, assignment_id: UUID) -> None:
             message='Volunteer assignment not found.',
             status=404,
         )
-    volunteer_email = assignment.volunteer.email
+    volunteer_id = assignment.volunteer.id
     assignment.delete()
     logger.info(
-        'Volunteer %s removed from event "%s"',
-        volunteer_email, event.title,
+        'Volunteer id=%s removed from event "%s"',
+        volunteer_id, event.title,
     )
 
 
@@ -229,7 +237,7 @@ def get_checkin_stats(event: Event, requesting_user) -> dict:
         checked_in = AttendanceRecord.objects.filter(
             event=event, is_checked_in=True
         ).count()
-    except Exception:
+    except ImportError:
         total_approved = 0
         checked_in = 0
 
@@ -242,7 +250,7 @@ def get_checkin_stats(event: Event, requesting_user) -> dict:
         pending = Registration.objects.filter(
             event=event, status='pending'
         ).count()
-    except Exception:
+    except ImportError:
         waitlisted = 0
         pending = 0
 

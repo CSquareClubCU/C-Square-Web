@@ -75,8 +75,8 @@ def send_magic_link(email: str) -> None:
     # Generate sesame token — signed, time-limited (SESAME_MAX_AGE = 900s)
     token = get_token(user)
 
-    # Build the verification URL pointing to the backend API
-    # Frontend reads the token from its own /login?token= route and hits this endpoint
+    # Build the verification URL pointing to the frontend application.
+    # The frontend page will extract the token from the query params and call our backend API to verify it.
     verify_url = f'{settings.FRONTEND_URL}/auth/verify?token={token}'
 
     # Send the email — stubs if Azure not configured locally
@@ -112,10 +112,11 @@ def verify_magic_link(token: str, request) -> User:
             status=400,
         )
 
-    # Sync is_staff with role — admin users need is_staff=True for Django Admin
-    if user.role == UserRole.ADMIN and not user.is_staff:
-        User.objects.filter(pk=user.pk).update(is_staff=True)
+    # Sync is_staff and is_superuser with role — admin users need is_staff=True and is_superuser=True for Django Admin
+    if user.role == UserRole.ADMIN and (not user.is_staff or not user.is_superuser):
+        User.objects.filter(pk=user.pk).update(is_staff=True, is_superuser=True)
         user.is_staff = True
+        user.is_superuser = True
 
     logger.info('User logged in via magic link: %s', user.email)
     return user
@@ -132,7 +133,7 @@ def update_user_profile(user: User, validated_data: dict) -> User:
     """
     for field, value in validated_data.items():
         setattr(user, field, value)
-    user.save(update_fields=list(validated_data.keys()) + ['updated_at'])
+    user.save(update_fields=[*validated_data.keys(), 'updated_at'])
     return user
 
 

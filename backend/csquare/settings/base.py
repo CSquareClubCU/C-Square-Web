@@ -91,6 +91,7 @@ WSGI_APPLICATION = 'csquare.wsgi.application'
 AUTH_USER_MODEL = 'users.User'
 
 AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
     'sesame.backends.ModelBackend',
 ]
 

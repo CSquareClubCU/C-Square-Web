@@ -16,7 +16,13 @@ from django.template.loader import render_to_string
 logger = logging.getLogger(__name__)
 
 
-def send_email(to: str, subject: str, html_body: str) -> None:
+def send_email(
+    to: str = None,
+    subject: str = None,
+    html_body: str = None,
+    to_email: str = None,
+    html_content: str = None,
+) -> None:
     """
     Send an HTML email via Azure Communication Services.
 
@@ -27,6 +33,9 @@ def send_email(to: str, subject: str, html_body: str) -> None:
 
     In local development without Azure credentials, logs the email instead of sending.
     """
+    to = to or to_email
+    html_body = html_body or html_content
+
     connection_string = settings.AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING
     sender = settings.NOTIFICATION_EMAIL
 

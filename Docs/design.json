@@ -37,7 +37,7 @@
       "border_subtle": "#EBEBEB",
       "text_primary": "#111111",
       "text_secondary": "#555555",
-      "text_tertiary": "#999999",
+      "text_tertiary": "#767676",
       "text_on_dark": "#FFFFFF",
       "fill_black": "#111111",
       "fill_white": "#FFFFFF",
@@ -553,7 +553,7 @@
   },
 
   "accessibility": {
-    "contrast": "All text meets WCAG AA (black on white / white on black — trivially passes)",
+    "contrast": "All text meets WCAG AA (text_primary, text_secondary, and text_tertiary meet WCAG AA on white backgrounds; text_on_dark meets AA on dark background)",
     "focus_rings": "2px offset ring, color: #111111",
     "aria_labels": "All icon-only buttons must have aria-label",
     "skip_link": "Skip to main content — visually hidden, visible on focus"
@@ -579,9 +579,9 @@
   },
 
   "django_admin_usage": {
-    "note": "Django Admin (/admin/) is used for back-office operations in Phase 1. No custom Next.js admin UI for team member management.",
+    "note": "Django Admin (/django-admin/) is used for back-office operations in Phase 1. No custom Next.js admin UI for team member management.",
     "custom_admin_ui": "Event management, registration approval, volunteer assignment, attendance export — built as custom Next.js admin dashboard under /admin/ route",
-    "native_django_admin": "Team member CRUD only"
+    "native_django_admin": "Team member CRUD only — accessible via /django-admin/"
   },
 
   "implementation_notes": {
@@ -589,7 +589,7 @@
       "colors": {
         "primary": "#111111",
         "secondary": "#555555",
-        "muted": "#999999",
+        "muted": "#767676",
         "border": "#E5E5E5",
         "surface": "#FFFFFF",
         "bg": "#F5F5F5"

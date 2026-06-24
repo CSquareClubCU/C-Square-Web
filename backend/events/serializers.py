@@ -130,9 +130,9 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             })
 
         # Team size fields required if is_team_event=True
-        is_team = data.get('is_team_event') or getattr(self.instance, 'is_team_event', False)
-        min_size = data.get('min_team_size') or getattr(self.instance, 'min_team_size', None)
-        max_size = data.get('max_team_size') or getattr(self.instance, 'max_team_size', None)
+        is_team = data['is_team_event'] if 'is_team_event' in data else getattr(self.instance, 'is_team_event', False)
+        min_size = data['min_team_size'] if 'min_team_size' in data else getattr(self.instance, 'min_team_size', None)
+        max_size = data['max_team_size'] if 'max_team_size' in data else getattr(self.instance, 'max_team_size', None)
 
         if is_team:
             if min_size is None:

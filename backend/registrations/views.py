@@ -13,6 +13,7 @@ from core.permissions import IsAdmin
 from events.models import Event
 from registrations import services
 from registrations.models import Registration, Team
+from users.models import UserRole
 from registrations.serializers import (
     RegistrationCreateSerializer,
     RegistrationRejectSerializer,
@@ -74,7 +75,7 @@ class RegisterTeamView(APIView):
 
 class ConfirmTeamMemberView(APIView):
     """
-    POST /api/registrations/team/confirm/
+    POST /api/registrations/confirm/
     Confirm a team invitation using a token.
     """
     permission_classes = [IsAuthenticated]
@@ -110,7 +111,7 @@ class RegistrationDetailView(APIView):
     def get(self, request, pk):
         try:
             # Users can see their own; Admins can see any
-            if request.user.role == 'admin':
+            if request.user.role == UserRole.ADMIN:
                 registration = Registration.objects.get(pk=pk)
             else:
                 registration = Registration.objects.get(pk=pk, user=request.user)

@@ -62,10 +62,13 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
         raise AppError('ALREADY_REGISTERED', 'You are already registered for this event.', 409)
 
     with transaction.atomic():
+        # Lock parent Event row
+        event = Event.objects.select_for_update().get(id=event.id)
+
         # Check capacity
         approved_count = Registration.objects.filter(
             event=event, status=RegistrationStatus.APPROVED
-        ).select_for_update().count()
+        ).count()
 
         if approved_count >= event.capacity:
             status = RegistrationStatus.WAITLISTED
@@ -134,12 +137,12 @@ def register_team(event_id: uuid.UUID, team_name: str, leader, members_data: lis
         raise AppError('TEAM_TOO_LARGE', f'Team can have at most {event.max_team_size} members.', 400)
 
     # Check if leader is already in a team for this event
-    if TeamMember.objects.filter(team__event=event, email=leader.email).exists() or \
+    if TeamMember.objects.filter(team__event=event, email=leader.email.lower()).exists() or \
        Team.objects.filter(event=event, leader=leader).exists():
         raise AppError('ALREADY_IN_TEAM', 'You are already part of a team for this event.', 409)
 
     emails = [m['email'].lower() for m in members_data]
-    if leader.email in emails:
+    if leader.email.lower() in emails:
         raise AppError('INVALID_MEMBERS', 'Leader should not be in the members list.', 400)
 
     # Check if any member is already in a team
@@ -159,7 +162,7 @@ def register_team(event_id: uuid.UUID, team_name: str, leader, members_data: lis
         TeamMember.objects.create(
             team=team,
             user=leader,
-            email=leader.email,
+            email=leader.email.lower(),
             has_confirmed=True,
             confirmed_at=timezone.now(),
         )
@@ -274,30 +277,13 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
             team.save(update_fields=['status', 'updated_at'])
 
         for reg in regs_to_approve:
-            # Generate QR token
             qr_token = uuid.uuid4()
             
-            # Generate QR Image
-            qr = qrcode.QRCode(version=1, box_size=10, border=4)
-            qr.add_data(str(qr_token))
-            qr.make(fit=True)
-            img = qr.make_image(fill_color="black", back_color="white")
-            
-            # Save to BytesIO
-            img_byte_arr = io.BytesIO()
-            img.save(img_byte_arr, format='PNG')
-            img_byte_arr.seek(0)
-            
-            # Upload to Azure
-            blob_path = f'qr-codes/{reg.id}/qr.png'
-            qr_url = upload_to_blob(blob_path, img_byte_arr.read(), 'image/png')
-            
-            # Update registration
+            # Update registration (leave qr_image_url for outside transaction)
             reg.status = RegistrationStatus.APPROVED
             reg.qr_token = qr_token
-            reg.qr_image_url = qr_url
             reg.approved_at = timezone.now()
-            reg.save()
+            reg.save(update_fields=['status', 'qr_token', 'approved_at', 'updated_at'])
             
             # Create AttendanceRecord
             if AttendanceRecord:
@@ -307,20 +293,38 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
                     user=reg.user,
                 )
 
-            # Send Email
-            try:
-                html_content = f"""
-                <p>Your registration for {reg.event.title} is approved!</p>
-                <p>Your QR code is below. Present this at the event for check-in.</p>
-                <img src="{qr_url}" alt="QR Code" />
-                """
-                send_email(
-                    to_email=reg.user.email,
-                    subject=f"Approved: {reg.event.title}",
-                    html_content=html_content
-                )
-            except Exception as e:
-                logger.error("Failed to send approval email: %s", str(e))
+    # Outside transaction: generate QR, upload to storage, and schedule email dispatch on commit
+    for reg in regs_to_approve:
+        # Generate QR Image
+        qr = qrcode.QRCode(version=1, box_size=10, border=4)
+        qr.add_data(str(reg.qr_token))
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Save to BytesIO
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='PNG')
+        img_byte_arr.seek(0)
+        
+        # Upload to Azure
+        blob_path = f'qr-codes/{reg.id}/qr.png'
+        qr_url = upload_to_blob(blob_path, img_byte_arr.read(), 'image/png')
+        
+        # Update registration qr_image_url
+        reg.qr_image_url = qr_url
+        reg.save(update_fields=['qr_image_url', 'updated_at'])
+
+        # Dispatch Email on commit
+        html_content = f"""
+        <p>Your registration for {reg.event.title} is approved!</p>
+        <p>Your QR code is below. Present this at the event for check-in.</p>
+        <img src="{qr_url}" alt="QR Code" />
+        """
+        transaction.on_commit(lambda r=reg, h=html_content: send_email(
+            to_email=r.user.email,
+            subject=f"Approved: {r.event.title}",
+            html_content=h
+        ))
 
     logger.info('%d registration(s) approved for event "%s"', len(regs_to_approve), registration.event.title)
     return registration
@@ -458,3 +462,46 @@ def move_from_waitlist(registration_id: uuid.UUID, admin_user) -> Registration:
         registration.save(update_fields=['status', 'waitlist_position', 'updated_at'])
 
     return registration
+
+
+def post_approve_tasks(regs_data):
+    """
+    Background/post-commit task to generate/upload QR codes and send approval emails.
+    """
+    for reg_id, qr_token_val in regs_data:
+        try:
+            reg = Registration.objects.select_related('event', 'user').get(pk=reg_id)
+            
+            # Generate QR Image
+            qr = qrcode.QRCode(version=1, box_size=10, border=4)
+            qr.add_data(str(qr_token_val))
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+            
+            # Save to BytesIO
+            img_byte_arr = io.BytesIO()
+            img.save(img_byte_arr, format='PNG')
+            img_byte_arr.seek(0)
+            
+            # Upload to Azure
+            blob_path = f'qr-codes/{reg.id}/qr.png'
+            qr_url = upload_to_blob(blob_path, img_byte_arr.read(), 'image/png')
+            
+            # Update registration
+            reg.qr_image_url = qr_url
+            reg.save(update_fields=['qr_image_url', 'updated_at'])
+            
+            # Send Email
+            html_content = f"""
+            <p>Your registration for {reg.event.title} is approved!</p>
+            <p>Your QR code is below. Present this at the event for check-in.</p>
+            <img src="{qr_url}" alt="QR Code" />
+            """
+            send_email(
+                to_email=reg.user.email,
+                subject=f"Approved: {reg.event.title}",
+                html_content=html_content
+            )
+        except Exception as e:
+            logger.error("Failed post-approval task for registration %s: %s", reg_id, str(e))
+

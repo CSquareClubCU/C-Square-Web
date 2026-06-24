@@ -39,6 +39,12 @@ def upload_to_blob(blob_path: str, file_data: bytes | BytesIO, content_type: str
     container_name = settings.AZURE_STORAGE_CONTAINER_NAME
 
     if not connection_string:
+        if not settings.DEBUG:
+            raise AppError(
+                code='STORAGE_ERROR',
+                message='Azure storage connection string not configured in production.',
+                status=500,
+            )
         # Stub mode for local development without Azure credentials
         logger.warning(
             'AZURE_STORAGE_CONNECTION_STRING not set. '

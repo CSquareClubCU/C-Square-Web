@@ -81,10 +81,13 @@ def custom_exception_handler(exc, context):
                 }
             }
         elif isinstance(error_data, list):
+            first_err = error_data[0] if error_data else 'Invalid input.'
+            if not isinstance(first_err, str):
+                first_err = str(first_err)
             response.data = {
                 'error': {
                     'code': 'VALIDATION_ERROR',
-                    'message': error_data[0] if error_data else 'Invalid input.',
+                    'message': first_err,
                     'fields': {},
                 }
             }

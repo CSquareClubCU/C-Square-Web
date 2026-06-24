@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('django-admin/', admin.site.urls),
     path('api/auth/', include('users.urls.auth', namespace='auth')),
     path('api/users/', include('users.urls.users', namespace='users')),
     path('api/events/', include('events.urls', namespace='events')),

@@ -17,7 +17,7 @@ from unittest.mock import MagicMock
 
 from core.exceptions import AppError
 from core.handlers import custom_exception_handler
-from core.permissions import IsAdmin, IsVolunteer, IsAdminOrVolunteer
+from core.permissions import IsAdmin, IsVolunteer, IsAdminOrVolunteer, IsOwnerOrAdmin
 
 
 # ---------------------------------------------------------------------------
@@ -165,3 +165,33 @@ class TestIsAdminOrVolunteer:
     def test_student_denied(self):
         perm = IsAdminOrVolunteer()
         assert perm.has_permission(_make_request('student'), None) is False
+
+
+class TestIsOwnerOrAdmin:
+    def test_owner_has_permission(self):
+        perm = IsOwnerOrAdmin()
+        request = _make_request('student')
+        obj = MagicMock()
+        obj.user = request.user
+        assert perm.has_object_permission(request, None, obj) is True
+
+    def test_admin_has_permission_override(self):
+        perm = IsOwnerOrAdmin()
+        request = _make_request('admin')
+        obj = MagicMock()
+        obj.user = MagicMock()
+        assert perm.has_object_permission(request, None, obj) is True
+
+    def test_non_owner_denied(self):
+        perm = IsOwnerOrAdmin()
+        request = _make_request('student')
+        obj = MagicMock()
+        obj.user = MagicMock()
+        assert perm.has_object_permission(request, None, obj) is False
+
+    def test_unauthenticated_anonymous_denied(self):
+        perm = IsOwnerOrAdmin()
+        request = _make_request(None, authenticated=False)
+        obj = MagicMock()
+        obj.user = MagicMock()
+        assert perm.has_object_permission(request, None, obj) is False

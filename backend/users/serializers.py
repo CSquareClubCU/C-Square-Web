@@ -78,11 +78,13 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     def validate_phone(self, value):
         if value is not None:
-            digits = value.replace(' ', '').replace('-', '')
-            if not digits.isdigit() or len(digits) < 7 or len(digits) > 15:
+            normalized = value.replace(' ', '').replace('-', '')
+            check_val = normalized[1:] if normalized.startswith('+') else normalized
+            if not check_val.isdigit() or len(check_val) < 7 or len(check_val) > 15:
                 raise serializers.ValidationError(
                     'Enter a valid phone number (7–15 digits).'
                 )
+            return normalized
         return value
 
 

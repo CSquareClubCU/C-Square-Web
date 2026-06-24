@@ -67,8 +67,17 @@ class EventListView(APIView):
         """
         qs = Event.objects.all()
 
-        # Status filter — default to published for public listing
-        status_param = request.query_params.get('status', EventStatus.PUBLISHED)
+        # Status filter — only allow admins to filter by status, default/pin to PUBLISHED otherwise
+        is_admin = (
+            request.user
+            and request.user.is_authenticated
+            and getattr(request.user, 'role', None) == 'admin'
+        )
+        if is_admin:
+            status_param = request.query_params.get('status', EventStatus.PUBLISHED)
+        else:
+            status_param = EventStatus.PUBLISHED
+
         if status_param:
             qs = qs.filter(status=status_param)
 

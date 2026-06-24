@@ -190,7 +190,7 @@ class UserRoleView(APIView):
                 code='NOT_FOUND',
                 message='User not found.',
                 status=404,
-            )
+            ) from None
 
         serializer = UserRoleSerializer(data=request.data)
         if not serializer.is_valid():

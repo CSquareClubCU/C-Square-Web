@@ -61,4 +61,4 @@ def get_team_member_or_404(member_id: uuid.UUID) -> TeamMember:
     try:
         return TeamMember.objects.get(pk=member_id)
     except TeamMember.DoesNotExist:
-        raise AppError('NOT_FOUND', 'Team member not found.', 404)
+        raise AppError('NOT_FOUND', 'Team member not found.', 404) from None

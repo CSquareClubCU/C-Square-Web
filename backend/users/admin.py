@@ -10,6 +10,21 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from users.models import User
 
 
+from django import forms
+
+class UserCreationForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('email', 'full_name', 'role', 'is_cu_student', 'is_active', 'is_staff')
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_unusable_password()
+        if commit:
+            user.save()
+        return user
+
+
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     """
@@ -17,6 +32,7 @@ class UserAdmin(BaseUserAdmin):
     Extends Django's built-in UserAdmin for change password support.
     """
 
+    add_form = UserCreationForm
     list_display = ('email', 'full_name', 'role', 'is_cu_student', 'is_active', 'date_joined')
     list_filter = ('role', 'is_cu_student', 'is_active', 'is_staff')
     search_fields = ('email', 'full_name', 'student_uid')
@@ -43,3 +59,4 @@ class UserAdmin(BaseUserAdmin):
     # email replaces username as the primary identifier
     filter_horizontal = ('groups', 'user_permissions')
     readonly_fields = ('date_joined', 'last_login')
+

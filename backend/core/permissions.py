@@ -73,6 +73,8 @@ class IsOwnerOrAdmin(BasePermission):
     message = 'You do not have permission to access this resource.'
 
     def has_object_permission(self, request, view, obj):
+        if not request.user or not request.user.is_authenticated:
+            return False
         if request.user.role == 'admin':
             return True
         return obj.user == request.user

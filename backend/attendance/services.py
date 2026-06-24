@@ -9,12 +9,15 @@ import logging
 import uuid
 
 from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.utils import timezone
+from typing import Optional
 
 from attendance.models import AttendanceRecord, CheckInMethod
 from core.exceptions import AppError
 from events.models import Event
 from events.models import VolunteerAssignment
+from users.models import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +27,7 @@ def _verify_volunteer_access(event: Event, user):
     Ensure that a volunteer is assigned to this event before check-in.
     Admins bypass this check.
     """
-    if user.role == 'volunteer':
+    if user.role == UserRole.VOLUNTEER:
         assigned = VolunteerAssignment.objects.filter(event=event, volunteer=user).exists()
         if not assigned:
             raise AppError('NOT_ASSIGNED', 'You are not assigned to this event.', 403)
@@ -118,7 +121,7 @@ def checkin_manual(registration_id: uuid.UUID, marked_by) -> AttendanceRecord:
     return _do_checkin(record, CheckInMethod.MANUAL, marked_by)
 
 
-def get_attendance_list(event: Event, marked_by, search: str = None) -> list:
+def get_attendance_list(event: Event, marked_by, search: Optional[str] = None) -> QuerySet:
     """
     Get all attendance records for an event.
     Supports full-text search across name, email, and student UID.
@@ -148,6 +151,16 @@ def get_attendance_list(event: Event, marked_by, search: str = None) -> list:
         )
 
     return qs
+
+
+def _sanitize_csv_value(val) -> str:
+    """Sanitize user-controlled fields to prevent CSV formula injection."""
+    if not val:
+        return ''
+    val_str = str(val)
+    if val_str.startswith(('=', '+', '-', '@')):
+        return f"'{val_str}"
+    return val_str
 
 
 def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
@@ -183,9 +196,9 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
 
     for record in records:
         writer.writerow([
-            record.user.full_name,
-            record.user.email,
-            record.user.student_uid or '',
+            _sanitize_csv_value(record.user.full_name),
+            _sanitize_csv_value(record.user.email),
+            _sanitize_csv_value(record.user.student_uid),
             record.registration.status,
             'Yes' if record.is_checked_in else 'No',
             record.checked_in_at.strftime('%Y-%m-%d %H:%M:%S') if record.checked_in_at else '',
