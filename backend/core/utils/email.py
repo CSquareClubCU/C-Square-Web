@@ -22,6 +22,7 @@ def send_email(
     html_body: str = None,
     to_email: str = None,
     html_content: str = None,
+    raise_on_error: bool = False,
 ) -> None:
     """
     Send an HTML email via Azure Communication Services.
@@ -65,7 +66,8 @@ def send_email(
 
     except Exception as exc:
         logger.exception('Failed to send email to %s: %s', to, exc)
-        # Do not raise — email failure should not break the user's action in v1
+        if raise_on_error:
+            raise exc
 
 
 # ---------------------------------------------------------------------------
@@ -79,8 +81,9 @@ def send_magic_link_email(to: str, magic_link_url: str) -> None:
     })
     send_email(
         to=to,
-        subject='Your C Square Club login link',
+        subject='Login to C Square Club',
         html_body=html_body,
+        raise_on_error=True,
     )
 
 
