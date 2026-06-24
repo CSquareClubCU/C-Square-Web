@@ -283,7 +283,7 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
         try:
             db_reg = Registration.objects.select_for_update().select_related('team').get(id=registration_id)
         except Registration.DoesNotExist:
-            raise AppError('NOT_FOUND', 'Registration not found.', 404)
+            raise AppError('NOT_FOUND', 'Registration not found.', 404) from None
 
         if db_reg.status != RegistrationStatus.PENDING:
             raise AppError('INVALID_STATUS', 'Only pending registrations can be approved.', 400)
