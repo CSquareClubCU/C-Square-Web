@@ -183,10 +183,13 @@ def register_team(event_id: uuid.UUID, team_name: str, leader, members_data: lis
             invites_to_send.append((m['email'].lower(), token))
 
     # Trigger emails after transaction block has successfully completed
+    from django.utils.html import escape
     for email_addr, token in invites_to_send:
         try:
-            invite_url = f"https://csquare.cuchd.in/teams/confirm?token={token}"
-            html_content = f"<p>You've been invited to team {team_name} for {event.title}. <a href='{invite_url}'>Confirm here</a>.</p>"
+            escaped_team_name = escape(team_name)
+            escaped_event_title = escape(event.title)
+            invite_url = f"{settings.FRONTEND_URL}/teams/confirm?token={token}"
+            html_content = f"<p>You've been invited to team {escaped_team_name} for {escaped_event_title}. <a href='{invite_url}'>Confirm here</a>.</p>"
             send_email(
                 to_email=email_addr,
                 subject=f"Team Invite: {team_name}",
@@ -276,7 +279,31 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
         # Lock the Event row to prevent race conditions on capacity calculation
         event = Event.objects.select_for_update().get(id=registration.event.id)
 
-        # Check capacity against event limit
+        # Lock the target registration row and verify status is still PENDING
+        try:
+            db_reg = Registration.objects.select_for_update().select_related('team').get(id=registration_id)
+        except Registration.DoesNotExist:
+            raise AppError('NOT_FOUND', 'Registration not found.', 404)
+
+        if db_reg.status != RegistrationStatus.PENDING:
+            raise AppError('INVALID_STATUS', 'Only pending registrations can be approved.', 400)
+
+        # Determine all fresh locked registrations to approve
+        if db_reg.is_team_registration and db_reg.team:
+            db_team = Team.objects.select_for_update().get(id=db_reg.team.id)
+            if db_team.status != TeamStatus.PENDING_APPROVAL:
+                 raise AppError('INVALID_TEAM_STATUS', 'Team is not ready for approval.', 400)
+            regs_to_approve = list(db_team.registrations.select_for_update().all())
+            # Ensure all registrations to approve are indeed pending
+            for r in regs_to_approve:
+                if r.status != RegistrationStatus.PENDING:
+                    raise AppError('INVALID_STATUS', 'One or more registrations are not pending.', 400)
+            team = db_team
+        else:
+            team = None
+            regs_to_approve = [db_reg]
+
+        # Check capacity against event limit using locked values
         approved_count = Registration.objects.filter(event=event, status=RegistrationStatus.APPROVED).count()
         if approved_count + len(regs_to_approve) > event.capacity:
             raise AppError('CAPACITY_EXCEEDED', 'Approving this would exceed event capacity.', 400)
@@ -296,11 +323,15 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
             
             # Create AttendanceRecord
             if AttendanceRecord:
-                AttendanceRecord.objects.create(
-                    registration=reg,
-                    event=reg.event,
-                    user=reg.user,
-                )
+                from django.db import IntegrityError
+                try:
+                    AttendanceRecord.objects.create(
+                        registration=reg,
+                        event=reg.event,
+                        user=reg.user,
+                    )
+                except IntegrityError:
+                    pass  # Cleanly bypass if already created under concurrent race
 
     # Outside transaction: generate QR, upload to storage, and send email directly.
     # Each is wrapped in a try-except block so one registration failure does not block the others.
@@ -340,6 +371,7 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
             logger.error("Failed post-approval tasks for registration %s: %s", reg.id, str(e))
 
     logger.info('%d registration(s) approved for event "%s"', len(regs_to_approve), registration.event.title)
+    registration.refresh_from_db()
     return registration
 
 
