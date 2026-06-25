@@ -257,7 +257,9 @@ export function Marquee({
         style={{ animationDuration: `${speed}s` }}
       >
         {children}
-        {children}
+        <div aria-hidden="true" className="shrink-0 flex items-center justify-center">
+          {children}
+        </div>
       </div>
     </div>
   );

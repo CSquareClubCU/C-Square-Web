@@ -195,6 +195,18 @@ h3 {
   100% { transform: translateX(-50%); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  .hero-glow,
+  .shimmer::after,
+  .glow-card::before,
+  .marquee-track {
+    animation: none !important;
+  }
+}
+
 /* ─── Animated Underline ─── */
 .animated-underline {
   position: relative;

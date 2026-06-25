@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowUpRight, Globe, Code2, ExternalLink } from "lucide-react";
 
@@ -22,9 +20,9 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-  { icon: <Code2 className="w-4 h-4" />, href: "#", label: "GitHub" },
-  { icon: <Globe className="w-4 h-4" />, href: "#", label: "Website" },
-  { icon: <ExternalLink className="w-4 h-4" />, href: "#", label: "LinkedIn" },
+  { icon: <Code2 className="w-4 h-4" />, href: "https://github.com/CSquareClubCU", label: "GitHub" },
+  { icon: <Globe className="w-4 h-4" />, href: "https://csquareclub.com", label: "Website" },
+  { icon: <ExternalLink className="w-4 h-4" />, href: "https://www.linkedin.com/company/csquare-club", label: "LinkedIn" },
 ];
 
 export function Footer() {

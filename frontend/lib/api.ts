@@ -5,7 +5,11 @@ import { Event } from '@/types';
 // Real API integration. Ensure BASE_URL points to the Django backend.
 // ============================================================================
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:8000/api' : '');
+
+if (!BASE_URL) {
+  throw new Error('NEXT_PUBLIC_API_URL environment variable is required in production.');
+}
 
 export async function fetchEvents(): Promise<Event[]> {
   const res = await fetch(`${BASE_URL}/events/`, {

@@ -58,8 +58,15 @@ export function HoverDotGrid() {
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
-      targetMouse.x = e.clientX - rect.left;
-      targetMouse.y = e.clientY - rect.top;
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+        targetMouse.x = x;
+        targetMouse.y = y;
+      } else {
+        handleMouseLeave();
+      }
     };
 
     const handleMouseLeave = () => {
@@ -69,7 +76,6 @@ export function HoverDotGrid() {
 
     window.addEventListener("resize", init);
     window.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseleave", handleMouseLeave);
 
     init();
 
