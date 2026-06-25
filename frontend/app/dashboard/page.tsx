@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -12,46 +12,12 @@ import {
   AlertCircle,
   LogOut,
   User,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/animations/MotionElements";
-
-// Mock dashboard data — will be replaced with real API calls
-const MOCK_USER = {
-  full_name: "Arjun Singh",
-  email: "arjun@cuchd.in",
-  role: "student" as const,
-  student_uid: "22BCS10001",
-  branch: "CSE",
-};
-
-const MOCK_REGISTRATIONS = [
-  {
-    id: "reg-1",
-    event: {
-      id: "1",
-      title: "HackCU 2026",
-      start_datetime: "2026-08-15T09:00:00Z",
-      venue: "Block 10, Chandigarh University",
-    },
-    status: "approved",
-    qr_image_url: null,
-    registered_at: "2026-07-15T14:30:00Z",
-  },
-  {
-    id: "reg-2",
-    event: {
-      id: "2",
-      title: "Intro to Web3 Workshop",
-      start_datetime: "2026-09-05T14:00:00Z",
-      venue: "Seminar Hall, Block 3",
-    },
-    status: "pending",
-    qr_image_url: null,
-    registered_at: "2026-08-28T10:00:00Z",
-  },
-];
+import { fetchUser, fetchRegistrations } from "@/lib/api";
 
 const statusConfig: Record<string, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
   approved: {
@@ -82,8 +48,49 @@ const statusConfig: Record<string, { label: string; icon: React.ReactNode; color
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
-  
-  const filteredRegistrations = MOCK_REGISTRATIONS.filter((reg) => {
+  const [user, setUser] = useState<any>(null);
+  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [userData, regsData] = await Promise.all([
+          fetchUser(),
+          fetchRegistrations(),
+        ]);
+        setUser(userData);
+        setRegistrations(regsData);
+      } catch (err: any) {
+        setError(err.message || "Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center text-white bg-black">
+        <Loader2 className="w-8 h-8 animate-spin text-white/50 mb-4" />
+        <p className="text-white/50">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center text-white bg-black">
+        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+        <p className="text-xl font-medium mb-2">Could not load dashboard</p>
+        <p className="text-white/50">{error || "User data not found."}</p>
+      </div>
+    );
+  }
+
+  const filteredRegistrations = registrations.filter((reg) => {
     const isPast = new Date(reg.event.start_datetime) < new Date();
     return activeTab === "past" ? isPast : !isPast;
   });
@@ -96,15 +103,15 @@ export default function DashboardPage() {
           <FadeUp>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="flex items-center space-x-5">
-                <div className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center text-2xl font-bold shadow-lg">
-                  {MOCK_USER.full_name.charAt(0)}
+                <div className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center text-2xl font-bold shadow-lg uppercase">
+                  {user.full_name?.charAt(0) || "U"}
                 </div>
                 <div>
                   <h1 className="text-2xl md:text-3xl font-bold tracking-tight gradient-text">
-                    Hey, {MOCK_USER.full_name.split(" ")[0]}!
+                    Hey, {user.full_name?.split(" ")[0] || "Student"}!
                   </h1>
                   <p className="text-sm text-white/40">
-                    {MOCK_USER.email} &middot; {MOCK_USER.student_uid} &middot; {MOCK_USER.branch}
+                    {user.email} &middot; {user.student_uid || "No UID"} &middot; {user.branch || "No Branch"}
                   </p>
                 </div>
               </div>
@@ -143,71 +150,68 @@ export default function DashboardPage() {
 
         {/* Registrations */}
         <StaggerContainer className="space-y-4">
-          {filteredRegistrations.map((reg) => {
-            const status = statusConfig[reg.status] || statusConfig.pending;
-            return (
-              <StaggerItem key={reg.id}>
-                <motion.div
-                  whileHover={{ y: -2 }}
-                  transition={{ duration: 0.2 }}
-                  className="p-6 md:p-8 rounded-[24px] border border-[var(--c-border)] bg-white flex flex-col md:flex-row md:items-center gap-6 hover:shadow-md transition-shadow duration-300"
-                >
-                  {/* Event Info */}
-                  <div className="flex-1">
-                    <Link
-                      href={`/events/${reg.event.id}`}
-                      className="text-lg font-semibold hover:underline underline-offset-4"
-                    >
-                      {reg.event.title}
-                    </Link>
-                    <div className="flex flex-wrap gap-4 mt-3 text-sm text-[var(--c-secondary-text)]">
-                      <span className="flex items-center">
-                        <CalendarDays className="w-4 h-4 mr-1.5" />
-                        {formatDate(reg.event.start_datetime)}
-                      </span>
-                      <span className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1.5" />
-                        Registered {formatDate(reg.registered_at)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Status Badge */}
-                  <span
-                    className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${status.color} ${status.bg}`}
-                  >
-                    {status.icon}
-                    <span className="ml-1.5">{status.label}</span>
-                  </span>
-
-                  {/* QR Code Button */}
-                  {reg.status === "approved" && (
-                    <Button variant="outline" size="sm">
-                      <QrCode className="w-4 h-4 mr-2" />
-                      View QR
-                    </Button>
-                  )}
-                </motion.div>
-              </StaggerItem>
-            );
-          })}
-        </StaggerContainer>
-
-        {/* Empty State */}
-        {filteredRegistrations.length === 0 && (
-          <FadeUp className="text-center py-20">
-            <div className="w-16 h-16 rounded-full bg-[var(--c-surface)] flex items-center justify-center mx-auto mb-6">
-              <CalendarDays className="w-8 h-8 text-[var(--c-muted-text)]" />
+          {filteredRegistrations.length === 0 ? (
+            <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-100">
+              <p className="text-gray-500 mb-4">No {activeTab} registrations found.</p>
+              <Link href="/events">
+                <Button variant="outline">Browse Events</Button>
+              </Link>
             </div>
-            <h3 className="text-xl font-semibold mb-2">No registrations yet</h3>
-            <p className="text-[var(--c-secondary-text)] mb-6">
-              Browse upcoming events and register for your first one!
-            </p>
-            <Link href="/events">
-              <Button>Explore Events</Button>
-            </Link>
-          </FadeUp>
-        )}
+          ) : (
+            filteredRegistrations.map((reg) => {
+              const status = statusConfig[reg.status] || statusConfig.pending;
+              return (
+                <StaggerItem key={reg.id}>
+                  <motion.div
+                    whileHover={{ y: -2 }}
+                    className="w-full bg-white border border-[var(--c-border)] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:shadow-md transition-all"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase ${status.bg} ${status.color}`}
+                        >
+                          {status.icon}
+                          <span className="ml-1.5">{status.label}</span>
+                        </span>
+                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          Registered {formatDate(reg.registered_at)}
+                        </span>
+                      </div>
+                      <Link href={`/events/${reg.event.id}`}>
+                        <h3 className="text-xl font-bold hover:text-[var(--c-primary)] transition-colors mb-2">
+                          {reg.event.title}
+                        </h3>
+                      </Link>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-sm text-[var(--c-secondary-text)]">
+                        <span className="flex items-center gap-1.5">
+                          <CalendarDays className="w-4 h-4 text-gray-400" />
+                          {formatDate(reg.event.start_datetime)}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <QrCode className="w-4 h-4 text-gray-400" />
+                          {reg.event.venue}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-[var(--c-border)]">
+                      {reg.status === "approved" && (
+                        <Button className="w-full md:w-auto bg-black text-white hover:bg-gray-800">
+                          <QrCode className="w-4 h-4 mr-2" />
+                          View Ticket
+                        </Button>
+                      )}
+                      <Button variant="outline" className="w-full md:w-auto">
+                        Details
+                      </Button>
+                    </div>
+                  </motion.div>
+                </StaggerItem>
+              );
+            })
+          )}
+        </StaggerContainer>
       </div>
     </div>
   );
