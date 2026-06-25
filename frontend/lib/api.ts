@@ -54,7 +54,7 @@ export async function fetchUser() {
 }
 
 export async function fetchRegistrations() {
-  const res = await fetch(`${BASE_URL}/registrations/`, {
+  const res = await fetch(`${BASE_URL}/registrations/me/`, {
     credentials: 'include',
   });
   if (!res.ok) {
