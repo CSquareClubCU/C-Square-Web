@@ -49,7 +49,7 @@ export function HoverDotGrid() {
             baseY: y, 
             x: x, 
             y: y, 
-            size: 4, // Base font size
+            size: 1.5,
             opacity: 0
           });
         }
@@ -92,7 +92,7 @@ export function HoverDotGrid() {
 
         let targetX = dot.baseX;
         let targetY = dot.baseY;
-        let targetSize = 4; // Base font size
+        let targetSize = 1.5;
         let targetOpacity = 0; // Default invisible
 
         if (distance < hoverRadius) {
@@ -106,8 +106,8 @@ export function HoverDotGrid() {
           
           const intensity = ((wave + 1) / 2) * easeFalloff;
 
-          // Wave peaks make the C² font much larger
-          targetSize = 4 + (intensity * 18);
+          // Wave peaks are larger squares
+          targetSize = 1.5 + (intensity * 7);
           
           // Wave peaks are darker
           targetOpacity = intensity * 0.8;
@@ -129,10 +129,9 @@ export function HoverDotGrid() {
         // Optimization: only draw if visible
         if (dot.opacity > 0.01) {
           ctx.fillStyle = `rgba(0, 0, 0, ${dot.opacity})`;
-          ctx.font = `bold ${dot.size}px Inter, sans-serif`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("C²", dot.x, dot.y);
+          // Draw a perfect square centered on the dot's position
+          const s = dot.size;
+          ctx.fillRect(dot.x - s / 2, dot.y - s / 2, s, s);
         }
       }
 
