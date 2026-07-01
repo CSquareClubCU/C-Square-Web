@@ -68,3 +68,20 @@ export async function fetchRegistrations() {
   const data = await res.json();
   return data.results || data;
 }
+
+export async function requestMagicLink(email: string) {
+  const res = await fetch(`${BASE_URL}/auth/magic-link/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || errorData.message || `API request failed with status ${res.status}`);
+  }
+  
+  return res.json();
+}

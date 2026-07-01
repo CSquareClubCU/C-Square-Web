@@ -7,6 +7,8 @@ import { ArrowLeft, Mail, ArrowRight, CheckCircle2, Sparkles } from "lucide-reac
 import { Button } from "@/components/ui/Button";
 import { Float } from "@/components/animations/MotionElements";
 
+import { requestMagicLink } from "@/lib/api";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -24,10 +26,14 @@ export default function LoginPage() {
     }
     
     setLoading(true);
-    // Simulate API call — will be replaced with real POST /api/auth/magic-link/
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setLoading(false);
-    setSent(true);
+    try {
+      await requestMagicLink(email);
+      setSent(true);
+    } catch (err: any) {
+      setError(err.message || "Failed to send magic link. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

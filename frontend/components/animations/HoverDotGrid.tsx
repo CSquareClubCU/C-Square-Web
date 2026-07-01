@@ -2,6 +2,19 @@
 
 import { useEffect, useRef } from "react";
 
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  rotation: number;
+  rotationSpeed: number;
+  opacity: number;
+  depth: number; // 0 = far background, 1 = foreground
+  color: string;
+}
+
 export function HoverDotGrid() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -16,129 +29,140 @@ export function HoverDotGrid() {
 
     let width = 0;
     let height = 0;
+    let dpr = window.devicePixelRatio || 1;
 
-    const spacing = 28; // Clean grid spacing
-    const hoverRadius = 380; // Spotlight size
+    // --- Configuration ---
+    const PARTICLE_COUNT = 160;
+    const GRAVITY = -0.04; // Negative = antigravity (float upward)
+    const FRICTION = 0.995;
+    const MOUSE_RADIUS = 180;
+    const MOUSE_FORCE = 3.5;
+    const SPEED_FACTOR = 0.7;
 
-    let dots: { 
-      baseX: number; 
-      baseY: number; 
-      x: number; 
-      y: number; 
-      size: number;
-      opacity: number;
-    }[] = [];
+    // Monochrome palette with subtle variety — matches the site's aesthetic
+    const COLORS = [
+      "rgba(0, 0, 0,",       // Black
+      "rgba(60, 60, 60,",    // Dark gray
+      "rgba(100, 100, 100,", // Medium gray
+      "rgba(140, 140, 140,", // Light gray
+      "rgba(40, 40, 50,",    // Near-black blue tint
+      "rgba(80, 80, 90,",    // Subtle blue-gray
+    ];
 
-    let mouse = { x: -1000, y: -1000 };
-    let targetMouse = { x: -1000, y: -1000 };
+    let particles: Particle[] = [];
+    let mouse = { x: -9999, y: -9999 };
+
+    const createParticle = (randomY: boolean = true): Particle => {
+      const depth = Math.random(); // 0 = far, 1 = near
+      const baseSize = 2 + depth * 6; // Far particles are small, near are larger
+      const size = baseSize + Math.random() * 3;
+
+      return {
+        x: Math.random() * width,
+        y: randomY ? Math.random() * height : height + size + Math.random() * 40,
+        vx: (Math.random() - 0.5) * SPEED_FACTOR,
+        vy: (Math.random() - 0.5) * SPEED_FACTOR * 0.5,
+        size,
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.02,
+        opacity: 0.12 + depth * 0.45, // Far = faint, near = visible
+        depth,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      };
+    };
 
     const init = () => {
       const rect = container.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
+      dpr = window.devicePixelRatio || 1;
 
-      canvas.width = width * window.devicePixelRatio;
-      canvas.height = height * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
 
-      dots = [];
-      for (let x = 0; x < width; x += spacing) {
-        for (let y = 0; y < height; y += spacing) {
-          dots.push({ 
-            baseX: x, 
-            baseY: y, 
-            x: x, 
-            y: y, 
-            size: 1.5,
-            opacity: 0
-          });
-        }
+      particles = [];
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push(createParticle(true));
       }
     };
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
-        targetMouse.x = x;
-        targetMouse.y = y;
-      } else {
-        handleMouseLeave();
-      }
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
     };
 
     const handleMouseLeave = () => {
-      targetMouse.x = -1000;
-      targetMouse.y = -1000;
+      mouse.x = -9999;
+      mouse.y = -9999;
     };
 
     window.addEventListener("resize", init);
     window.addEventListener("mousemove", handleMouseMove);
+    container.addEventListener("mouseleave", handleMouseLeave);
 
     init();
 
     let animationFrameId: number;
-    let startTime = performance.now();
 
-    const render = (time: number) => {
+    const render = () => {
       ctx.clearRect(0, 0, width, height);
-      
-      const elapsed = time - startTime;
 
-      // Lerp mouse
-      mouse.x += (targetMouse.x - mouse.x) * 0.2;
-      mouse.y += (targetMouse.y - mouse.y) * 0.2;
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
 
-      for (const dot of dots) {
-        const dx = dot.baseX - mouse.x;
-        const dy = dot.baseY - mouse.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        // --- Anti-gravity (float upward) ---
+        // Depth affects speed: near particles float faster
+        const depthSpeed = 0.3 + p.depth * 0.7;
+        p.vy += GRAVITY * depthSpeed;
 
-        let targetX = dot.baseX;
-        let targetY = dot.baseY;
-        let targetSize = 1.5;
-        let targetOpacity = 0; // Default invisible
+        // --- Mouse repulsion ---
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const distSq = dx * dx + dy * dy;
+        const mouseR = MOUSE_RADIUS;
 
-        if (distance < hoverRadius) {
-          // Wave calculations
-          const wavelength = 120; // Distance between wave peaks
-          const phase = elapsed * 0.004; // Speed of the rippling
-          
-          const wave = Math.cos(distance * (Math.PI * 2 / wavelength) - phase);
-          const falloff = 1 - (distance / hoverRadius);
-          const easeFalloff = falloff * falloff; 
-          
-          const intensity = ((wave + 1) / 2) * easeFalloff;
-
-          // Wave peaks are larger squares
-          targetSize = 1.5 + (intensity * 7);
-          
-          // Wave peaks are darker
-          targetOpacity = intensity * 0.8;
-
-          // Wave displacement (pushes dots outward slightly on the wave peaks)
-          const displacement = intensity * 10;
-          if (distance > 0) {
-            targetX = dot.baseX + (dx / distance) * displacement;
-            targetY = dot.baseY + (dy / distance) * displacement;
-          }
+        if (distSq < mouseR * mouseR && distSq > 0) {
+          const dist = Math.sqrt(distSq);
+          const force = (1 - dist / mouseR) * MOUSE_FORCE;
+          const nx = dx / dist;
+          const ny = dy / dist;
+          p.vx += nx * force;
+          p.vy += ny * force;
         }
 
-        // Smooth physics lerping
-        dot.x += (targetX - dot.x) * 0.35;
-        dot.y += (targetY - dot.y) * 0.35;
-        dot.size += (targetSize - dot.size) * 0.35;
-        dot.opacity += (targetOpacity - dot.opacity) * 0.35;
+        // --- Physics ---
+        p.vx *= FRICTION;
+        p.vy *= FRICTION;
+        p.x += p.vx;
+        p.y += p.vy;
 
-        // Optimization: only draw if visible
-        if (dot.opacity > 0.01) {
-          ctx.fillStyle = `rgba(0, 0, 0, ${dot.opacity})`;
-          // Draw a perfect square centered on the dot's position
-          const s = dot.size;
-          ctx.fillRect(dot.x - s / 2, dot.y - s / 2, s, s);
+        // Gentle rotation
+        p.rotation += p.rotationSpeed;
+
+        // --- Wrapping / Respawning ---
+        // If particle drifts off top, respawn from bottom
+        if (p.y < -p.size * 2) {
+          particles[i] = createParticle(false);
+          particles[i].y = height + particles[i].size + Math.random() * 20;
         }
+        // If it drifts off bottom (rare, from mouse push), wrap to top
+        if (p.y > height + p.size * 2) {
+          p.y = -p.size;
+        }
+        // Horizontal wrapping
+        if (p.x < -p.size * 2) p.x = width + p.size;
+        if (p.x > width + p.size * 2) p.x = -p.size;
+
+        // --- Draw square with rotation ---
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.fillStyle = `${p.color} ${p.opacity})`;
+        const half = p.size / 2;
+        ctx.fillRect(-half, -half, p.size, p.size);
+        ctx.restore();
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -149,7 +173,7 @@ export function HoverDotGrid() {
     return () => {
       window.removeEventListener("resize", init);
       window.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseleave", handleMouseLeave);
+      container.removeEventListener("mouseleave", handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);

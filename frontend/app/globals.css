@@ -93,10 +93,11 @@ h3 {
   background-size: 128px 128px;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.5;
+  opacity: 0.08;
+  mix-blend-mode: screen;
 }
 
-/* ─── Hero Ambient Glow ─── */
+/* ─── Hero Ambient Glow ─── */ 
 .hero-glow {
   position: absolute;
   width: 500px;
@@ -292,3 +293,4 @@ html {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
