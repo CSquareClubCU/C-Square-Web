@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Mail, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowLeft, Mail, ArrowRight, CheckCircle2, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Float } from "@/components/animations/MotionElements";
 
 import { requestMagicLink } from "@/lib/api";
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const rawNext = searchParams.get("next") || "";
+  const nextUrl = (rawNext.startsWith("/") && !rawNext.startsWith("//")) ? rawNext : "";
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
@@ -19,18 +22,22 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     if (!email) return;
-    
-    if (!email.endsWith("@cuchd.in") && !email.endsWith("@cumail.in")) {
-      setError("Please use your @cuchd.in or @cumail.in email address.");
-      return;
+
+    // Persist the ?next= destination so the verify page can use it after redirect
+    if (nextUrl) {
+      sessionStorage.setItem("auth_next", nextUrl);
     }
-    
+
     setLoading(true);
     try {
       await requestMagicLink(email);
       setSent(true);
-    } catch (err: any) {
-      setError(err.message || "Failed to send magic link. Please try again.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to send magic link. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -134,7 +141,7 @@ export default function LoginPage() {
                       <input
                         id="email"
                         type="email"
-                        placeholder="you@cuchd.in"
+                        placeholder="you@cuchd.in or any email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -147,7 +154,7 @@ export default function LoginPage() {
                       </p>
                     )}
                     <p className="text-xs text-[var(--c-muted-text)]">
-                      CU students: use your @cuchd.in or @cumail.in email
+                      CU students: use your @cuchd.in or @cumail.in email. External participants can use any email.
                     </p>
                   </div>
 
@@ -222,5 +229,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-300" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

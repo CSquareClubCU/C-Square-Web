@@ -17,7 +17,9 @@ export default function EventsPage() {
 
   useEffect(() => {
     fetchEvents().then((data) => {
-      setEvents(data);
+      setEvents(data.results);
+      setLoading(false);
+    }).catch(() => {
       setLoading(false);
     });
   }, []);
@@ -109,9 +111,14 @@ export default function EventsPage() {
                   <div className="h-full flex flex-col rounded-[24px] border border-[var(--c-border)] bg-white overflow-hidden hover:shadow-xl transition-shadow duration-500">
                     {/* Banner Area */}
                     <div className="h-40 bg-black flex items-center justify-center relative overflow-hidden">
-                      <span className="text-5xl font-black text-white/[0.04] tracking-tighter relative z-10">
-                        {event.event_type.toUpperCase()}
-                      </span>
+                      {event.banner_image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={event.banner_image_url} alt={event.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-5xl font-black text-white/[0.04] tracking-tighter relative z-10">
+                          {event.event_type.toUpperCase()}
+                        </span>
+                      )}
                       <div className="absolute top-4 left-4 z-10">
                         <span className="text-xs font-semibold uppercase tracking-wider text-black bg-white px-3 py-1 rounded-full">
                           {event.event_type}
@@ -152,7 +159,7 @@ export default function EventsPage() {
                         />
                       </div>
 
-                      <Link href={`/events/${event.id}`} className="w-full">
+                      <Link href={`/events/${event.slug}`} className="w-full">
                         <Button variant="outline" className="w-full group">
                           View Details
                           <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />

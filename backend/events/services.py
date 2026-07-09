@@ -264,15 +264,15 @@ def get_checkin_stats(event: Event, requesting_user) -> dict:
     }
 
 
-def get_event_for_public(event_id: UUID) -> Event:
+def get_event_for_public(slug: str) -> Event:
     """
-    Get a single published event for the public detail page.
+    Get a single published event for the public detail page, looked up by slug.
 
     Raises:
         AppError(NOT_FOUND, 404): Event not found or not published.
     """
     try:
-        return Event.objects.get(pk=event_id, status=EventStatus.PUBLISHED)
+        return Event.objects.get(slug=slug, status=EventStatus.PUBLISHED)
     except Event.DoesNotExist:
         raise AppError(
             code='NOT_FOUND',
@@ -281,9 +281,27 @@ def get_event_for_public(event_id: UUID) -> Event:
         )
 
 
-def get_event_or_404(event_id: UUID) -> Event:
+def get_event_or_404(slug: str) -> Event:
     """
-    Get any event by ID (for admin use — not status-filtered).
+    Get any event by slug (for admin use — not status-filtered).
+
+    Raises:
+        AppError(NOT_FOUND, 404): Event does not exist.
+    """
+    try:
+        return Event.objects.get(slug=slug)
+    except Event.DoesNotExist:
+        raise AppError(
+            code='NOT_FOUND',
+            message='Event not found.',
+            status=404,
+        )
+
+
+def get_event_by_uuid(event_id: UUID) -> Event:
+    """
+    Get any event by its UUID (for internal sub-resource operations).
+    Used by banner, volunteers, and checkin-stats endpoints.
 
     Raises:
         AppError(NOT_FOUND, 404): Event does not exist.

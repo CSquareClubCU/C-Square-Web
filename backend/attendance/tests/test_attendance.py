@@ -213,7 +213,7 @@ class TestQRCheckinView:
             format='json',
         )
         assert response.status_code == 200
-        assert response.data['is_checked_in'] is True
+        assert response.data['success'] is True
 
     def test_missing_token_returns_400(self, api_client, admin_user):
         api_client.force_authenticate(user=admin_user)

@@ -8,6 +8,7 @@ Tables:
 
 from django.conf import settings
 from django.db import models
+from django.utils.text import slugify
 
 from core.models import BaseModel
 
@@ -37,6 +38,7 @@ class Event(BaseModel):
 
     # Required fields
     title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=280, unique=True, blank=True)
     description = models.TextField()
     event_type = models.CharField(
         max_length=20,
@@ -59,6 +61,13 @@ class Event(BaseModel):
 
     # Media
     banner_image_url = models.CharField(max_length=500, null=True, blank=True)
+
+    # Enhancements
+    prizes = models.JSONField(null=True, blank=True)
+    rules = models.TextField(null=True, blank=True)
+    contact_name = models.CharField(max_length=255, null=True, blank=True)
+    contact_email = models.EmailField(null=True, blank=True)
+    is_registration_open = models.BooleanField(default=True)
 
     # Status
     status = models.CharField(
@@ -83,6 +92,39 @@ class Event(BaseModel):
         indexes = [
             models.Index(fields=['status', 'start_datetime']),
         ]
+
+    def _generate_unique_slug(self):
+        """Generate a URL-safe slug from the title, appending a counter to ensure uniqueness."""
+        base_slug = slugify(self.title)
+        if not base_slug:
+            base_slug = 'event'
+        slug = base_slug
+        counter = 2
+        qs = Event.objects.exclude(pk=self.pk) if self.pk else Event.objects.all()
+        while qs.filter(slug=slug).exists():
+            slug = f'{base_slug}-{counter}'
+            counter += 1
+        return slug
+
+    def save(self, *args, **kwargs):
+        from django.db import IntegrityError
+        if self.slug:
+            super().save(*args, **kwargs)
+            return
+
+        self.slug = self._generate_unique_slug()
+        max_retries = 5
+        for _ in range(max_retries):
+            try:
+                super().save(*args, **kwargs)
+                return
+            except IntegrityError:
+                # To bypass transaction isolation issues, we can just append a random string
+                import uuid
+                self.slug = f"{self._generate_unique_slug()}-{uuid.uuid4().hex[:6]}"
+        
+        # Final attempt
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title

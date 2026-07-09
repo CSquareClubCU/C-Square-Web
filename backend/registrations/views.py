@@ -3,24 +3,31 @@ Registrations app views.
 Delegates all business logic to services.py.
 """
 
+import logging
+
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.exceptions import AppError
+from core.pagination import StandardPagination
 from core.permissions import IsAdmin
 from events.models import Event
 from registrations import services
 from registrations.models import Registration, Team
 from users.models import UserRole
 from registrations.serializers import (
+    RegistrationAdminListSerializer,
     RegistrationCreateSerializer,
+    RegistrationDetailSerializer,
+    RegistrationMyListSerializer,
     RegistrationRejectSerializer,
-    RegistrationSerializer,
     TeamCreateSerializer,
     TeamSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -44,7 +51,7 @@ class RegisterIndividualView(APIView):
             user=request.user,
         )
         return Response(
-            RegistrationSerializer(registration).data,
+            RegistrationDetailSerializer(registration).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -75,62 +82,133 @@ class RegisterTeamView(APIView):
 
 class ConfirmTeamMemberView(APIView):
     """
-    POST /api/registrations/confirm/
-    Confirm a team invitation using a token.
+    POST /api/registrations/team/confirm/
+    Confirm a team invitation using a token from the invite email link.
+    Auth required: Yes (teammate must be logged in)
     """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        token = request.data.get('token')
+        raw_token = request.data.get('token')
+        token = raw_token.strip() if isinstance(raw_token, str) else ''
+        
         if not token:
-            raise AppError('MISSING_TOKEN', 'Confirmation token is required.', 400)
+            raise AppError(
+                code='INVALID_TOKEN',
+                message='Confirmation token is required.',
+                status=400,
+            )
 
         member = services.confirm_teammate(token=token, user=request.user)
-        return Response({'message': 'Team membership confirmed.'})
+
+        team = member.team
+        return Response(
+            {
+                'message': f'You have confirmed your participation in {team.name}.',
+                'team_id': str(team.id),
+                'team_name': team.name,
+                'event': {
+                    'id': str(team.event.id),
+                    'title': team.event.title,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class MyRegistrationsView(APIView):
     """
     GET /api/registrations/me/
-    List all registrations for the current user.
+    List all registrations for the current user. Paginated.
+    Supports ?status= and ?upcoming= query params.
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        registrations = Registration.objects.filter(user=request.user).select_related('event', 'user')
-        return Response(RegistrationSerializer(registrations, many=True).data)
+        from django.utils import timezone as tz
+
+        qs = Registration.objects.filter(user=request.user).select_related(
+            'event', 'user'
+        )
+
+        status_param = request.query_params.get('status')
+        if status_param:
+            qs = qs.filter(status=status_param)
+
+        if request.query_params.get('upcoming') == 'true':
+            qs = qs.filter(event__start_datetime__gte=tz.now())
+
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(qs, request)
+        serializer = RegistrationMyListSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class RegistrationDetailView(APIView):
     """
     GET /api/registrations/{id}/
     Get details of a specific registration.
+    Auth required: Yes — Owner, Admin, or assigned Volunteer
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         try:
-            # Users can see their own; Admins can see any
-            if request.user.role == UserRole.ADMIN:
-                registration = Registration.objects.get(pk=pk)
-            else:
-                registration = Registration.objects.get(pk=pk, user=request.user)
+            registration = Registration.objects.select_related(
+                'event', 'user'
+            ).get(pk=pk)
         except Registration.DoesNotExist:
             raise AppError('NOT_FOUND', 'Registration not found.', 404)
 
-        return Response(RegistrationSerializer(registration).data)
+        user = request.user
+        is_owner = registration.user == user
+        is_admin = user.role == UserRole.ADMIN
+
+        # Volunteers can access if assigned to the event
+        is_assigned_volunteer = False
+        if user.role == UserRole.VOLUNTEER:
+            from events.models import VolunteerAssignment
+            is_assigned_volunteer = VolunteerAssignment.objects.filter(
+                event=registration.event, volunteer=user
+            ).exists()
+
+        if not (is_owner or is_admin or is_assigned_volunteer):
+            raise AppError(
+                code='FORBIDDEN',
+                message='You do not have permission to view this registration.',
+                status=403,
+            )
+
+        return Response(RegistrationDetailSerializer(registration).data)
 
 
 class CancelRegistrationView(APIView):
     """
     POST /api/registrations/{id}/cancel/
-    Cancel own registration.
+    Cancel own registration or admin cancels any.
+    Auth required: Yes — Owner or Admin
     """
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        services.cancel_registration(registration_id=pk, user=request.user)
-        return Response({'message': 'Registration cancelled.'}, status=status.HTTP_200_OK)
+        # Admins can cancel any registration; students only their own
+        if request.user.role == UserRole.ADMIN:
+            try:
+                registration = Registration.objects.get(pk=pk)
+            except Registration.DoesNotExist:
+                raise AppError('NOT_FOUND', 'Registration not found.', 404)
+            services.cancel_registration(registration_id=pk, user=registration.user)
+        else:
+            services.cancel_registration(registration_id=pk, user=request.user)
+
+        return Response(
+            {
+                'id': str(pk),
+                'status': 'cancelled',
+                'message': 'Registration cancelled successfully.',
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -140,30 +218,58 @@ class CancelRegistrationView(APIView):
 class AdminEventRegistrationsView(APIView):
     """
     GET /api/registrations/event/{event_id}/
-    List all registrations for a specific event. Admin only.
+    List all registrations for a specific event. Admin only. Paginated.
+    Supports ?status= and ?search= query params.
     """
     permission_classes = [IsAdmin]
 
     def get(self, request, event_id):
-        # Allow filtering by status
+        from django.db.models import Q
+
         status_param = request.query_params.get('status')
-        qs = Registration.objects.filter(event_id=event_id).select_related('event', 'user')
+        search = request.query_params.get('search')
+
+        qs = Registration.objects.filter(event_id=event_id).select_related(
+            'event', 'user'
+        )
+
         if status_param:
             qs = qs.filter(status=status_param)
-            
-        return Response(RegistrationSerializer(qs, many=True).data)
+
+        if search:
+            qs = qs.filter(
+                Q(user__full_name__icontains=search)
+                | Q(user__email__icontains=search)
+                | Q(user__student_uid__icontains=search)
+            )
+
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(qs, request)
+        serializer = RegistrationAdminListSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class ApproveRegistrationView(APIView):
     """
     POST /api/registrations/{id}/approve/
     Approve a pending registration. Admin only.
+    Generates QR code, creates AttendanceRecord, sends email.
     """
     permission_classes = [IsAdmin]
 
     def post(self, request, pk):
         registration = services.approve_registration(registration_id=pk, admin_user=request.user)
-        return Response(RegistrationSerializer(registration).data)
+        return Response(
+            {
+                'id': str(registration.id),
+                'status': registration.status,
+                'qr_token': str(registration.qr_token) if registration.qr_token else None,
+                'qr_image_url': registration.qr_image_url,
+                'approved_at': registration.approved_at,
+                'message': 'Registration approved. Confirmation email sent.',
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class RejectRegistrationView(APIView):
@@ -183,7 +289,15 @@ class RejectRegistrationView(APIView):
             reason=serializer.validated_data['reason'],
             admin_user=request.user,
         )
-        return Response(RegistrationSerializer(registration).data)
+        return Response(
+            {
+                'id': str(registration.id),
+                'status': registration.status,
+                'rejection_reason': registration.rejection_reason,
+                'message': 'Registration rejected. Notification email sent.',
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class MoveFromWaitlistView(APIView):
@@ -195,4 +309,11 @@ class MoveFromWaitlistView(APIView):
 
     def post(self, request, pk):
         registration = services.move_from_waitlist(registration_id=pk, admin_user=request.user)
-        return Response(RegistrationSerializer(registration).data)
+        return Response(
+            {
+                'id': str(registration.id),
+                'status': registration.status,
+                'message': 'Registration moved from waitlist to pending. Student notified.',
+            },
+            status=status.HTTP_200_OK,
+        )

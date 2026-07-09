@@ -182,7 +182,7 @@ class TestRegisterIndividual:
     def test_external_user_blocked_from_cu_only_event(self, mock_email, cu_only_event, external_user):
         with pytest.raises(AppError) as exc:
             services.register_individual(cu_only_event.id, external_user)
-        assert exc.value.code == 'CU_STUDENTS_ONLY'
+        assert exc.value.code == 'EXTERNAL_NOT_ALLOWED'
 
     def test_team_event_raises_error(self, team_event, student):
         with pytest.raises(AppError) as exc:
@@ -327,14 +327,17 @@ class TestMyRegistrationsView:
         services.register_individual(open_event.id, student)
         response = api_client.get('/api/registrations/me/')
         assert response.status_code == 200
-        assert len(response.data) == 1
+        # Response is now paginated: { count, next, previous, results }
+        assert response.data['count'] == 1
+        assert len(response.data['results']) == 1
 
     def test_cannot_see_other_users_registrations(self, api_client, student, student2, open_event):
         Registration.objects.create(event=open_event, user=student2)
         api_client.force_authenticate(user=student)
         response = api_client.get('/api/registrations/me/')
         assert response.status_code == 200
-        assert len(response.data) == 0
+        assert response.data['count'] == 0
+        assert len(response.data['results']) == 0
 
 
 @pytest.mark.django_db
@@ -344,7 +347,9 @@ class TestAdminRegistrationViews:
         api_client.force_authenticate(user=admin_user)
         response = api_client.get(f'/api/registrations/event/{open_event.id}/')
         assert response.status_code == 200
-        assert len(response.data) == 1
+        # Response is now paginated
+        assert response.data['count'] == 1
+        assert len(response.data['results']) == 1
 
     def test_student_cannot_list_event_registrations(self, api_client, student, open_event):
         api_client.force_authenticate(user=student)

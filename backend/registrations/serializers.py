@@ -13,11 +13,49 @@ from registrations.models import Registration, RegistrationStatus, Team, TeamMem
 # Individual Registrations
 # ---------------------------------------------------------------------------
 
-class RegistrationSerializer(serializers.ModelSerializer):
+class EventSummarySerializer(serializers.Serializer):
     """
-    Full representation of a registration.
+    Compact event representation nested inside a registration.
+    Used by RegistrationMyListSerializer and RegistrationDetailSerializer.
     """
-    event_title = serializers.CharField(source='event.title', read_only=True)
+    id = serializers.UUIDField(read_only=True)
+    title = serializers.CharField(read_only=True)
+    event_type = serializers.CharField(read_only=True)
+    start_datetime = serializers.DateTimeField(read_only=True)
+    end_datetime = serializers.DateTimeField(read_only=True)
+    venue = serializers.CharField(read_only=True)
+
+
+class RegistrationMyListSerializer(serializers.ModelSerializer):
+    """
+    Compact registration for GET /registrations/me/ — student's own list.
+    Nests the full event summary inline.
+    """
+    event = EventSummarySerializer(read_only=True)
+
+    class Meta:
+        model = Registration
+        fields = [
+            'id',
+            'event',
+            'status',
+            'qr_token',
+            'qr_image_url',
+            'waitlist_position',
+            'is_team_registration',
+            'team',
+            'registered_at',
+            'approved_at',
+        ]
+        read_only_fields = fields
+
+
+class RegistrationDetailSerializer(serializers.ModelSerializer):
+    """
+    Full registration detail — for GET /registrations/{id}/.
+    Visible to owner, admin, or assigned volunteer.
+    """
+    event = EventSummarySerializer(read_only=True)
     user_email = serializers.CharField(source='user.email', read_only=True)
     user_full_name = serializers.CharField(source='user.full_name', read_only=True)
     user_student_uid = serializers.CharField(source='user.student_uid', read_only=True)
@@ -27,12 +65,52 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'event',
-            'event_title',
-            'user',
             'user_email',
             'user_full_name',
             'user_student_uid',
             'status',
+            'qr_token',
+            'qr_image_url',
+            'rejection_reason',
+            'waitlist_position',
+            'is_team_registration',
+            'team',
+            'registered_at',
+            'approved_at',
+        ]
+        read_only_fields = fields
+
+
+class RegistrationAdminListSerializer(serializers.ModelSerializer):
+    """
+    Full registration representation for admin views.
+    GET /registrations/event/{event_id}/ — paginated, with user and event data.
+    """
+    event_title = serializers.CharField(source='event.title', read_only=True)
+    event_type = serializers.CharField(source='event.event_type', read_only=True)
+    user_email = serializers.CharField(source='user.email', read_only=True)
+    user_full_name = serializers.CharField(source='user.full_name', read_only=True)
+    user_student_uid = serializers.CharField(source='user.student_uid', read_only=True)
+    user_branch = serializers.CharField(source='user.branch', read_only=True)
+    user_year = serializers.IntegerField(source='user.year', read_only=True)
+    user_phone = serializers.CharField(source='user.phone', read_only=True)
+
+    class Meta:
+        model = Registration
+        fields = [
+            'id',
+            'event',
+            'event_title',
+            'event_type',
+            'user',
+            'user_email',
+            'user_full_name',
+            'user_student_uid',
+            'user_branch',
+            'user_year',
+            'user_phone',
+            'status',
+            'qr_token',
             'qr_image_url',
             'rejection_reason',
             'waitlist_position',

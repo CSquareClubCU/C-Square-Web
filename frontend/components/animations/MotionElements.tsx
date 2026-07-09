@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, ReactNode } from "react";
-import { motion, useInView, useAnimation } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 
 /* ─── Fade Up on Scroll ─── */
 export function FadeUp({
@@ -212,7 +212,6 @@ export function AnimatedCounter({
 }) {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true });
-  const controls = useAnimation();
 
   useEffect(() => {
     if (isInView && ref.current) {

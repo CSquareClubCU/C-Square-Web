@@ -183,11 +183,16 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
     buffer = io.StringIO()
     writer = csv.writer(buffer)
 
-    # Header
+    # Header — must match API_SPEC.md exactly
     writer.writerow([
         'Full Name',
         'Email',
         'Student UID',
+        'Branch',
+        'Year',
+        'Semester',
+        'Batch',
+        'Phone',
         'Registration Status',
         'Checked In',
         'Checked In At',
@@ -199,6 +204,11 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
             _sanitize_csv_value(record.user.full_name),
             _sanitize_csv_value(record.user.email),
             _sanitize_csv_value(record.user.student_uid),
+            _sanitize_csv_value(record.user.branch),
+            _sanitize_csv_value(record.user.year),
+            _sanitize_csv_value(record.user.semester),
+            _sanitize_csv_value(record.user.batch),
+            _sanitize_csv_value(record.user.phone),
             record.registration.status,
             'Yes' if record.is_checked_in else 'No',
             record.checked_in_at.strftime('%Y-%m-%d %H:%M:%S') if record.checked_in_at else '',

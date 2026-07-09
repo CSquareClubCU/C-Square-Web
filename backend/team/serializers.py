@@ -11,7 +11,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeamMember
-        fields = ['id', 'full_name', 'designation', 'photo_url', 'display_order']
+        fields = ['id', 'full_name', 'designation', 'photo_url', 'display_order', 'is_active']
         read_only_fields = fields
 
 
@@ -20,7 +20,7 @@ class TeamMemberCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeamMember
-        fields = ['full_name', 'designation', 'display_order']
+        fields = ['full_name', 'designation', 'photo_url', 'display_order', 'is_active']
 
 
 class TeamPhotoSerializer(serializers.Serializer):

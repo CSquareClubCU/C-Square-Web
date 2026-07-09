@@ -16,11 +16,12 @@ from events.views import (
 app_name = 'events'
 
 urlpatterns = [
-    # Public + Admin
+    # Public + Admin — list and create
     path('', EventListView.as_view(), name='event-list'),
-    path('<uuid:pk>/', EventDetailView.as_view(), name='event-detail'),
+    # Slug-based detail/update/delete
+    path('<slug:slug>/', EventDetailView.as_view(), name='event-detail'),
 
-    # Admin only
+    # Admin only — sub-resources use UUID for stability (slugs can change)
     path('<uuid:pk>/banner/', EventBannerView.as_view(), name='event-banner'),
     path('<uuid:pk>/volunteers/', EventVolunteersView.as_view(), name='event-volunteers'),
     path(

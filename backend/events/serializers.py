@@ -23,6 +23,7 @@ class EventListSerializer(serializers.ModelSerializer):
         model = Event
         fields = [
             'id',
+            'slug',
             'title',
             'event_type',
             'start_datetime',
@@ -35,6 +36,11 @@ class EventListSerializer(serializers.ModelSerializer):
             'banner_image_url',
             'registration_deadline',
             'registered_count',
+            'prizes',
+            'rules',
+            'contact_name',
+            'contact_email',
+            'is_registration_open',
         ]
         read_only_fields = fields
 
@@ -61,6 +67,7 @@ class EventDetailSerializer(serializers.ModelSerializer):
         model = Event
         fields = [
             'id',
+            'slug',
             'title',
             'description',
             'event_type',
@@ -76,6 +83,11 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'banner_image_url',
             'registration_deadline',
             'registered_count',
+            'prizes',
+            'rules',
+            'contact_name',
+            'contact_email',
+            'is_registration_open',
             'created_at',
         ]
         read_only_fields = fields
@@ -109,6 +121,11 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'min_team_size',
             'max_team_size',
             'status',
+            'prizes',
+            'rules',
+            'contact_name',
+            'contact_email',
+            'is_registration_open',
         ]
 
     def validate(self, data):

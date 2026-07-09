@@ -149,18 +149,16 @@ REST_FRAMEWORK = {
 CORS_ALLOW_CREDENTIALS = True
 
 # ---------------------------------------------------------------------------
-# Azure — loaded from env, used in core/utils/storage.py and email.py
+# Frontend integration
 # ---------------------------------------------------------------------------
-AZURE_STORAGE_CONNECTION_STRING = env('AZURE_STORAGE_CONNECTION_STRING', default='')
-AZURE_STORAGE_CONTAINER_NAME = env('AZURE_STORAGE_CONTAINER_NAME', default='csquare-assets')
-AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING = env(
-    'AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING', default=''
-)
-NOTIFICATION_EMAIL = env('NOTIFICATION_EMAIL', default='csquare.core@gmail.com')
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000')
+
 
 # ---------------------------------------------------------------------------
 # Session settings
 # ---------------------------------------------------------------------------
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

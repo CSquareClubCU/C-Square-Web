@@ -50,7 +50,7 @@ export function HoverDotGrid() {
     ];
 
     let particles: Particle[] = [];
-    let mouse = { x: -9999, y: -9999 };
+    const mouse = { x: -9999, y: -9999 };
 
     const createParticle = (randomY: boolean = true): Particle => {
       const depth = Math.random(); // 0 = far, 1 = near

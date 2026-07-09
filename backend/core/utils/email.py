@@ -1,11 +1,9 @@
 """
-Email utility wrapping Azure Communication Services.
+Email utility.
 
 All emails in the project go through send_email().
 Each specific email type (magic link, approval, rejection, etc.)
 has its own helper function that renders a template and calls send_email().
-
-In v1, all emails are sent synchronously — no Celery, no Redis.
 """
 
 import logging
@@ -25,44 +23,37 @@ def send_email(
     raise_on_error: bool = False,
 ) -> None:
     """
-    Send an HTML email via Azure Communication Services.
+    Send an HTML email via Django's configured Email Backend.
 
     Args:
         to: Recipient email address
         subject: Email subject line
         html_body: Rendered HTML string
 
-    In local development without Azure credentials, logs the email instead of sending.
+    In local development without SMTP credentials, logs the email instead of sending.
     """
     to = to or to_email
     html_body = html_body or html_content
+    sender = settings.DEFAULT_FROM_EMAIL
 
-    connection_string = settings.AZURE_COMMUNICATION_SERVICES_CONNECTION_STRING
-    sender = settings.NOTIFICATION_EMAIL
-
-    if not connection_string:
-        logger.info(
-            '[EMAIL STUB] To: %s | Subject: %s\n%s',
-            to, subject, html_body
-        )
+    if settings.DEBUG and not settings.EMAIL_HOST_USER and settings.EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
+        print('\n' + '='*50)
+        print(f'[EMAIL STUB] To: {to} | Subject: {subject}')
+        print('='*50)
+        print(html_body)
+        print('='*50 + '\n')
         return
 
     try:
-        from azure.communication.email import EmailClient
-
-        client = EmailClient.from_connection_string(connection_string)
-        message = {
-            'senderAddress': sender,
-            'recipients': {
-                'to': [{'address': to}],
-            },
-            'content': {
-                'subject': subject,
-                'html': html_body,
-            },
-        }
-        poller = client.begin_send(message)
-        poller.result()  # Wait for send — synchronous in v1
+        from django.core.mail import send_mail
+        send_mail(
+            subject=subject,
+            message="Please view this email in an HTML-compatible client.",
+            from_email=sender,
+            recipient_list=[to],
+            html_message=html_body,
+            fail_silently=not raise_on_error,
+        )
 
     except Exception as exc:
         logger.exception('Failed to send email to %s: %s', to, exc)

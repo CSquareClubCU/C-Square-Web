@@ -105,6 +105,23 @@ class LogoutView(APIView):
         )
 
 
+class CSRFTokenView(APIView):
+    """
+    GET /api/auth/csrf/
+    Returns the CSRF cookie so the frontend can include X-CSRFToken on POST/PATCH/DELETE.
+    This endpoint is public — no auth needed.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from django.middleware.csrf import get_token
+        csrf_token = get_token(request)
+        return Response(
+            {'csrfToken': csrf_token},
+            status=status.HTTP_200_OK,
+        )
+
+
 class MeView(APIView):
     """
     GET /api/auth/me/
