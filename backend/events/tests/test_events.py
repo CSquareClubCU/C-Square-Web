@@ -426,7 +426,7 @@ class TestEventDetailView:
         assert response.status_code == 404
 
     def test_nonexistent_event_returns_404(self, api_client):
-        response = api_client.get(f'/api/events/does-not-exist/')
+        response = api_client.get('/api/events/does-not-exist/')
         assert response.status_code == 404
 
     def test_admin_can_patch_event(self, api_client, admin_user, published_event):

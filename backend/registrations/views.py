@@ -89,7 +89,9 @@ class ConfirmTeamMemberView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        token = request.data.get('token', '').strip()
+        raw_token = request.data.get('token')
+        token = raw_token.strip() if isinstance(raw_token, str) else ''
+        
         if not token:
             raise AppError(
                 code='INVALID_TOKEN',

@@ -37,20 +37,9 @@ function matchesProtected(
 }
 
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  const protectedRoute = matchesProtected(pathname);
-  if (!protectedRoute) {
-    return NextResponse.next();
-  }
-
-  if (!API_BASE_URL) {
-    // Fail fast if API_BASE_URL is missing in production
-    return NextResponse.next();
-  }
-
-  // The actual authentication and role verification is now handled client-side via useRequireAuth
-  // which provides a better user experience and avoids double round-trips.
+  // Authentication and role verification are entirely handled client-side via useRequireAuth,
+  // providing a better user experience without double round-trips.
+  // This proxy is kept as a stub for future edge routing or header injection if needed.
   return NextResponse.next();
 }
 

@@ -10,6 +10,11 @@ Endpoints:
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.core.cache import cache
+from django.db import Error as DBError
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PublicStatsView(APIView):
@@ -21,6 +26,9 @@ class PublicStatsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        cached_data = cache.get('public_stats')
+        if cached_data:
+            return Response(cached_data)
         from events.models import Event
         from registrations.models import Registration
         from team.models import TeamMember
@@ -33,15 +41,16 @@ class PublicStatsView(APIView):
         try:
             from attendance.models import AttendanceRecord
             total_checkins = AttendanceRecord.objects.filter(is_checked_in=True).count()
-        except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
+        except (ImportError, DBError) as e:
             logger.error("Failed to count attendance records: %s", str(e))
             total_checkins = 0
 
-        return Response({
+        data = {
             'total_registrations': total_registrations,
             'total_events': total_events,
             'total_checkins': total_checkins,
             'active_team_members': active_team_members,
-        })
+        }
+        
+        cache.set('public_stats', data, timeout=300)
+        return Response(data)
