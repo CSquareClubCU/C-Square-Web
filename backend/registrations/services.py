@@ -40,7 +40,7 @@ def _check_event_open_for_registration(event: Event, user):
         raise AppError('REGISTRATION_CLOSED', 'Registration deadline has passed.', 400)
         
     if not event.is_open_to_external and not user.is_cu_student:
-        raise AppError('CU_STUDENTS_ONLY', 'This event is restricted to CU students.', 403)
+        raise AppError('EXTERNAL_NOT_ALLOWED', 'This event is restricted to CU students.', 403)
 
 
 def register_individual(event_id: uuid.UUID, user) -> Registration:
@@ -188,7 +188,7 @@ def register_team(event_id: uuid.UUID, team_name: str, leader, members_data: lis
         try:
             escaped_team_name = escape(team_name)
             escaped_event_title = escape(event.title)
-            invite_url = f"{settings.FRONTEND_URL}/teams/confirm?token={token}"
+            invite_url = f"{settings.FRONTEND_URL}/teams/confirm?token={token}&team_id={team.id}"
             html_content = f"<p>You've been invited to team {escaped_team_name} for {escaped_event_title}. <a href='{invite_url}'>Confirm here</a>.</p>"
             send_email(
                 to_email=email_addr,

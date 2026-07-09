@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -13,6 +14,8 @@ import {
   Terminal,
   Trophy,
   Rocket,
+  Clock,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
@@ -20,27 +23,89 @@ import {
   StaggerContainer,
   StaggerItem,
   TiltCard,
-  Float,
   AnimatedCounter,
   ScaleIn,
   SlideIn,
   Marquee,
-  OrbitRing,
 } from "@/components/animations/MotionElements";
 import { HoverDotGrid } from "@/components/animations/HoverDotGrid";
+import { fetchStats, fetchEvents, fetchTeam, type PublicStats } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
+import type { Event, TeamMemberPublic } from "@/types";
 
 export default function Home() {
+  const [stats, setStats] = useState<PublicStats>({
+    total_registrations: 0,
+    total_events: 0,
+    total_checkins: 0,
+    active_team_members: 0,
+  });
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMemberPublic[]>([]);
+  const [statsLoaded, setStatsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Fetch all homepage live data in parallel
+    Promise.allSettled([
+      fetchStats(),
+      fetchEvents({ upcoming: true, status: "published" }),
+      fetchTeam(),
+    ]).then(([statsRes, eventsRes, teamRes]) => {
+      if (statsRes.status === "fulfilled") {
+        setStats(statsRes.value);
+        setStatsLoaded(true);
+      }
+      if (eventsRes.status === "fulfilled") {
+        // Show at most 3 upcoming events
+        setUpcomingEvents(eventsRes.value.results.slice(0, 3));
+      }
+      if (teamRes.status === "fulfilled") {
+        // Show at most 6 team members
+        setTeamMembers(teamRes.value.slice(0, 6));
+      }
+    });
+  }, []);
+
+  // Build stat cards from live data
+  const statCards = [
+    {
+      value: stats.total_registrations,
+      suffix: "+",
+      label: "Students Registered",
+      icon: <Users className="w-5 h-5" />,
+    },
+    {
+      value: stats.total_events,
+      suffix: "+",
+      label: "Events Hosted",
+      icon: <Calendar className="w-5 h-5" />,
+    },
+    {
+      value: stats.total_checkins,
+      suffix: "+",
+      label: "Check-ins Processed",
+      icon: <QrCode className="w-5 h-5" />,
+    },
+    {
+      value: stats.active_team_members,
+      suffix: "",
+      label: "Team Members",
+      icon: <Trophy className="w-5 h-5" />,
+    },
+  ];
+
   return (
     <div className="flex flex-col items-center w-full overflow-hidden">
       {/* ─── HERO SECTION ─── */}
-      <section className="relative w-full min-h-[100vh] flex flex-col items-center justify-center text-center px-5 md:px-10 bg-white text-black noise-overlay">
+      <section className="relative w-full h-[calc(100vh-129px)] overflow-hidden flex flex-col items-center text-center px-5 md:px-10 bg-white text-black noise-overlay">
         {/* Interactive dots background */}
         <HoverDotGrid />
         {/* Subtle white ambient glows */}
         <div className="hero-glow hero-glow-1" />
         <div className="hero-glow hero-glow-2" />
 
-        <div className="relative z-10 max-w-[900px]">
+        <div className="flex-1 flex items-center justify-center w-full pb-24">
+        <div className="relative z-10 max-w-[900px] w-full">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -49,7 +114,7 @@ export default function Home() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/5 border border-black/10 text-xs font-semibold tracking-wider text-gray-600 mb-6">
               <span className="w-2 h-2 rounded-full bg-black" />
-              CHANDIGARH UNIVERSITY'S TECH CLUB
+              CHANDIGARH UNIVERSITY&apos;S TECH CLUB
             </div>
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] text-black">
               <span>Build the future,</span>
@@ -76,7 +141,7 @@ export default function Home() {
             className="flex items-center justify-center gap-4 flex-col sm:flex-row"
           >
             <Link href="/events">
-              <Button size="lg" className="group bg-black text-white hover:bg-gray-800">
+              <Button size="lg" className="group bg-black text-white hover:bg-gray-800 w-[200px] justify-center">
                 Explore Events
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -85,27 +150,28 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-black/10 text-black hover:bg-black/5"
+                className="border-black/10 text-black hover:bg-black/5 w-[200px] justify-center"
               >
                 Meet the Team
               </Button>
             </Link>
           </motion.div>
         </div>
+        </div>
 
-        {/* Scroll indicator */}
+        {/* Scroll indicator — absolute so it truly anchors to section bottom */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
-          className="absolute bottom-8 z-10"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10"
         >
           <motion.div
-            animate={{ y: [0, 8, 0] }}
+            animate={{ y: [0, 6, 0] }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-6 h-10 rounded-full border-2 border-black/15 flex items-start justify-center pt-2"
+            className="w-5 h-8 rounded-full border border-black/20 flex items-start justify-center pt-1.5"
           >
-            <div className="w-1 h-2 rounded-full bg-black/50" />
+            <div className="w-0.5 h-1.5 rounded-full bg-black/40" />
           </motion.div>
         </motion.div>
 
@@ -139,13 +205,8 @@ export default function Home() {
 
       {/* ─── STATS BAR ─── */}
       <section className="w-full bg-white text-black border-b border-black/[0.04]">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10 py-16 md:py-20 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { value: 1000, suffix: "+", label: "Students Registered", icon: <Users className="w-5 h-5" /> },
-            { value: 50, suffix: "+", label: "Events Hosted", icon: <Calendar className="w-5 h-5" /> },
-            { value: 200, suffix: "+", label: "Check-ins Processed", icon: <QrCode className="w-5 h-5" /> },
-            { value: 15, suffix: "", label: "Team Members", icon: <Trophy className="w-5 h-5" /> },
-          ].map((stat, i) => (
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10 py-10 md:py-14 grid grid-cols-2 md:grid-cols-4 gap-8">
+          {statCards.map((stat, i) => (
             <FadeUp key={i} delay={i * 0.1} className="text-center stat-underline cursor-default">
               <div className="flex items-center justify-center mb-4">
                 <div className="w-10 h-10 rounded-xl bg-black/[0.02] border border-black/[0.08] flex items-center justify-center text-black/40">
@@ -153,8 +214,14 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-4xl md:text-5xl font-bold tracking-tight text-black">
-                <AnimatedCounter value={stat.value} />
-                {stat.suffix}
+                {statsLoaded ? (
+                  <>
+                    <AnimatedCounter value={stat.value} />
+                    {stat.suffix}
+                  </>
+                ) : (
+                  <span className="inline-block w-16 h-10 bg-gray-100 rounded animate-pulse align-bottom" />
+                )}
               </p>
               <p className="text-sm text-black/40 mt-2">{stat.label}</p>
             </FadeUp>
@@ -162,8 +229,93 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ─── UPCOMING EVENTS PREVIEW ─── */}
+      {upcomingEvents.length > 0 && (
+        <section className="w-full py-16 md:py-24 bg-white border-b border-black/[0.04]">
+          <div className="max-w-[1200px] mx-auto px-5 md:px-10">
+            <FadeUp className="flex items-end justify-between mb-12">
+              <div>
+                <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
+                  What&apos;s On
+                </span>
+                <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+                  Upcoming Events.
+                </h2>
+              </div>
+              <Link href="/events" className="hidden sm:block">
+                <Button variant="ghost" className="text-[var(--c-muted-text)] group">
+                  View all
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </FadeUp>
+
+            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {upcomingEvents.map((event) => (
+                <StaggerItem key={event.id}>
+                  <TiltCard className="h-full">
+                    <Link href={`/events/${event.slug}`} className="block h-full">
+                      <div className="h-full flex flex-col rounded-[24px] border border-[var(--c-border)] bg-white overflow-hidden hover:shadow-xl transition-all duration-500 group">
+                        {/* Banner */}
+                        <div className="h-36 bg-black flex items-center justify-center relative overflow-hidden">
+                          {event.banner_image_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={event.banner_image_url} alt={event.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-5xl font-black text-white/[0.04] tracking-tighter select-none relative z-10">
+                              {event.event_type.toUpperCase()}
+                            </span>
+                          )}
+                          <div className="absolute top-3 left-3">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-black bg-white px-3 py-1 rounded-full capitalize">
+                              {event.event_type}
+                            </span>
+                          </div>
+                        </div>
+                        {/* Content */}
+                        <div className="flex-1 p-6">
+                          <h3 className="font-semibold text-lg mb-3 group-hover:text-[var(--c-accent)] transition-colors leading-snug">
+                            {event.title}
+                          </h3>
+                          <div className="space-y-2 text-sm text-[var(--c-secondary-text)]">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-3.5 h-3.5 shrink-0" />
+                              <span>{formatDate(event.start_datetime)}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-3.5 h-3.5 shrink-0" />
+                              <span className="truncate">{event.venue}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Users className="w-3.5 h-3.5 shrink-0" />
+                              <span>{event.registered_count}/{event.capacity} registered</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="px-6 pb-6">
+                          <div className="flex items-center text-sm font-medium text-black group-hover:gap-2 transition-all gap-1">
+                            View Details
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </TiltCard>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+
+            <div className="mt-8 text-center sm:hidden">
+              <Link href="/events">
+                <Button variant="outline">View All Events</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ─── WHAT WE DO (3D Cards) ─── */}
-      <section className="w-full py-24 md:py-32 relative">
+      <section className="w-full py-16 md:py-24 relative">
         <div className="max-w-[1200px] mx-auto px-5 md:px-10">
           <FadeUp className="text-center mb-16">
             <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
@@ -222,10 +374,10 @@ export default function Home() {
       </section>
 
       {/* ─── HOW IT WORKS (Process Steps) ─── */}
-      <section className="w-full bg-[var(--c-surface)] py-24 md:py-32 relative overflow-hidden">
+      <section className="w-full bg-[var(--c-surface)] py-16 md:py-24 relative overflow-hidden">
 
         <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
-          <FadeUp className="text-center mb-20">
+          <FadeUp className="text-center mb-14">
             <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
               How It Works
             </span>
@@ -235,8 +387,8 @@ export default function Home() {
           </FadeUp>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 relative">
-            {/* Connecting line on desktop */}
-            <div className="hidden md:block absolute top-8 left-[16.5%] right-[16.5%] h-[1px] bg-gray-200 z-0">
+            {/* Connecting line on desktop — centered on the 64px icon (32px from top) */}
+            <div className="hidden md:block absolute top-[31px] left-[16.5%] right-[16.5%] h-[1px] bg-gray-200 z-0">
               <motion.div
                 className="absolute top-0 left-0 h-full bg-black"
                 initial={{ width: "0%" }}
@@ -262,7 +414,7 @@ export default function Home() {
               {
                 step: "03",
                 title: "Show Up & Check In",
-                desc: "On event day, show your QR code at the venue. A volunteer scans it and you\u2019re instantly checked in.",
+                desc: "On event day, show your QR code at the venue. A volunteer scans it and you're instantly checked in.",
                 icon: <QrCode className="w-5 h-5" />,
               },
             ].map((item, i) => (
@@ -285,9 +437,64 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ─── MEET THE TEAM PREVIEW ─── */}
+      {teamMembers.length > 0 && (
+        <section className="w-full py-16 md:py-24 bg-white border-b border-black/[0.04]">
+          <div className="max-w-[1200px] mx-auto px-5 md:px-10">
+            <FadeUp className="flex items-end justify-between mb-12">
+              <div>
+                <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
+                  Our People
+                </span>
+                <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+                  Meet the team.
+                </h2>
+              </div>
+              <Link href="/team" className="hidden sm:block">
+                <Button variant="ghost" className="text-[var(--c-muted-text)] group">
+                  See everyone
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </FadeUp>
+
+            <StaggerContainer className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 md:gap-8">
+              {teamMembers.map((member) => (
+                <StaggerItem key={member.id}>
+                  <TiltCard className="flex flex-col items-center text-center group cursor-default">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[var(--c-surface)] border-2 border-[var(--c-border)] mb-3 overflow-hidden transition-all duration-500 group-hover:border-black/20 group-hover:shadow-md">
+                      {member.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={member.photo_url}
+                          alt={member.full_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xl font-bold text-[var(--c-muted-text)] bg-gradient-to-br from-gray-50 to-gray-100">
+                          {member.full_name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <p className="font-semibold text-xs leading-tight mb-0.5">{member.full_name}</p>
+                    <p className="text-[10px] text-[var(--c-muted-text)] leading-tight">{member.designation}</p>
+                  </TiltCard>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+
+            <div className="mt-10 text-center sm:hidden">
+              <Link href="/team">
+                <Button variant="outline">Meet Everyone</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ─── FEATURE SHOWCASE (Split Section) ─── */}
-      <section className="w-full py-24 md:py-32">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10 flex flex-col md:flex-row gap-16 items-center">
+      <section className="w-full py-16 md:py-24">
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10 flex flex-col md:flex-row gap-12 items-center">
           <SlideIn direction="left" className="w-full md:w-1/2">
             <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
               Built for Scale
@@ -383,7 +590,7 @@ export default function Home() {
       </section>
 
       {/* ─── CTA SECTION ─── */}
-      <section className="w-full py-24 md:py-32">
+      <section className="w-full py-16 md:py-24">
         <div className="max-w-[1200px] mx-auto px-5 md:px-10">
           <ScaleIn>
             <div className="relative rounded-[32px] overflow-hidden shimmer">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -17,9 +18,14 @@ import {
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/animations/MotionElements";
-import { fetchUser, fetchRegistrations } from "@/lib/api";
+import { fetchMyRegistrations, logout } from "@/lib/api";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import type { Registration } from "@/types";
 
-const statusConfig: Record<string, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
+const statusConfig: Record<
+  string,
+  { label: string; icon: React.ReactNode; color: string; bg: string }
+> = {
   approved: {
     label: "Approved",
     icon: <CheckCircle2 className="w-4 h-4" />,
@@ -44,32 +50,50 @@ const statusConfig: Record<string, { label: string; icon: React.ReactNode; color
     color: "text-gray-600",
     bg: "bg-white border border-gray-200 border-dashed",
   },
+  cancelled: {
+    label: "Cancelled",
+    icon: <XCircle className="w-4 h-4" />,
+    color: "text-gray-500",
+    bg: "bg-gray-50 border border-gray-200",
+  },
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
-  const [user, setUser] = useState<any>(null);
-  const [registrations, setRegistrations] = useState<any[]>([]);
+  const { user, loading: authLoading } = useRequireAuth();
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
+    if (authLoading || !user) return;
     async function loadData() {
       try {
-        const [userData, regsData] = await Promise.all([
-          fetchUser(),
-          fetchRegistrations(),
-        ]);
-        setUser(userData);
-        setRegistrations(regsData);
-      } catch (err: any) {
-        setError(err.message || "Failed to load dashboard data");
+        const regsData = await fetchMyRegistrations();
+        setRegistrations(regsData.results);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Failed to load dashboard data";
+        setError(message);
       } finally {
         setLoading(false);
       }
     }
     loadData();
-  }, []);
+  }, [user, authLoading]);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await logout();
+      router.replace("/login");
+    } catch {
+      setLoggingOut(false);
+    }
+  }
+
 
   if (loading) {
     return (
@@ -120,9 +144,19 @@ export default function DashboardPage() {
                   <User className="w-4 h-4 mr-2" />
                   Edit Profile
                 </Button>
-                <Button variant="ghost" size="sm" className="text-white/50 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Log out
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/50 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10"
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                >
+                  {loggingOut ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <LogOut className="w-4 h-4 mr-2" />
+                  )}
+                  {loggingOut ? "Logging out..." : "Log out"}
                 </Button>
               </div>
             </div>
@@ -162,9 +196,10 @@ export default function DashboardPage() {
               const status = statusConfig[reg.status] || statusConfig.pending;
               return (
                 <StaggerItem key={reg.id}>
+                  <Link href={`/dashboard/${reg.id}`}>
                   <motion.div
                     whileHover={{ y: -2 }}
-                    className="w-full bg-white border border-[var(--c-border)] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:shadow-md transition-all"
+                    className="w-full bg-white border border-[var(--c-border)] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:shadow-md transition-all cursor-pointer"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
@@ -178,11 +213,9 @@ export default function DashboardPage() {
                           Registered {formatDate(reg.registered_at)}
                         </span>
                       </div>
-                      <Link href={`/events/${reg.event.id}`}>
-                        <h3 className="text-xl font-bold hover:text-[var(--c-primary)] transition-colors mb-2">
-                          {reg.event.title}
-                        </h3>
-                      </Link>
+                      <h3 className="text-xl font-bold hover:text-[var(--c-primary)] transition-colors mb-2">
+                        {reg.event.title}
+                      </h3>
                       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-sm text-[var(--c-secondary-text)]">
                         <span className="flex items-center gap-1.5">
                           <CalendarDays className="w-4 h-4 text-gray-400" />
@@ -197,16 +230,17 @@ export default function DashboardPage() {
 
                     <div className="flex items-center gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-[var(--c-border)]">
                       {reg.status === "approved" && (
-                        <Button className="w-full md:w-auto bg-black text-white hover:bg-gray-800">
-                          <QrCode className="w-4 h-4 mr-2" />
+                        <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white text-sm font-medium">
+                          <QrCode className="w-4 h-4" />
                           View Ticket
-                        </Button>
+                        </span>
                       )}
-                      <Button variant="outline" className="w-full md:w-auto">
+                      <span className="px-4 py-2 rounded-xl border border-[var(--c-border)] text-sm font-medium text-[var(--c-secondary-text)] hover:border-black transition-colors">
                         Details
-                      </Button>
+                      </span>
                     </div>
                   </motion.div>
+                  </Link>
                 </StaggerItem>
               );
             })

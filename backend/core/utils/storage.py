@@ -45,12 +45,23 @@ def upload_to_blob(blob_path: str, file_data: bytes | BytesIO, content_type: str
                 message='Azure storage connection string not configured in production.',
                 status=500,
             )
-        # Stub mode for local development without Azure credentials
-        logger.warning(
-            'AZURE_STORAGE_CONNECTION_STRING not set. '
-            'File upload skipped — returning placeholder URL.'
-        )
-        return f'https://placeholder.blob.core.windows.net/{container_name}/{blob_path}'
+        # Stub mode for local development without Azure credentials: save to MEDIA_ROOT
+        logger.warning('AZURE_STORAGE_CONNECTION_STRING not set. Saving to local MEDIA_ROOT instead.')
+        from django.core.files.storage import default_storage
+        from django.core.files.base import ContentFile
+        import os
+
+        if isinstance(file_data, BytesIO):
+            file_data.seek(0)
+            data = file_data.read()
+        else:
+            data = file_data
+
+        # Save file locally
+        path = default_storage.save(blob_path, ContentFile(data))
+        
+        # Build absolute URL using localhost:8000
+        return f"http://localhost:8000{default_storage.url(path)}"
 
     try:
         from azure.storage.blob import BlobServiceClient, ContentSettings

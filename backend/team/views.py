@@ -39,7 +39,15 @@ class TeamMemberListView(APIView):
         return [IsAdmin()]
 
     def get(self, request):
-        members = TeamMember.objects.filter(is_active=True)
+        is_admin = (
+            request.user
+            and request.user.is_authenticated
+            and getattr(request.user, 'role', None) == 'admin'
+        )
+        if is_admin:
+            members = TeamMember.objects.all()
+        else:
+            members = TeamMember.objects.filter(is_active=True)
         return Response(TeamMemberSerializer(members, many=True).data)
 
     def post(self, request):

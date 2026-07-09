@@ -21,20 +21,41 @@ from attendance.serializers import AttendanceRecordSerializer, QRCheckinSerializ
 from core.exceptions import AppError
 from core.pagination import StandardPagination
 from core.permissions import IsAdmin, IsAdminOrVolunteer
-from events.services import get_event_or_404
 
 logger = logging.getLogger(__name__)
 
 
 def _build_checkin_response(record, was_already_checked_in: bool) -> dict:
+    """
+    Build the standardised check-in response shape per API spec.
+
+    Per API_SPEC.md, response shape is:
+    {
+      success, already_checked_in, message,
+      event_id, registration_id,
+      student: { full_name, email, student_uid, branch },
+      checked_in_at, check_in_method
+    }
+    """
+    student = record.user
     return {
+        'success': True,
+        'already_checked_in': was_already_checked_in,
+        'message': (
+            'Already checked in.'
+            if was_already_checked_in
+            else 'Check-in successful.'
+        ),
+        'event_id': str(record.event.id),
         'registration_id': str(record.registration.id),
-        'user_full_name': record.user.full_name,
-        'user_email': record.user.email,
-        'is_checked_in': record.is_checked_in,
+        'student': {
+            'full_name': student.full_name,
+            'email': student.email,
+            'student_uid': student.student_uid,
+            'branch': student.branch,
+        },
         'checked_in_at': record.checked_in_at,
         'check_in_method': record.check_in_method,
-        'already_checked_in': was_already_checked_in,
     }
 
 
@@ -100,7 +121,12 @@ class AttendanceListView(APIView):
     permission_classes = [IsAdminOrVolunteer]
 
     def get(self, request, event_id):
-        event = get_event_or_404(event_id)
+        from events.models import Event
+        try:
+            event = Event.objects.get(id=event_id)
+        except Event.DoesNotExist:
+            raise AppError(code='NOT_FOUND', message='Event not found.', status=404)
+        
         search = request.query_params.get('search')
         records = services.get_attendance_list(event=event, marked_by=request.user, search=search)
         
@@ -118,7 +144,12 @@ class AttendanceExportView(APIView):
     permission_classes = [IsAdmin]
 
     def get(self, request, event_id):
-        event = get_event_or_404(event_id)
+        from events.models import Event
+        try:
+            event = Event.objects.get(id=event_id)
+        except Event.DoesNotExist:
+            raise AppError(code='NOT_FOUND', message='Event not found.', status=404)
+            
         buffer = services.export_attendance_csv(event=event, marked_by=request.user)
 
         filename = f'attendance_{event.title.replace(" ", "_")}_{event_id}.csv'

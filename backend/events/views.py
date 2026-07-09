@@ -5,15 +5,15 @@ HTTP handling only — all logic delegated to events/services.py.
 
 Public endpoints (no auth):
 - GET  /api/events/          EventListView
-- GET  /api/events/{id}/     EventDetailView
+- GET  /api/events/{slug}/   EventDetailView
 
 Admin-only endpoints:
-- POST   /api/events/                     EventListView
-- PATCH  /api/events/{id}/               EventDetailView
-- DELETE /api/events/{id}/               EventDetailView
-- POST   /api/events/{id}/banner/        EventBannerView
-- GET    /api/events/{id}/volunteers/    EventVolunteersView
-- POST   /api/events/{id}/volunteers/    EventVolunteersView
+- POST   /api/events/                         EventListView
+- PATCH  /api/events/{slug}/                 EventDetailView
+- DELETE /api/events/{slug}/                 EventDetailView
+- POST   /api/events/{id}/banner/            EventBannerView
+- GET    /api/events/{id}/volunteers/        EventVolunteersView
+- POST   /api/events/{id}/volunteers/        EventVolunteersView
 - DELETE /api/events/{id}/volunteers/{assignment_id}/  EventVolunteerDetailView
 
 Admin + Volunteer:
@@ -67,19 +67,21 @@ class EventListView(APIView):
         """
         qs = Event.objects.all()
 
-        # Status filter — only allow admins to filter by status, default/pin to PUBLISHED otherwise
+        # Status filter — only allow admins to filter by status, default to PUBLISHED otherwise
         is_admin = (
             request.user
             and request.user.is_authenticated
             and getattr(request.user, 'role', None) == 'admin'
         )
         if is_admin:
-            status_param = request.query_params.get('status', EventStatus.PUBLISHED)
+            status_param = request.query_params.get('status', None)
         else:
             status_param = EventStatus.PUBLISHED
 
         if status_param:
             qs = qs.filter(status=status_param)
+        elif not is_admin:
+            qs = qs.filter(status=EventStatus.PUBLISHED)
 
         # Event type filter
         event_type = request.query_params.get('event_type')
@@ -116,14 +118,14 @@ class EventListView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# Public + Admin — Event detail, update, delete
+# Public + Admin — Event detail, update, delete (by slug)
 # ---------------------------------------------------------------------------
 
 class EventDetailView(APIView):
     """
-    GET    /api/events/{id}/ — Public: get published event details
-    PATCH  /api/events/{id}/ — Admin: update event
-    DELETE /api/events/{id}/ — Admin: delete draft event
+    GET    /api/events/{slug}/ — Public: get published event details
+    PATCH  /api/events/{slug}/ — Admin: update event
+    DELETE /api/events/{slug}/ — Admin: delete draft event
     """
 
     def get_permissions(self):
@@ -131,20 +133,20 @@ class EventDetailView(APIView):
             return [AllowAny()]
         return [IsAdmin()]
 
-    def _get_event_public(self, pk):
-        """For public GET — only published events."""
-        return services.get_event_for_public(pk)
-
-    def _get_event_admin(self, pk):
-        """For admin PATCH/DELETE — any event."""
-        return services.get_event_or_404(pk)
-
-    def get(self, request, pk):
-        event = self._get_event_public(pk)
+    def get(self, request, slug):
+        is_admin = (
+            request.user
+            and request.user.is_authenticated
+            and getattr(request.user, 'role', None) == 'admin'
+        )
+        if is_admin:
+            event = services.get_event_or_404(slug)
+        else:
+            event = services.get_event_for_public(slug)
         return Response(EventDetailSerializer(event).data)
 
-    def patch(self, request, pk):
-        event = self._get_event_admin(pk)
+    def patch(self, request, slug):
+        event = services.get_event_or_404(slug)
         serializer = EventCreateUpdateSerializer(
             event,
             data=request.data,
@@ -159,14 +161,14 @@ class EventDetailView(APIView):
         updated = services.update_event(event, serializer.validated_data)
         return Response(EventDetailSerializer(updated).data)
 
-    def delete(self, request, pk):
-        event = self._get_event_admin(pk)
+    def delete(self, request, slug):
+        event = services.get_event_or_404(slug)
         services.delete_event(event)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # ---------------------------------------------------------------------------
-# Admin — Banner upload
+# Admin — Banner upload (by UUID for stability)
 # ---------------------------------------------------------------------------
 
 class EventBannerView(APIView):
@@ -178,7 +180,7 @@ class EventBannerView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, pk):
-        event = services.get_event_or_404(pk)
+        event = services.get_event_by_uuid(pk)
 
         serializer = EventBannerSerializer(data=request.data)
         if not serializer.is_valid():
@@ -196,7 +198,7 @@ class EventBannerView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# Admin — Volunteer assignment
+# Admin — Volunteer assignment (by UUID for stability)
 # ---------------------------------------------------------------------------
 
 class EventVolunteersView(APIView):
@@ -207,7 +209,7 @@ class EventVolunteersView(APIView):
     permission_classes = [IsAdmin]
 
     def get(self, request, pk):
-        event = services.get_event_or_404(pk)
+        event = services.get_event_by_uuid(pk)
         assignments = VolunteerAssignment.objects.filter(event=event).select_related(
             'volunteer', 'assigned_by'
         )
@@ -218,7 +220,7 @@ class EventVolunteersView(APIView):
         })
 
     def post(self, request, pk):
-        event = services.get_event_or_404(pk)
+        event = services.get_event_by_uuid(pk)
 
         serializer = AssignVolunteerSerializer(data=request.data)
         if not serializer.is_valid():
@@ -256,13 +258,13 @@ class EventVolunteerDetailView(APIView):
     permission_classes = [IsAdmin]
 
     def delete(self, request, pk, assignment_id):
-        event = services.get_event_or_404(pk)
+        event = services.get_event_by_uuid(pk)
         services.remove_volunteer(event, assignment_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # ---------------------------------------------------------------------------
-# Admin + Volunteer — Live check-in stats
+# Admin + Volunteer — Live check-in stats (by UUID for stability)
 # ---------------------------------------------------------------------------
 
 class EventCheckinStatsView(APIView):
@@ -273,6 +275,6 @@ class EventCheckinStatsView(APIView):
     permission_classes = [IsAdminOrVolunteer]
 
     def get(self, request, pk):
-        event = services.get_event_or_404(pk)
+        event = services.get_event_by_uuid(pk)
         stats = services.get_checkin_stats(event, request.user)
         return Response(stats)

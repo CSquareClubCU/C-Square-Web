@@ -66,9 +66,9 @@ C Square Club website for Chandigarh University. Full-stack web application for 
 **Notes:** Custom AbstractBaseUser. Magic link auth via django-sesame.
 
 ### events_event
-**Status:** Not yet created
-**Key fields:** id, title, description, event_type, start_datetime, end_datetime, venue, capacity, registration_deadline, is_open_to_external, is_team_event, min_team_size, max_team_size, banner_image_url, status, created_by
-**Notes:** status choices — draft, published, cancelled, completed
+**Status:** Created
+**Key fields:** id, slug, title, description, event_type, start_datetime, end_datetime, venue, capacity, registration_deadline, is_open_to_external, is_team_event, min_team_size, max_team_size, banner_image_url, status, created_by
+**Notes:** status choices — draft, published, cancelled, completed. Slugs are auto-generated from titles. Slugs are used for public and admin URLs, but UUIDs are used for internal sub-resources.
 
 ### events_volunteerassignment
 **Status:** Not yet created
@@ -96,9 +96,9 @@ C Square Club website for Chandigarh University. Full-stack web application for 
 **Notes:** Created automatically on registration approval. event and user are denormalised for fast queries.
 
 ### team_teammember
-**Status:** Not yet created
+**Status:** Created
 **Key fields:** id, full_name, designation, photo_url, display_order, is_active
-**Notes:** No FK to users_user. Purely for public team page. Managed via Django Admin.
+**Notes:** No FK to users_user. Purely for public team page. Managed via the custom Next.js admin portal (not Django Admin). uses is_active=False for soft delete/hiding.
 
 ---
 
@@ -121,7 +121,8 @@ Do not deviate from these without updating this file first.
 | Error format | All API errors return `{ error: { code, message, fields } }` — never deviate from this shape |
 | UUID for all PKs | Every model uses UUID v4 as primary key — never auto-increment integers |
 | Soft delete | team_teammember uses is_active=False instead of hard delete. All other models hard delete unless noted. |
-| Django Admin | Admin panel lives at /admin/ — used by admins for content management. No custom admin UI in v1. |
+| Admin Panel | Admin features are built directly into the Next.js portal under `/admin/` (e.g. event management, attendance, team CRUD). Django Admin is not used for primary content management in v1. |
+| Event URLs | Event pages use `slug` for URLs (e.g., `/events/c-square-hackathon`) for SEO/readability, but internal sub-resources (like `/volunteers` or `/checkin-stats`) still use the stable UUID. |
 
 ---
 
@@ -146,14 +147,12 @@ None yet — add entries as you encounter them using this format:
 
 > Most recent first. Keep only the last 10 entries. Archive older ones if needed.
 
-None yet — add entries as you make changes using this format:
-
-```
-### [YYYY-MM-DD] — [Short description]
-- What changed
-- Which files were affected
-- Any follow-on tasks this creates
-```
+### [2026-07-07] — Implemented event slugs, unified team admin, and audit fixes
+- **What changed:** 
+  1. Updated `Event` model to include an auto-generated `slug`. Frontend pages now use `/events/[slug]` instead of `[id]`. Sub-resource APIs (e.g., attendance) still use UUIDs.
+  2. Moved Team Member CRUD from Django Admin into a custom Next.js UI at `/admin/team`.
+  3. Fixed various minor bugs: admin event list status filters, Next.js hydration issues with null values, 404 for admin accessing draft events, and create-event redirects.
+- **Files affected:** `backend/events/models.py`, `services.py`, `urls.py`, `views.py`, `serializers.py`, `frontend/app/events/[slug]`, `frontend/app/admin/events`, `frontend/app/admin/team`.
 
 ---
 

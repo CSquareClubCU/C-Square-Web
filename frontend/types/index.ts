@@ -1,6 +1,32 @@
-export type UserRole = 'student' | 'volunteer' | 'admin';
-export type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed';
-export type RegistrationStatus = 'pending' | 'approved' | 'rejected' | 'waitlisted' | 'cancelled';
+// ============================================================================
+// Domain Types — C Square Club
+// All types mirror the API_SPEC.md response shapes exactly.
+// ============================================================================
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+export type UserRole = "student" | "volunteer" | "admin";
+export type EventStatus = "draft" | "published" | "cancelled" | "completed";
+export type EventType = "hackathon" | "competition" | "workshop" | "seminar";
+export type RegistrationStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "waitlisted"
+  | "cancelled";
+export type TeamStatus =
+  | "pending_confirmation"
+  | "pending_approval"
+  | "approved"
+  | "rejected"
+  | "cancelled";
+export type CheckInMethod = "qr" | "manual";
+
+// ---------------------------------------------------------------------------
+// User
+// ---------------------------------------------------------------------------
 
 export interface User {
   id: string;
@@ -16,19 +42,201 @@ export interface User {
   phone: string | null;
 }
 
+// ---------------------------------------------------------------------------
+// Event
+// ---------------------------------------------------------------------------
+
+export interface Prize {
+  position: string;
+  award: string;
+  description: string;
+}
+
 export interface Event {
   id: string;
+  slug: string;
   title: string;
   description: string;
-  event_type: 'hackathon' | 'competition' | 'workshop' | 'seminar';
+  event_type: EventType;
   start_datetime: string;
   end_datetime: string;
   venue: string;
   capacity: number;
+  registration_deadline: string;
   status: EventStatus;
   is_team_event: boolean;
   is_open_to_external: boolean;
   banner_image_url: string | null;
-  registration_deadline: string;
   registered_count: number;
+  created_at?: string;
+  // Team-event fields (only present when is_team_event=true)
+  min_team_size?: number | null;
+  max_team_size?: number | null;
+  // Enhancements
+  prizes: Prize[] | null;
+  rules: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  is_registration_open: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Registration
+// ---------------------------------------------------------------------------
+
+/** Compact event summary nested inside a registration (student view). */
+export interface EventSummary {
+  id: string;
+  slug: string;
+  title: string;
+  event_type: EventType;
+  start_datetime: string;
+  end_datetime: string;
+  venue: string;
+}
+
+/** Registration as seen by the student (GET /registrations/me/ and /registrations/{id}/). */
+export interface Registration {
+  id: string;
+  event: EventSummary;
+  status: RegistrationStatus;
+  qr_token: string | null;
+  qr_image_url: string | null;
+  rejection_reason: string | null;
+  waitlist_position: number | null;
+  is_team_registration: boolean;
+  team: string | null; // UUID of the team
+  registered_at: string;
+  approved_at: string | null;
+  // Populated in RegistrationDetailSerializer
+  user_email?: string;
+  user_full_name?: string;
+  user_student_uid?: string | null;
+}
+
+/** Registration as seen by an admin (GET /registrations/event/{event_id}/). */
+export interface RegistrationAdmin {
+  id: string;
+  event: string; // UUID
+  event_title: string;
+  event_type: EventType;
+  user: string; // UUID
+  user_email: string;
+  user_full_name: string;
+  user_student_uid: string | null;
+  user_branch: string | null;
+  user_year: number | null;
+  user_phone: string | null;
+  status: RegistrationStatus;
+  qr_token: string | null;
+  qr_image_url: string | null;
+  rejection_reason: string | null;
+  waitlist_position: number | null;
+  is_team_registration: boolean;
+  team: string | null;
+  registered_at: string;
+  approved_at: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Team
+// ---------------------------------------------------------------------------
+
+export interface TeamMemberRecord {
+  id: string;
+  email: string;
+  has_confirmed: boolean;
+  confirmed_at: string | null;
+  user: string | null; // UUID
+}
+
+export interface Team {
+  id: string;
+  event: string; // UUID
+  event_title: string;
+  name: string;
+  leader: string; // UUID
+  leader_email: string;
+  leader_full_name: string;
+  status: TeamStatus;
+  members: TeamMemberRecord[];
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Attendance
+// ---------------------------------------------------------------------------
+
+export interface AttendanceRecord {
+  id: string;
+  registration_id: string;
+  user_full_name: string;
+  user_email: string;
+  user_student_uid: string | null;
+  is_checked_in: boolean;
+  checked_in_at: string | null;
+  check_in_method: CheckInMethod | null;
+  marked_by_email: string | null;
+}
+
+/** Response from POST /attendance/checkin/ and /manual-checkin/ */
+export interface CheckinResponse {
+  success: boolean;
+  already_checked_in: boolean;
+  message: string;
+  event_id: string;
+  registration_id: string;
+  student: {
+    full_name: string;
+    email: string;
+    student_uid: string | null;
+    branch: string | null;
+  };
+  checked_in_at: string | null;
+  check_in_method: CheckInMethod | null;
+}
+
+/** Response from GET /events/{id}/checkin-stats/ */
+export interface CheckinStats {
+  event_id: string;
+  total_approved: number;
+  checked_in: number;
+  remaining: number;
+  waitlisted: number;
+  pending: number;
+}
+
+// ---------------------------------------------------------------------------
+// Public Team Page
+// ---------------------------------------------------------------------------
+
+/** Team member as shown on the public /team page. */
+export interface TeamMemberPublic {
+  id: string;
+  full_name: string;
+  designation: string;
+  photo_url: string | null;
+  display_order: number;
+  is_active: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// API Helpers
+// ---------------------------------------------------------------------------
+
+/** Standard paginated response envelope from the backend. */
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
+/** Standard error shape returned by the backend global exception handler. */
+export interface ApiError {
+  error: {
+    code: string;
+    message: string;
+    fields?: Record<string, string[]>;
+  };
 }
