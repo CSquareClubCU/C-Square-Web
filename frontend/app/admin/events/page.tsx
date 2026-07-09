@@ -48,6 +48,8 @@ const statusColors: Record<string, string> = {
 export default function AdminEventsPage() {
   useRequireAuth({ role: "admin" });
   const [events, setEvents] = useState<Event[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<EventStatus | "">("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -56,17 +58,17 @@ export default function AdminEventsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // When no statusFilter, don't pass status param — backend admin shows all events
-      const params: Record<string, string> = {};
+      const params: any = { page };
       if (statusFilter) params.status = statusFilter;
       const data = await fetchEvents(params);
       setEvents(data.results);
+      setTotal(data.count);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, [statusFilter, page]);
 
   useEffect(() => {
     let mounted = true;
@@ -77,16 +79,16 @@ export default function AdminEventsPage() {
     return () => { mounted = false; };
   }, [load]);
 
-  async function handleDelete(id: string) {
-    if (deleteConfirm !== id) {
-      setDeleteConfirm(id);
+  async function handleDelete(slug: string) {
+    if (deleteConfirm !== slug) {
+      setDeleteConfirm(slug);
       setTimeout(() => setDeleteConfirm(null), 3000);
       return;
     }
-    setDeletingId(id);
+    setDeletingId(slug);
     try {
-      await deleteEvent(id);
-      setEvents((prev) => prev.filter((e) => e.id !== id));
+      await deleteEvent(slug);
+      setEvents((prev) => prev.filter((e) => e.slug !== slug));
     } catch (err) {
       console.error(err);
     } finally {
@@ -218,18 +220,18 @@ export default function AdminEventsPage() {
                     </Link>
                     {event.status === "draft" && (
                       <button
-                        onClick={() => handleDelete(event.id)}
-                        disabled={deletingId === event.id}
+                        onClick={() => handleDelete(event.slug)}
+                        disabled={deletingId === event.slug}
                         className={`p-2 rounded-lg transition-all duration-200 ${
-                          deleteConfirm === event.id
+                          deleteConfirm === event.slug
                             ? "bg-red-100 text-red-600 hover:bg-red-200"
                             : "text-gray-400 hover:text-red-500 hover:bg-red-50"
                         }`}
-                        title={deleteConfirm === event.id ? "Click again to confirm" : "Delete draft"}
+                        title={deleteConfirm === event.slug ? "Click again to confirm" : "Delete draft"}
                       >
-                        {deletingId === event.id ? (
+                        {deletingId === event.slug ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : deleteConfirm === event.id ? (
+                        ) : deleteConfirm === event.slug ? (
                           <CheckCircle2 className="w-4 h-4" />
                         ) : (
                           <Trash2 className="w-4 h-4" />
@@ -245,6 +247,29 @@ export default function AdminEventsPage() {
                 </motion.div>
               ))}
             </AnimatePresence>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && total > 20 && (
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <Button
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-gray-500">
+              Page {page} of {Math.ceil(total / 20)}
+            </span>
+            <Button
+              variant="outline"
+              disabled={page >= Math.ceil(total / 20)}
+              onClick={() => setPage(p => p + 1)}
+            >
+              Next
+            </Button>
           </div>
         )}
       </div>

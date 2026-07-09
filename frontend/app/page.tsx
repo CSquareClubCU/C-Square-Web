@@ -53,8 +53,8 @@ export default function Home() {
     ]).then(([statsRes, eventsRes, teamRes]) => {
       if (statsRes.status === "fulfilled") {
         setStats(statsRes.value);
-        setStatsLoaded(true);
       }
+      setStatsLoaded(true);
       if (eventsRes.status === "fulfilled") {
         // Show at most 3 upcoming events
         setUpcomingEvents(eventsRes.value.results.slice(0, 3));

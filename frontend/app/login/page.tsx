@@ -11,7 +11,8 @@ import { requestMagicLink } from "@/lib/api";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const nextUrl = searchParams.get("next") || "";
+  const rawNext = searchParams.get("next") || "";
+  const nextUrl = (rawNext.startsWith("/") && !rawNext.startsWith("//")) ? rawNext : "";
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);

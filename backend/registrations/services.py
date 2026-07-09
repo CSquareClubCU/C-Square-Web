@@ -33,6 +33,9 @@ def _check_event_open_for_registration(event: Event, user):
     """
     Common checks before allowing any registration.
     """
+    if not getattr(event, 'is_registration_open', True):
+        raise AppError('REGISTRATION_PAUSED', 'Registration for this event is currently paused.', 400)
+
     if event.status != EventStatus.PUBLISHED:
         raise AppError('EVENT_NOT_PUBLISHED', 'Event is not open for registration.', 400)
     

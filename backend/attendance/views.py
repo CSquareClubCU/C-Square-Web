@@ -124,8 +124,8 @@ class AttendanceListView(APIView):
         from events.models import Event
         try:
             event = Event.objects.get(id=event_id)
-        except Event.DoesNotExist:
-            raise AppError(code='NOT_FOUND', message='Event not found.', status=404)
+        except Event.DoesNotExist as e:
+            raise AppError(code='NOT_FOUND', message='Event not found.', status=404) from e
         
         search = request.query_params.get('search')
         records = services.get_attendance_list(event=event, marked_by=request.user, search=search)
@@ -147,8 +147,8 @@ class AttendanceExportView(APIView):
         from events.models import Event
         try:
             event = Event.objects.get(id=event_id)
-        except Event.DoesNotExist:
-            raise AppError(code='NOT_FOUND', message='Event not found.', status=404)
+        except Event.DoesNotExist as e:
+            raise AppError(code='NOT_FOUND', message='Event not found.', status=404) from e
             
         buffer = services.export_attendance_csv(event=event, marked_by=request.user)
 

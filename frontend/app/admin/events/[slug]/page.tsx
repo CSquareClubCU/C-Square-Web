@@ -39,6 +39,7 @@ import { fetchEventById, fetchEventRegistrations, approveRegistration, rejectReg
 import type { EventCreateData } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/utils";
 import type { Event, RegistrationAdmin, RegistrationStatus } from "@/types";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const STATUS_TABS: Array<{ value: RegistrationStatus | ""; label: string; icon: React.ReactNode }> = [
   { value: "", label: "All", icon: <Users className="w-3.5 h-3.5" /> },
@@ -57,6 +58,7 @@ const rowStatusStyle: Record<string, string> = {
 };
 
 export default function AdminEventDetailPage() {
+  useRequireAuth({ role: "admin" });
   const params = useParams();
   const eventSlug = params.slug as string;
 
@@ -136,7 +138,6 @@ export default function AdminEventDetailPage() {
   // Load registrations (uses event UUID from event.id)
   const loadRegistrations = useCallback(async () => {
     if (!event) return;
-    console.log("loadRegistrations called with event:", event);
     setLoadingRegs(true);
     try {
       const data = await fetchEventRegistrations(event.id, {

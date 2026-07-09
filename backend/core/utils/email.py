@@ -36,7 +36,7 @@ def send_email(
     html_body = html_body or html_content
     sender = settings.DEFAULT_FROM_EMAIL
 
-    if not settings.EMAIL_HOST_USER and settings.EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
+    if settings.DEBUG and not settings.EMAIL_HOST_USER and settings.EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
         print('\n' + '='*50)
         print(f'[EMAIL STUB] To: {to} | Subject: {subject}')
         print('='*50)

@@ -416,23 +416,23 @@ class TestEventListView:
 @pytest.mark.django_db
 class TestEventDetailView:
     def test_public_can_get_published_event(self, api_client, published_event):
-        response = api_client.get(f'/api/events/{published_event.id}/')
+        response = api_client.get(f'/api/events/{published_event.slug}/')
         assert response.status_code == 200
         assert response.data['id'] == str(published_event.id)
         assert 'description' in response.data
 
     def test_draft_event_returns_404_for_public(self, api_client, draft_event):
-        response = api_client.get(f'/api/events/{draft_event.id}/')
+        response = api_client.get(f'/api/events/{draft_event.slug}/')
         assert response.status_code == 404
 
     def test_nonexistent_event_returns_404(self, api_client):
-        response = api_client.get(f'/api/events/{uuid.uuid4()}/')
+        response = api_client.get(f'/api/events/does-not-exist/')
         assert response.status_code == 404
 
     def test_admin_can_patch_event(self, api_client, admin_user, published_event):
         api_client.force_authenticate(user=admin_user)
         response = api_client.patch(
-            f'/api/events/{published_event.id}/',
+            f'/api/events/{published_event.slug}/',
             {'title': 'Updated Title'},
             format='json',
         )
@@ -442,7 +442,7 @@ class TestEventDetailView:
     def test_student_cannot_patch_event(self, api_client, student_user, published_event):
         api_client.force_authenticate(user=student_user)
         response = api_client.patch(
-            f'/api/events/{published_event.id}/',
+            f'/api/events/{published_event.slug}/',
             {'title': 'Hacked'},
             format='json',
         )
@@ -450,13 +450,13 @@ class TestEventDetailView:
 
     def test_admin_can_delete_draft_event(self, api_client, admin_user, draft_event):
         api_client.force_authenticate(user=admin_user)
-        response = api_client.delete(f'/api/events/{draft_event.id}/')
+        response = api_client.delete(f'/api/events/{draft_event.slug}/')
         assert response.status_code == 204
         assert not Event.objects.filter(pk=draft_event.id).exists()
 
     def test_cannot_delete_published_event(self, api_client, admin_user, published_event):
         api_client.force_authenticate(user=admin_user)
-        response = api_client.delete(f'/api/events/{published_event.id}/')
+        response = api_client.delete(f'/api/events/{published_event.slug}/')
         assert response.status_code == 400
         assert response.data['error']['code'] == 'CANNOT_DELETE'
 

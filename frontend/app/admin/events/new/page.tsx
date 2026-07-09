@@ -14,6 +14,7 @@ import { ArrowLeft, CalendarDays, Loader2, CheckCircle2, Plus, Trash2 } from "lu
 import { Button } from "@/components/ui/Button";
 import { createEvent } from "@/lib/api";
 import type { EventCreateData } from "@/lib/api";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const EVENT_TYPES = ["hackathon", "competition", "workshop", "seminar"];
 const EVENT_STATUSES = ["draft", "published"];
@@ -47,6 +48,7 @@ const selectClass =
   "w-full px-4 py-3 rounded-xl border border-[var(--c-border)] bg-white text-[var(--c-primary-text)] focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all duration-200 text-sm";
 
 export default function NewEventPage() {
+  useRequireAuth({ role: "admin" });
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

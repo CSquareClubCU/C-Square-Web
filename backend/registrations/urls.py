@@ -23,7 +23,7 @@ urlpatterns = [
     # Student endpoints
     path('', RegisterIndividualView.as_view(), name='register-individual'),
     path('team/', RegisterTeamView.as_view(), name='register-team'),
-    path('team/<uuid:team_id>/confirm/', ConfirmTeamMemberView.as_view(), name='confirm-team-member'),
+    path('team/confirm/', ConfirmTeamMemberView.as_view(), name='confirm-team-member'),
     path('me/', MyRegistrationsView.as_view(), name='my-registrations'),
     path('<uuid:pk>/', RegistrationDetailView.as_view(), name='registration-detail'),
     path('<uuid:pk>/cancel/', CancelRegistrationView.as_view(), name='cancel-registration'),

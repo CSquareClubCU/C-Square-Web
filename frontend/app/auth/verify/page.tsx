@@ -32,10 +32,12 @@ type VerifyState = "loading" | "success" | "error";
 
 function getRoleRedirect(user: User): string {
   // Check if the user was redirected from a specific page before login
-  const next = typeof window !== "undefined" ? sessionStorage.getItem("auth_next") : null;
-  if (next) {
+  const rawNext = typeof window !== "undefined" ? sessionStorage.getItem("auth_next") : null;
+  if (rawNext) {
     sessionStorage.removeItem("auth_next");
-    return next;
+    if (rawNext.startsWith("/") && !rawNext.startsWith("//")) {
+      return rawNext;
+    }
   }
   switch (user.role) {
     case "admin":

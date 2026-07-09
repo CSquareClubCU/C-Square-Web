@@ -21,6 +21,9 @@ import type {
   AttendanceRecord,
   TeamMemberPublic,
   PaginatedResponse,
+  EventType,
+  EventStatus,
+  CheckinResponse,
 } from "@/types";
 
 // ============================================================================
@@ -86,12 +89,10 @@ async function parseError(res: Response): Promise<Error> {
 
 async function get<T>(path: string): Promise<T> {
   const url = `${BASE_URL}${path}`;
-  console.log("API GET REQUEST:", url);
   const res = await fetch(url, {
     credentials: "include",
   });
   if (!res.ok) {
-    console.error("API GET ERROR:", url, res.status);
     throw await parseError(res);
   }
   return res.json() as Promise<T>;
@@ -165,6 +166,10 @@ export async function verifyMagicLink(token: string): Promise<User> {
   );
   if (!res.ok) throw await parseError(res);
   const data = await res.json();
+  
+  // Clear cached CSRF token so subsequent state-changing requests fetch a fresh one
+  invalidateCsrfToken();
+  
   // Response shape: { user: User }
   return (data.user ?? data) as User;
 }
@@ -358,12 +363,12 @@ export async function moveFromWaitlist(
 export interface EventCreateData {
   title: string;
   description: string;
-  event_type: "hackathon" | "competition" | "workshop" | "seminar";
+  event_type: EventType;
   start_datetime: string;
   end_datetime: string;
   venue: string;
   capacity: number;
-  status: "draft" | "published" | "cancelled" | "completed";
+  status: EventStatus;
   is_open_to_external: boolean;
   is_team_event: boolean;
   min_team_size: number | null;
@@ -439,21 +444,7 @@ export async function fetchCheckinStats(eventId: string): Promise<CheckinStats> 
  * POST /api/attendance/checkin/
  * Check in an attendee by QR token.
  */
-export async function checkinByQR(qrToken: string): Promise<{
-  success: boolean;
-  already_checked_in: boolean;
-  message: string;
-  event_id: string;
-  registration_id: string;
-  student: {
-    full_name: string;
-    email: string;
-    student_uid: string | null;
-    branch: string | null;
-  };
-  checked_in_at: string | null;
-  check_in_method: string | null;
-}> {
+export async function checkinByQR(qrToken: string): Promise<CheckinResponse> {
   return post("/attendance/checkin/", { qr_token: qrToken });
 }
 
@@ -461,21 +452,7 @@ export async function checkinByQR(qrToken: string): Promise<{
  * POST /api/attendance/{registration_id}/manual-checkin/
  * Check in an attendee manually by registration ID.
  */
-export async function manualCheckin(registrationId: string): Promise<{
-  success: boolean;
-  already_checked_in: boolean;
-  message: string;
-  event_id: string;
-  registration_id: string;
-  student: {
-    full_name: string;
-    email: string;
-    student_uid: string | null;
-    branch: string | null;
-  };
-  checked_in_at: string | null;
-  check_in_method: string | null;
-}> {
+export async function manualCheckin(registrationId: string): Promise<CheckinResponse> {
   return post(`/attendance/${registrationId}/manual-checkin/`);
 }
 

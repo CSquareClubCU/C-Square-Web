@@ -260,10 +260,11 @@ export default function CheckinPage() {
     setTimeout(() => setFeedback(null), 4000);
   }
 
+  const qrLoadingRef = useRef(false);
   // Handle QR scan
   const handleQRScan = useCallback(async (token: string) => {
-    if (qrLoading) return;
-    setQrLoading(true);
+    if (qrLoadingRef.current) return;
+    qrLoadingRef.current = true;
     try {
       const result = await checkinByQR(token);
       showFeedback({
@@ -279,9 +280,9 @@ export default function CheckinPage() {
         message: err instanceof Error ? err.message : "Invalid QR code",
       });
     } finally {
-      setQrLoading(false);
+      setTimeout(() => { qrLoadingRef.current = false; }, 1500); // 1.5s cooldown
     }
-  }, [qrLoading, refreshStats]);
+  }, [refreshStats]);
 
   // Handle manual check-in
   async function handleManualCheckin(registrationId: string) {

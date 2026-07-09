@@ -141,6 +141,8 @@ export function Header() {
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setUserMenuOpen((o) => !o)}
+                    aria-haspopup="menu"
+                    aria-expanded={userMenuOpen}
                     className="flex items-center gap-2 text-[13.5px] font-medium text-[#444] hover:text-black px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all"
                   >
                     <span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold">

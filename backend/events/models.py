@@ -107,8 +107,23 @@ class Event(BaseModel):
         return slug
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self._generate_unique_slug()
+        from django.db import IntegrityError
+        if self.slug:
+            super().save(*args, **kwargs)
+            return
+
+        self.slug = self._generate_unique_slug()
+        max_retries = 5
+        for _ in range(max_retries):
+            try:
+                super().save(*args, **kwargs)
+                return
+            except IntegrityError:
+                # To bypass transaction isolation issues, we can just append a random string
+                import uuid
+                self.slug = f"{self._generate_unique_slug()}-{uuid.uuid4().hex[:6]}"
+        
+        # Final attempt
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -55,6 +55,17 @@ export default function AdminTeamPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Keyboard access for modal
+  useEffect(() => {
+    if (!modalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setModalOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalOpen]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -119,11 +130,12 @@ export default function AdminTeamPage() {
 
   async function handleToggleActive(member: TeamMemberPublic) {
     setTogglingId(member.id);
+    setActionError(null);
     try {
       await updateTeamMember(member.id, { is_active: !member.is_active });
       load();
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : "Failed to update member");
     } finally {
       setTogglingId(null);
     }
@@ -136,11 +148,12 @@ export default function AdminTeamPage() {
       return;
     }
     setDeletingId(member.id);
+    setActionError(null);
     try {
       await deleteTeamMember(member.id);
       load();
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : "Failed to delete member");
     } finally {
       setDeletingId(null);
       setDeleteConfirm(null);
@@ -193,10 +206,11 @@ export default function AdminTeamPage() {
             <Loader2 className="w-8 h-8 animate-spin text-gray-300" />
           </div>
         ) : members.length === 0 ? (
-          <div className="text-center py-20 border border-dashed border-[var(--c-border)] rounded-2xl">
-            <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <p className="font-semibold text-[var(--c-secondary-text)]">No team members yet</p>
-            <p className="text-sm text-[var(--c-muted-text)] mt-1">Add the first member using the button above.</p>
+          <div className="text-center py-20 bg-[var(--c-surface)] rounded-2xl border border-[var(--c-border)]">
+            <h3 className="font-semibold text-lg mb-1">No Team Members</h3>
+            <p className="text-[var(--c-muted-text)] text-sm mb-0">
+              Add your first team member to display on the public team page.
+            </p>
             <button
               onClick={openCreate}
               className="mt-4 inline-block"
@@ -208,13 +222,19 @@ export default function AdminTeamPage() {
             </button>
           </div>
         ) : (
-          <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {members.map((member) => (
-              <StaggerItem key={member.id}>
-                <motion.div
-                  whileHover={{ y: -4 }}
-                  className={`flex flex-col items-center text-center group relative ${!member.is_active ? "opacity-50" : ""}`}
-                >
+          <div className="space-y-4">
+            {actionError && (
+              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm">
+                {actionError}
+              </div>
+            )}
+            <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {members.map((member) => (
+                <StaggerItem key={member.id}>
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    className={`flex flex-col items-center text-center group relative ${!member.is_active ? "opacity-50" : ""}`}
+                  >
                   {/* Photo */}
                   <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[var(--c-surface)] border-2 border-[var(--c-border)] mb-4 overflow-hidden transition-all duration-300 group-hover:border-black/20 group-hover:shadow-md">
                     {member.photo_url ? (
@@ -286,7 +306,8 @@ export default function AdminTeamPage() {
                 </motion.div>
               </StaggerItem>
             ))}
-          </StaggerContainer>
+            </StaggerContainer>
+          </div>
         )}
       </div>
 
@@ -305,7 +326,13 @@ export default function AdminTeamPage() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 8 }}
               transition={{ type: "spring", damping: 25, stiffness: 260 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md"
+              role="dialog"
+              aria-modal="true"
+              tabIndex={-1}
+              ref={(node) => {
+                if (node) node.focus();
+              }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md focus:outline-none"
             >
               <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--c-border)]">
                 <h3 className="font-bold text-lg">

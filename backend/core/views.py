@@ -33,7 +33,10 @@ class PublicStatsView(APIView):
         try:
             from attendance.models import AttendanceRecord
             total_checkins = AttendanceRecord.objects.filter(is_checked_in=True).count()
-        except Exception:
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error("Failed to count attendance records: %s", str(e))
             total_checkins = 0
 
         return Response({

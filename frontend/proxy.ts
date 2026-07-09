@@ -44,39 +44,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Attempt to verify auth by calling /api/auth/me/
-  // Forward the session cookie from the browser request
-  let user: { role?: string } | null = null;
-  try {
-    const meResponse = await fetch(`${API_BASE_URL}/auth/me/`, {
-      headers: {
-        Cookie: request.headers.get("cookie") ?? "",
-      },
-      redirect: "manual",
-    });
-
-    if (meResponse.ok) {
-      user = await meResponse.json();
-    }
-  } catch {
-    // Network error or backend down — redirect to login
-    user = null;
+  if (!API_BASE_URL) {
+    // Fail fast if API_BASE_URL is missing in production
+    return NextResponse.next();
   }
 
-  // Not authenticated → redirect to login with ?next= param
-  if (!user) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Authenticated but wrong role → redirect to homepage
-  if (protectedRoute.allowedRoles && user.role) {
-    if (!protectedRoute.allowedRoles.includes(user.role)) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-  }
-
+  // The actual authentication and role verification is now handled client-side via useRequireAuth
+  // which provides a better user experience and avoids double round-trips.
   return NextResponse.next();
 }
 

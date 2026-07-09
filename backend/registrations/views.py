@@ -82,14 +82,14 @@ class RegisterTeamView(APIView):
 
 class ConfirmTeamMemberView(APIView):
     """
-    GET /api/registrations/team/{team_id}/confirm/?token=<confirmation_token>
+    POST /api/registrations/team/confirm/
     Confirm a team invitation using a token from the invite email link.
     Auth required: Yes (teammate must be logged in)
     """
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, team_id):
-        token = request.query_params.get('token', '').strip()
+    def post(self, request):
+        token = request.data.get('token', '').strip()
         if not token:
             raise AppError(
                 code='INVALID_TOKEN',
@@ -198,12 +198,6 @@ class CancelRegistrationView(APIView):
             services.cancel_registration(registration_id=pk, user=registration.user)
         else:
             services.cancel_registration(registration_id=pk, user=request.user)
-
-        # Re-fetch the registration to return updated state
-        try:
-            registration = Registration.objects.get(pk=pk)
-        except Registration.DoesNotExist:
-            registration = None
 
         return Response(
             {

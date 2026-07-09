@@ -35,7 +35,10 @@ import {
 import { formatDate, formatTime } from "@/lib/utils";
 import type { Event, CheckinStats, AttendanceRecord } from "@/types";
 
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+
 export default function AdminAttendancePage() {
+  useRequireAuth({ role: "admin" });
   const params = useParams();
   const eventSlug = params.slug as string;
 
