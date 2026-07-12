@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
+  ArrowUpRight,
   Code,
   Users,
   Calendar,
@@ -16,6 +17,7 @@ import {
   Rocket,
   Clock,
   MapPin,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
@@ -29,9 +31,30 @@ import {
   Marquee,
 } from "@/components/animations/MotionElements";
 import { HoverDotGrid } from "@/components/animations/HoverDotGrid";
+import { ScrollGallery } from "@/components/animations/ScrollGallery";
 import { fetchStats, fetchEvents, fetchTeam, type PublicStats } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import type { Event, TeamMemberPublic } from "@/types";
+
+const getGradientForType = (type: string) => {
+  switch (type.toLowerCase()) {
+    case "hackathon": return "from-[#ff8c5a] to-[#e42c64]";
+    case "workshop": return "from-[#5477f5] to-[#804cf3]";
+    case "seminar": return "from-[#4cd4b0] to-[#207af5]";
+    case "competition": return "from-[#f55497] to-[#b14cf3]";
+    default: return "from-gray-400 to-gray-600";
+  }
+};
+
+const getDotColorForType = (type: string) => {
+  switch (type.toLowerCase()) {
+    case "hackathon": return "bg-gradient-to-br from-[#ff8c5a] to-[#e42c64]";
+    case "workshop": return "bg-gradient-to-br from-[#5477f5] to-[#804cf3]";
+    case "seminar": return "bg-gradient-to-br from-[#4cd4b0] to-[#207af5]";
+    case "competition": return "bg-gradient-to-br from-[#f55497] to-[#b14cf3]";
+    default: return "bg-gradient-to-br from-gray-400 to-gray-600";
+  }
+};
 
 export default function Home() {
   const [stats, setStats] = useState<PublicStats>({
@@ -97,7 +120,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center w-full overflow-hidden">
       {/* ─── HERO SECTION ─── */}
-      <section className="relative w-full h-[calc(100vh-129px)] overflow-hidden flex flex-col items-center text-center px-5 md:px-10 bg-white text-black noise-overlay">
+      <section className="relative w-full min-h-[calc(100vh-165px)] overflow-hidden flex flex-col items-center text-center px-5 md:px-10 bg-white text-black noise-overlay">
         {/* Interactive dots background */}
         <HoverDotGrid />
         {/* Subtle white ambient glows */}
@@ -127,7 +150,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-            className="text-lg md:text-xl text-gray-600 max-w-[600px] mx-auto mb-10 leading-relaxed font-medium"
+            className="text-xl md:text-2xl text-gray-600 max-w-[650px] mx-auto mb-10 leading-[1.25] font-medium"
           >
             We host hackathons, coding competitions, and workshops to help you
             level up your skills. Register, get your QR code, and check in
@@ -178,7 +201,7 @@ export default function Home() {
       </section>
 
       {/* ─── MARQUEE TICKER ─── */}
-      <section className="w-full bg-white text-black py-5 border-b border-black/[0.04]">
+      <section className="w-full bg-gradient-to-b from-white to-[#f8f9fa] text-black py-5 border-b border-black/[0.04]">
         <Marquee speed={25}>
           <div className="flex items-center gap-12 px-6">
             {[
@@ -203,106 +226,264 @@ export default function Home() {
         </Marquee>
       </section>
 
-      {/* ─── STATS BAR ─── */}
-      <section className="w-full bg-white text-black border-b border-black/[0.04]">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10 py-10 md:py-14 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {statCards.map((stat, i) => (
-            <FadeUp key={i} delay={i * 0.1} className="text-center stat-underline cursor-default">
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-10 h-10 rounded-xl bg-black/[0.02] border border-black/[0.08] flex items-center justify-center text-black/40">
-                  {stat.icon}
+      {/* ─── FLAGSHIP SECTION ─── */}
+      <section className="w-full bg-[#f8f9fa] border-b border-black/[0.04] py-16 md:py-24">
+        <div className="max-w-[1200px] w-full mx-auto px-5 md:px-10">
+          <FadeUp>
+            <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-orange-600 mb-3 inline-block">
+              FLAGSHIP EVENT
+            </span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-8 md:mb-10 text-black">
+              Our biggest weekend of the year.
+            </h2>
+          </FadeUp>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Card */}
+            <FadeUp delay={0.1} className="bg-[#0a0a0a] text-white rounded-[24px] p-8 md:p-10 border border-black/[0.04] shadow-2xl flex flex-col justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold text-white/90 mb-6">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  Flagship • Hackathon
+                </div>
+                
+                <h3 className="text-4xl md:text-5xl font-bold tracking-tight mb-3 text-white">
+                  CodeStorm 2026
+                </h3>
+                
+                <p className="text-lg text-gray-400 mb-8 font-medium">
+                  48-hour flagship hackathon. ₹5L prize pool.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-4 mb-8 text-[14px] font-medium text-gray-300">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    Friday, August 14
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-4 h-4 text-gray-500" />
+                    CU Innovation Hub, Block C
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Trophy className="w-4 h-4 text-gray-500" />
+                    ₹5,00,000 prize pool
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-gray-500 ml-0.5">
+                      <path d="M12 2L22 20H2L12 2Z" />
+                    </svg>
+                    48-hour build sprint
+                  </div>
                 </div>
               </div>
-              <p className="text-4xl md:text-5xl font-bold tracking-tight text-black">
-                {statsLoaded ? (
-                  <>
-                    <AnimatedCounter value={stat.value} />
-                    {stat.suffix}
-                  </>
-                ) : (
-                  <span className="inline-block w-16 h-10 bg-gray-100 rounded animate-pulse align-bottom" />
-                )}
-              </p>
-              <p className="text-sm text-black/40 mt-2">{stat.label}</p>
+
+              <div className="flex items-center gap-4 pt-2">
+                <Link href="/events/codestorm-2026">
+                  <Button className="bg-orange-500 text-white hover:bg-orange-600 h-12 px-6 text-[14px] font-semibold group border border-orange-500">
+                    Register now
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform opacity-70" />
+                  </Button>
+                </Link>
+                <Link href="/events/codestorm-2026">
+                  <Button variant="outline" className="border-white/10 text-white h-12 px-6 text-[14px] font-semibold hover:bg-white/5 bg-transparent">
+                    View details
+                  </Button>
+                </Link>
+              </div>
             </FadeUp>
-          ))}
+
+            {/* Right Card */}
+            <FadeUp delay={0.2} className="relative rounded-[24px] overflow-hidden p-8 md:p-10 flex flex-col justify-between text-white bg-gradient-to-tr from-[#161420] via-[#1a1722] to-[#6d3039] shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+              <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none" style={{ backgroundImage: 'url("/noise.png")' }}></div>
+
+              <div className="relative z-10 mb-8">
+                <div className="inline-flex px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-white/90 backdrop-blur-sm">
+                  Starts in
+                </div>
+              </div>
+
+              <div className="relative z-10 grid grid-cols-4 gap-2 md:gap-3 mb-10">
+                {[
+                  { value: "33", label: "DAYS" },
+                  { value: "08", label: "HOURS" },
+                  { value: "08", label: "MINUTES" },
+                  { value: "16", label: "SECONDS" }
+                ].map((time) => (
+                  <div key={time.label} className="bg-black/20 border border-white/[0.08] rounded-[16px] md:rounded-[20px] p-3 md:p-4 flex flex-col items-center justify-center backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.2)]">
+                    <span className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-1 text-white">{time.value}</span>
+                    <span className="text-[8px] md:text-[9px] font-semibold tracking-[0.15em] text-white/80 uppercase">{time.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="relative z-10 flex items-end justify-between pt-6 mt-auto">
+                <div>
+                  <div className="text-[10px] font-semibold tracking-[0.15em] text-white/50 uppercase mb-2">PRIZE POOL</div>
+                  <div className="text-3xl md:text-4xl font-bold">₹5,00,000</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-semibold tracking-[0.15em] text-white/50 uppercase mb-2">TEAMS</div>
+                  <div className="text-3xl md:text-4xl font-bold">240+</div>
+                </div>
+              </div>
+              
+              <div className="relative z-10 mt-6 pt-5 border-t border-white/10 text-xs md:text-sm text-white/50 font-medium">
+                48 hours • 3 tracks • Open to CU students and external participants.
+              </div>
+            </FadeUp>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── STATS BAR ─── */}
+      <section className="relative w-full bg-white border-y border-black/[0.04] py-8 shadow-[0_4px_40px_rgba(0,0,0,0.01)] overflow-hidden">
+        {/* Soft background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[100px] bg-gradient-to-r from-orange-500/10 via-purple-500/10 to-blue-500/10 blur-3xl rounded-full pointer-events-none opacity-50" />
+
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10 flex flex-col md:flex-row md:items-center gap-8 md:gap-16 relative z-10">
+          
+          <div className="md:w-[220px] shrink-0 border-l-2 border-black/10 pl-5">
+             <p className="text-[14px] leading-relaxed text-gray-500 font-medium">
+               <span className="text-black font-semibold">C Square Impact.</span><br />
+               Building the next generation of tech talent.
+             </p>
+          </div>
+          
+          <div className="flex-1 flex flex-wrap items-center justify-between gap-x-8 gap-y-6">
+            {statCards.map((stat, i) => (
+              <FadeUp key={i} delay={i * 0.1} className="flex items-center gap-3.5 group cursor-default">
+                 <div className="w-10 h-10 rounded-[12px] bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-black group-hover:text-white group-hover:border-black transition-all duration-300 shadow-sm">
+                   {stat.icon && React.cloneElement(stat.icon as React.ReactElement<any>, { className: "w-4 h-4 transition-colors" })}
+                 </div>
+                 <div className="flex flex-col justify-center">
+                   <span className="text-xl md:text-2xl font-bold tracking-tight text-black flex items-baseline leading-none mb-1">
+                      {statsLoaded ? (
+                        <>
+                          <AnimatedCounter value={stat.value} />
+                          <span className="text-black/40 ml-0.5">{stat.suffix}</span>
+                        </>
+                      ) : (
+                        <span className="inline-block w-8 h-5 bg-black/5 rounded animate-pulse" />
+                      )}
+                   </span>
+                   <span className="text-[12px] font-semibold tracking-wide text-gray-400 uppercase">{stat.label.split(' ')[0]}</span>
+                 </div>
+              </FadeUp>
+            ))}
+          </div>
+
         </div>
       </section>
 
       {/* ─── UPCOMING EVENTS PREVIEW ─── */}
-      {upcomingEvents.length > 0 && (
-        <section className="w-full py-16 md:py-24 bg-white border-b border-black/[0.04]">
-          <div className="max-w-[1200px] mx-auto px-5 md:px-10">
-            <FadeUp className="flex items-end justify-between mb-12">
-              <div>
-                <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
-                  What&apos;s On
-                </span>
-                <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-                  Upcoming Events.
-                </h2>
-              </div>
-              <Link href="/events" className="hidden sm:block">
-                <Button variant="ghost" className="text-[var(--c-muted-text)] group">
-                  View all
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            </FadeUp>
+      <section className="w-full pt-16 md:pt-24 pb-4 md:pb-8 bg-white">
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10">
+          <FadeUp className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+            <div>
+              <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-blue-600 mb-3 inline-block">
+                UPCOMING
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-black">
+                What&apos;s on the calendar.
+              </h2>
+            </div>
+            <div className="hidden md:flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm">
+              <div className="px-5 py-2 rounded-[12px] bg-black text-white text-[13px] font-semibold cursor-default">All</div>
+              <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Hackathon</div>
+              <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Workshop</div>
+              <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Seminar</div>
+              <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Competition</div>
+            </div>
+          </FadeUp>
 
-            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {upcomingEvents.map((event) => (
-                <StaggerItem key={event.id}>
-                  <TiltCard className="h-full">
-                    <Link href={`/events/${event.slug}`} className="block h-full">
-                      <div className="h-full flex flex-col rounded-[24px] border border-[var(--c-border)] bg-white overflow-hidden hover:shadow-xl transition-all duration-500 group">
-                        {/* Banner */}
-                        <div className="h-36 bg-black flex items-center justify-center relative overflow-hidden">
-                          {event.banner_image_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={event.banner_image_url} alt={event.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-5xl font-black text-white/[0.04] tracking-tighter select-none relative z-10">
-                              {event.event_type.toUpperCase()}
-                            </span>
-                          )}
-                          <div className="absolute top-3 left-3">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-black bg-white px-3 py-1 rounded-full capitalize">
-                              {event.event_type}
-                            </span>
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {(upcomingEvents.length > 0 ? upcomingEvents : [
+              {
+                id: '1', slug: 'codestorm-2026', title: 'CodeStorm 2026', event_type: 'hackathon',
+                start_datetime: '2026-08-14T09:00:00Z', venue: 'CU Innovation Hub, Block C',
+                description: '48-hour flagship hackathon. ₹5L prize pool.', banner_image_url: null,
+                registered_count: 120, capacity: 500, is_registration_open: true, registration_deadline: ''
+              },
+              {
+                id: '2', slug: 'react-workshop', title: 'React 20 Hands-on Workshop', event_type: 'workshop',
+                start_datetime: '2026-07-22T14:00:00Z', venue: 'Lecture Theatre 2, Block A',
+                description: 'Ship a full-stack app in one afternoon.', banner_image_url: null,
+                registered_count: 45, capacity: 60, is_registration_open: true, registration_deadline: ''
+              },
+              {
+                id: '3', slug: 'system-design', title: 'System Design Bootcamp', event_type: 'seminar',
+                start_datetime: '2026-07-28T10:00:00Z', venue: 'Auditorium, Block D',
+                description: 'Design at scale with senior engineers from Google & Stripe.', banner_image_url: null,
+                registered_count: 80, capacity: 200, is_registration_open: true, registration_deadline: ''
+              }
+            ] as Event[]).map((event) => {
+                const gradient = getGradientForType(event.event_type);
+                const dotColor = getDotColorForType(event.event_type);
+                const eventDate = new Date(event.start_datetime);
+                return (
+                  <StaggerItem key={event.id}>
+                    <TiltCard className="h-full">
+                      <Link href={`/events/${event.slug}`} className="block h-full group">
+                        <div className="h-full flex flex-col rounded-[24px] border border-gray-100 bg-white overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-500">
+                          
+                          {/* Banner */}
+                          <div className={`h-48 relative overflow-hidden bg-gradient-to-br ${gradient} p-4`}>
+                            {event.banner_image_url && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={event.banner_image_url} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
+                            )}
+                            
+                            {/* Type Badge */}
+                            <div className="absolute top-4 left-4 z-10">
+                              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[11px] font-bold text-gray-800 shadow-sm">
+                                 <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                                 <span className="capitalize">{event.event_type}</span>
+                              </div>
+                            </div>
+                    
+                            {/* Date Square */}
+                            <div className="absolute bottom-4 right-4 z-10">
+                              <div className="flex flex-col items-center justify-center w-12 h-12 bg-white rounded-xl shadow-md">
+                                 <span className="text-lg font-bold text-black leading-none">{eventDate.getDate()}</span>
+                                 <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none mt-0.5">
+                                   {eventDate.toLocaleString('default', { month: 'short' })}
+                                 </span>
+                              </div>
+                            </div>
+                          </div>
+                    
+                          {/* Content */}
+                          <div className="flex-1 p-6 flex flex-col">
+                            <h3 className="font-bold text-xl mb-2 text-black leading-snug group-hover:text-blue-600 transition-colors">
+                              {event.title}
+                            </h3>
+                            
+                            <p className="text-gray-500 text-[14px] font-medium leading-relaxed mb-6 line-clamp-2">
+                               {event.description || "Join us for this exciting event!"}
+                            </p>
+                            
+                            <div className="mt-auto space-y-3 mb-6">
+                              <div className="flex items-center gap-3 text-[13px] font-medium text-gray-600">
+                                <Calendar className="w-4 h-4 text-gray-400" />
+                                <span>{formatDate(event.start_datetime)}</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-[13px] font-medium text-gray-600">
+                                <MapPin className="w-4 h-4 text-gray-400" />
+                                <span className="truncate">{event.venue}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="pt-5 border-t border-gray-100 flex items-center justify-between">
+                              <span className="text-[13px] font-bold text-black">View details</span>
+                              <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-black group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
+                            </div>
                           </div>
                         </div>
-                        {/* Content */}
-                        <div className="flex-1 p-6">
-                          <h3 className="font-semibold text-lg mb-3 group-hover:text-[var(--c-accent)] transition-colors leading-snug">
-                            {event.title}
-                          </h3>
-                          <div className="space-y-2 text-sm text-[var(--c-secondary-text)]">
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-3.5 h-3.5 shrink-0" />
-                              <span>{formatDate(event.start_datetime)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-3.5 h-3.5 shrink-0" />
-                              <span className="truncate">{event.venue}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Users className="w-3.5 h-3.5 shrink-0" />
-                              <span>{event.registered_count}/{event.capacity} registered</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="px-6 pb-6">
-                          <div className="flex items-center text-sm font-medium text-black group-hover:gap-2 transition-all gap-1">
-                            View Details
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </TiltCard>
-                </StaggerItem>
-              ))}
+                      </Link>
+                    </TiltCard>
+                  </StaggerItem>
+                );
+              })}
             </StaggerContainer>
 
             <div className="mt-8 text-center sm:hidden">
@@ -312,157 +493,33 @@ export default function Home() {
             </div>
           </div>
         </section>
-      )}
 
-      {/* ─── WHAT WE DO (3D Cards) ─── */}
-      <section className="w-full py-16 md:py-24 relative">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10">
-          <FadeUp className="text-center mb-16">
-            <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
-              What We Do
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Events that matter.
-            </h2>
-          </FadeUp>
-
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8 perspective-container">
-            {[
-              {
-                icon: <Code className="w-6 h-6" />,
-                title: "Hackathons",
-                desc: "24 to 48-hour coding marathons. Collaborate with peers, build real solutions, and compete for prizes.",
-                num: "01",
-              },
-              {
-                icon: <Users className="w-6 h-6" />,
-                title: "Workshops",
-                desc: "Hands-on sessions on Web3, AI/ML, cloud, and more. Learn from industry experts and experienced seniors.",
-                num: "02",
-              },
-              {
-                icon: <Calendar className="w-6 h-6" />,
-                title: "Seminars",
-                desc: "Tech talks and panel discussions covering architecture, career growth, and industry trends.",
-                num: "03",
-              },
-            ].map((item, i) => (
-              <StaggerItem key={i}>
-                <TiltCard className="h-full">
-                  <div className="h-full p-8 md:p-10 rounded-[24px] border border-[var(--c-border)] bg-white relative overflow-hidden group hover:shadow-xl hover:border-gray-200 transition-all duration-500">
-                    {/* Accent top bar */}
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    {/* Number watermark */}
-                    <span className="absolute top-6 right-8 text-7xl font-black text-gray-50 select-none pointer-events-none transition-colors duration-500 group-hover:text-gray-100">
-                      {item.num}
-                    </span>
-                    <div className="w-14 h-14 rounded-2xl bg-[var(--c-surface)] border border-[var(--c-border)] flex items-center justify-center mb-6 relative z-10 group-hover:bg-black group-hover:text-white group-hover:border-black transition-all duration-500">
-                      {item.icon}
-                    </div>
-                    <h3 className="text-2xl font-semibold mb-4 relative z-10">
-                      {item.title}
-                    </h3>
-                    <p className="text-[var(--c-secondary-text)] leading-relaxed relative z-10">
-                      {item.desc}
-                    </p>
-                  </div>
-                </TiltCard>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      {/* ─── HOW IT WORKS (Process Steps) ─── */}
-      <section className="w-full bg-[var(--c-surface)] py-16 md:py-24 relative overflow-hidden">
-
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
-          <FadeUp className="text-center mb-14">
-            <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
-              How It Works
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Three simple steps.
-            </h2>
-          </FadeUp>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 relative">
-            {/* Connecting line on desktop — centered on the 64px icon (32px from top) */}
-            <div className="hidden md:block absolute top-[31px] left-[16.5%] right-[16.5%] h-[1px] bg-gray-200 z-0">
-              <motion.div
-                className="absolute top-0 left-0 h-full bg-black"
-                initial={{ width: "0%" }}
-                whileInView={{ width: "100%" }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.5, delay: 0.5, ease: "easeOut" }}
-              />
-            </div>
-
-            {[
-              {
-                step: "01",
-                title: "Discover & Register",
-                desc: "Browse upcoming events, pick one, and register with a single click. Team events let you invite teammates by email.",
-                icon: <Zap className="w-5 h-5" />,
-              },
-              {
-                step: "02",
-                title: "Get Approved",
-                desc: "Admin reviews your registration. On approval, you receive a confirmation email with your unique QR code.",
-                icon: <Shield className="w-5 h-5" />,
-              },
-              {
-                step: "03",
-                title: "Show Up & Check In",
-                desc: "On event day, show your QR code at the venue. A volunteer scans it and you're instantly checked in.",
-                icon: <QrCode className="w-5 h-5" />,
-              },
-            ].map((item, i) => (
-              <FadeUp key={i} delay={i * 0.15}>
-                <div className="text-center relative">
-                  <div className="w-16 h-16 rounded-2xl bg-black text-white flex items-center justify-center mx-auto mb-6 relative z-10 shadow-lg">
-                    {item.icon}
-                  </div>
-                  <span className="text-xs font-bold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-3 inline-block">
-                    Step {item.step}
-                  </span>
-                  <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
-                  <p className="text-[var(--c-secondary-text)] leading-relaxed max-w-sm mx-auto">
-                    {item.desc}
-                  </p>
-                </div>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ─── PAST EVENTS (SCROLL GALLERY) ─── */}
+      <ScrollGallery />
 
       {/* ─── MEET THE TEAM PREVIEW ─── */}
       {teamMembers.length > 0 && (
-        <section className="w-full py-16 md:py-24 bg-white border-b border-black/[0.04]">
+        <section className="w-full pt-16 md:pt-24 pb-20 md:pb-32 bg-[#f8f9fa] border-t border-black/[0.04]">
           <div className="max-w-[1200px] mx-auto px-5 md:px-10">
-            <FadeUp className="flex items-end justify-between mb-12">
-              <div>
-                <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
-                  Our People
-                </span>
-                <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-                  Meet the team.
-                </h2>
-              </div>
-              <Link href="/team" className="hidden sm:block">
-                <Button variant="ghost" className="text-[var(--c-muted-text)] group">
-                  See everyone
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+            <FadeUp className="text-center mb-16">
+              <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-500 mb-3 inline-block">
+                THE TEAM
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-black">
+                Meet the Curators
+              </h2>
+              <p className="text-gray-500 text-[15px] md:text-[16px] font-medium max-w-xl mx-auto">
+                The humans behind the club infrastructure, working to build a better campus community.
+              </p>
             </FadeUp>
 
-            <StaggerContainer className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 md:gap-8">
-              {teamMembers.map((member) => (
-                <StaggerItem key={member.id}>
-                  <TiltCard className="flex flex-col items-center text-center group cursor-default">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[var(--c-surface)] border-2 border-[var(--c-border)] mb-3 overflow-hidden transition-all duration-500 group-hover:border-black/20 group-hover:shadow-md">
+            <StaggerContainer className="flex flex-wrap justify-center gap-6 max-w-5xl mx-auto">
+              {teamMembers.slice(0, 5).map((member) => (
+                <StaggerItem key={member.id} className="w-full sm:w-[calc(50%-12px)] md:w-[calc(25%-18px)] max-w-[240px]">
+                  <TiltCard className="flex flex-col items-center text-center group cursor-default bg-white rounded-3xl border border-black/[0.04] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] p-8 transition-all duration-300 h-full">
+                    
+                    {/* Avatar Image */}
+                    <div className="relative w-[72px] h-[72px] rounded-full overflow-hidden bg-gray-50 shadow-sm border border-black/[0.04] mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
                       {member.photo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -471,162 +528,28 @@ export default function Home() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xl font-bold text-[var(--c-muted-text)] bg-gradient-to-br from-gray-50 to-gray-100">
-                          {member.full_name.charAt(0)}
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                          <User className="w-6 h-6 text-black/40 stroke-0" fill="currentColor" />
                         </div>
                       )}
                     </div>
-                    <p className="font-semibold text-xs leading-tight mb-0.5">{member.full_name}</p>
-                    <p className="text-[10px] text-[var(--c-muted-text)] leading-tight">{member.designation}</p>
+                    
+                    <p className="font-bold text-[15px] text-gray-900 mb-1.5 leading-snug">{member.full_name}</p>
+                    <p className="text-[13px] font-medium text-gray-500">{member.designation}</p>
                   </TiltCard>
                 </StaggerItem>
               ))}
             </StaggerContainer>
 
-            <div className="mt-10 text-center sm:hidden">
+            <div className="mt-12 text-center sm:hidden">
               <Link href="/team">
-                <Button variant="outline">Meet Everyone</Button>
+                <Button variant="outline" className="border-black/10">Meet Everyone</Button>
               </Link>
             </div>
           </div>
         </section>
       )}
 
-      {/* ─── FEATURE SHOWCASE (Split Section) ─── */}
-      <section className="w-full py-16 md:py-24">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10 flex flex-col md:flex-row gap-12 items-center">
-          <SlideIn direction="left" className="w-full md:w-1/2">
-            <span className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--c-muted-text)] mb-4 inline-block">
-              Built for Scale
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-              Execution over everything.
-            </h2>
-            <p className="text-lg text-[var(--c-secondary-text)] mb-8 leading-relaxed">
-              We don&apos;t just talk about code. We build it. Our platform
-              simplifies the entire event lifecycle — from discovery to on-site
-              check-ins.
-            </p>
-            <ul className="space-y-5">
-              {[
-                { text: "No passwords. Just magic links.", icon: <Zap className="w-4 h-4" /> },
-                { text: "Lightning fast QR check-ins.", icon: <QrCode className="w-4 h-4" /> },
-                { text: "Real-time attendance dashboard.", icon: <Terminal className="w-4 h-4" /> },
-                { text: "Built exclusively for CU students.", icon: <Shield className="w-4 h-4" /> },
-              ].map((item, i) => (
-                <FadeUp key={i} delay={i * 0.08}>
-                  <li className="flex items-center text-[var(--c-primary-text)] group">
-                    <div className="w-8 h-8 rounded-lg bg-[var(--c-surface)] border border-[var(--c-border)] flex items-center justify-center mr-4 shrink-0 group-hover:bg-black group-hover:border-black group-hover:text-white transition-all duration-300">
-                      <span className="text-[var(--c-muted-text)] group-hover:text-white transition-colors duration-300">
-                        {item.icon}
-                      </span>
-                    </div>
-                    <span className="font-medium">{item.text}</span>
-                  </li>
-                </FadeUp>
-              ))}
-            </ul>
-          </SlideIn>
-
-          <SlideIn direction="right" className="w-full md:w-1/2">
-            <TiltCard>
-              <div className="rounded-[24px] bg-[#080808] border border-white/[0.08] relative overflow-hidden shadow-2xl">
-                {/* Terminal header */}
-                <div className="flex items-center px-5 py-3.5 border-b border-white/[0.06]">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                    <div className="w-3 h-3 rounded-full bg-white/15" />
-                    <div className="w-3 h-3 rounded-full bg-white/10" />
-                  </div>
-                  <span className="ml-4 text-xs text-white/20 font-mono">
-                    csquare-cli — event-manager
-                  </span>
-                </div>
-                {/* Terminal body */}
-                <div className="p-6 font-mono text-sm space-y-3">
-                  <div className="flex items-center text-white/25">
-                    <span className="text-white/50 mr-2">▲</span>
-                    <span className="text-white/40">csquare</span>
-                    <span className="text-white/20 mx-1">~</span>
-                    <span className="text-white/60">event create</span>
-                  </div>
-                  <div className="text-white/20 pl-5 space-y-1.5">
-                    <p>
-                      <span className="text-white/40">title:</span>{" "}
-                      <span className="text-white/50">&quot;Hackathon 2025&quot;</span>
-                    </p>
-                    <p>
-                      <span className="text-white/40">type:</span>{" "}
-                      <span className="text-white/50">&quot;hackathon&quot;</span>
-                    </p>
-                    <p>
-                      <span className="text-white/40">capacity:</span>{" "}
-                      <span className="text-white/60">200</span>
-                    </p>
-                    <p>
-                      <span className="text-white/40">qr_enabled:</span>{" "}
-                      <span className="text-white/60">true</span>
-                    </p>
-                  </div>
-                  <div className="flex items-center text-white/30 mt-4">
-                    <span className="text-white/50 mr-2">✓</span>
-                    Event created. Link: <span className="text-white/50 ml-1 underline">csquare.club/e/h25</span>
-                  </div>
-                  <div className="flex items-center text-white/30">
-                    <span className="text-white/50 mr-2">✓</span>
-                    QR codes generated for <span className="text-white/60 mx-1">200</span> seats
-                  </div>
-                  <div className="flex items-center text-white/20 mt-2">
-                    <span className="text-white/50 mr-2">▲</span>
-                    <span className="text-white/40">csquare</span>
-                    <span className="text-white/20 mx-1">~</span>
-                    <span className="cursor-blink text-white/60">|</span>
-                  </div>
-                </div>
-              </div>
-            </TiltCard>
-          </SlideIn>
-        </div>
-      </section>
-
-      {/* ─── CTA SECTION ─── */}
-      <section className="w-full py-16 md:py-24">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10">
-          <ScaleIn>
-            <div className="relative rounded-[32px] overflow-hidden shimmer">
-              {/* Pure black background */}
-              <div className="absolute inset-0 bg-black" />
-
-              <div className="relative z-10 p-12 md:p-20 text-center text-white">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <Rocket className="w-10 h-10 mx-auto mb-6 text-white/30" />
-                  <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">
-                    Ready to join the club?
-                  </h2>
-                  <p className="text-lg text-white/40 max-w-lg mx-auto mb-10">
-                    Sign in with your university email and start registering for
-                    events in seconds. No passwords, no hassle.
-                  </p>
-                  <Link href="/login">
-                    <Button
-                      size="lg"
-                      className="bg-white text-black hover:bg-gray-100 font-semibold px-8 shadow-[0_0_40px_rgba(255,255,255,0.05)]"
-                    >
-                      Get Started
-                      <ArrowRight className="ml-2 w-4 h-4" />
-                    </Button>
-                  </Link>
-                </motion.div>
-              </div>
-            </div>
-          </ScaleIn>
-        </div>
-      </section>
     </div>
   );
 }
