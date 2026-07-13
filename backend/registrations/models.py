@@ -170,12 +170,15 @@ def cleanup_registration_qr(sender, instance, **kwargs):
         from django.conf import settings
         from django.core.files.storage import default_storage
         
+        from urllib.parse import urlparse
+        parsed_url = urlparse(instance.qr_image_url)
+        
         # Check if local storage
-        if instance.qr_image_url.startswith('http://localhost:8000/media/'):
-            path = instance.qr_image_url.replace('http://localhost:8000/media/', '')
+        if parsed_url.netloc == 'localhost:8000' and parsed_url.path.startswith('/media/'):
+            path = parsed_url.path.replace('/media/', '', 1)
             if default_storage.exists(path):
                 default_storage.delete(path)
-        elif 'blob.core.windows.net' in instance.qr_image_url:
+        elif parsed_url.netloc.endswith('.blob.core.windows.net'):
             # Delete from Azure blob
             from azure.storage.blob import BlobServiceClient
             if getattr(settings, 'AZURE_STORAGE_CONNECTION_STRING', None):
