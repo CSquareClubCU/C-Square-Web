@@ -42,10 +42,10 @@ function FieldGroup({
 }
 
 const inputClass =
-  "w-full px-4 py-3 rounded-xl border border-[var(--c-border)] bg-white text-[var(--c-primary-text)] placeholder:text-[var(--c-muted-text)] focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all duration-200 text-sm";
+  "w-full px-4 py-3 rounded-[8px] border border-black/[0.08] bg-white text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-all duration-200 text-[15px]";
 
 const selectClass =
-  "w-full px-4 py-3 rounded-xl border border-[var(--c-border)] bg-white text-[var(--c-primary-text)] focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all duration-200 text-sm";
+  "w-full px-4 py-3 rounded-[8px] border border-black/[0.08] bg-white text-black focus:outline-none focus:border-black transition-all duration-200 text-[15px]";
 
 export default function NewEventPage() {
   useRequireAuth({ role: "admin" });
@@ -73,6 +73,8 @@ export default function NewEventPage() {
     contact_name: "",
     contact_email: "",
     is_registration_open: true,
+    is_flagship: false,
+    points: 100,
   });
 
   const handlePrizeChange = (index: number, field: string, value: string) => {
@@ -134,27 +136,26 @@ export default function NewEventPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full min-h-screen bg-white">
       {/* Header */}
-      <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-10 relative overflow-hidden">
-        <div className="max-w-[800px] mx-auto px-5 md:px-10 relative z-10">
+      <section className="w-full pt-12 pb-8">
+        <div className="max-w-[800px] mx-auto px-5 md:px-10">
           <Link
             href="/admin/events"
-            className="text-sm text-white/40 hover:text-white transition-colors flex items-center mb-5"
+            className="text-sm font-medium text-gray-500 hover:text-black transition-colors mb-3 inline-flex items-center"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Events
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back to Events
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight gradient-text">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tighter text-black mb-2">
             Create New Event
           </h1>
-          <p className="text-white/40 mt-1">
-            Saved as draft until you publish it.
+          <p className="text-gray-600 text-[15px]">
+            Draft your event details. You can publish it whenever you're ready.
           </p>
         </div>
       </section>
 
-      <div className="max-w-[800px] mx-auto px-5 md:px-10 py-10">
+      <div className="max-w-[800px] mx-auto px-5 md:px-10 pb-24">
         <motion.form
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -163,7 +164,7 @@ export default function NewEventPage() {
           className="space-y-8"
         >
           {/* Basic Info */}
-          <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <h2 className="font-semibold text-lg">Basic Information</h2>
 
             <FieldGroup label="Event Title" htmlFor="title" required>
@@ -241,7 +242,7 @@ export default function NewEventPage() {
           </div>
 
           {/* Dates & Capacity */}
-          <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <h2 className="font-semibold text-lg">
               <CalendarDays className="w-5 h-5 inline-block mr-2 text-[var(--c-muted-text)]" />
               Dates &amp; Capacity
@@ -302,7 +303,7 @@ export default function NewEventPage() {
           </div>
 
           {/* Enhancements: Contact & Rules */}
-          <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <h2 className="font-semibold text-lg">Contact & Rules</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -344,7 +345,7 @@ export default function NewEventPage() {
           </div>
 
           {/* Enhancements: Prizes */}
-          <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-lg">Prizes</h2>
               <Button type="button" variant="outline" size="sm" onClick={addPrize}>
@@ -396,9 +397,43 @@ export default function NewEventPage() {
             )}
           </div>
 
-          {/* Options */}
-          <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
-            <h2 className="font-semibold text-lg">Registration Options</h2>
+          {/* Event Settings */}
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] mt-8">
+            <h2 className="font-semibold text-lg mb-4">Event Features</h2>
+            
+            <div className="flex flex-col gap-4">
+              <label className="flex items-center gap-3 p-4 rounded-xl border border-black/[0.08] bg-white cursor-pointer hover:bg-black/[0.02] transition-colors">
+                <input
+                  type="checkbox"
+                  checked={form.is_flagship}
+                  onChange={(e) => setForm({ ...form, is_flagship: e.target.checked })}
+                  className="w-5 h-5 rounded border-gray-300 text-black focus:ring-black"
+                />
+                <div>
+                  <div className="font-medium text-[15px]">Flagship Event</div>
+                  <div className="text-sm text-gray-500">Mark this as the primary flagship event to be featured on the homepage.</div>
+                </div>
+              </label>
+            </div>
+
+            <FieldGroup label="Club Points" htmlFor="points" required>
+              <input
+                id="points"
+                name="points"
+                type="number"
+                required
+                min="0"
+                value={form.points}
+                onChange={(e) => setForm({ ...form, points: parseInt(e.target.value, 10) || 0 })}
+                className={inputClass}
+              />
+              <p className="text-sm text-gray-500 mt-2">Points awarded to users upon check-in.</p>
+            </FieldGroup>
+          </div>
+
+          {/* Attendance Settings */}
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] mt-8">
+            <h2 className="font-semibold text-lg mb-4">Attendance Settings</h2>
 
             <div className="space-y-3">
               <label className="flex items-start gap-3 cursor-pointer group">

@@ -113,9 +113,6 @@ class TestUserModel:
 
     def test_profile_fields_nullable_on_creation(self, student_user):
         assert student_user.student_uid is None
-        assert student_user.branch is None
-        assert student_user.year is None
-        assert student_user.semester is None
         assert student_user.batch is None
         assert student_user.phone is None
 
@@ -209,12 +206,10 @@ class TestUpdateUserProfile:
     def test_updates_provided_fields(self, student_user):
         updated = services.update_user_profile(student_user, {
             'full_name': 'Updated Name',
-            'branch': 'ECE',
-            'year': 2,
+            'graduation_year': 2025,
         })
         assert updated.full_name == 'Updated Name'
-        assert updated.branch == 'ECE'
-        assert updated.year == 2
+        assert updated.graduation_year == 2025
 
     def test_does_not_modify_unprovided_fields(self, student_user):
         student_user.phone = '9876543210'
@@ -224,9 +219,9 @@ class TestUpdateUserProfile:
         assert student_user.phone == '9876543210'
 
     def test_persists_to_database(self, student_user):
-        services.update_user_profile(student_user, {'branch': 'MBA'})
+        services.update_user_profile(student_user, {'graduation_year': 2026})
         student_user.refresh_from_db()
-        assert student_user.branch == 'MBA'
+        assert student_user.graduation_year == 2026
 
 
 # ---------------------------------------------------------------------------
@@ -358,22 +353,22 @@ class TestUserProfileView:
         api_client.force_authenticate(user=student_user)
         response = api_client.patch(
             '/api/users/me/',
-            {'full_name': 'Updated Name', 'branch': 'CSE', 'year': 3},
+            {'full_name': 'Updated Name', 'graduation_year': 2026},
             format='json',
         )
         assert response.status_code == 200
         assert response.data['full_name'] == 'Updated Name'
-        assert response.data['branch'] == 'CSE'
+        assert response.data['graduation_year'] == 2026
 
-    def test_invalid_year_returns_400(self, api_client, student_user):
+    def test_invalid_graduation_year_returns_400(self, api_client, student_user):
         api_client.force_authenticate(user=student_user)
         response = api_client.patch(
             '/api/users/me/',
-            {'year': 99},
+            {'graduation_year': 1999},
             format='json',
         )
         assert response.status_code == 400
-        assert 'year' in response.data['error']['fields']
+        assert 'graduation_year' in response.data['error']['fields']
 
     def test_unauthenticated_returns_401(self, api_client):
         # DRF SessionAuthentication returns 403 for unauthenticated requests

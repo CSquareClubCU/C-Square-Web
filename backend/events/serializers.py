@@ -7,7 +7,7 @@ Business logic lives in events/services.py.
 
 from rest_framework import serializers
 
-from events.models import Event, EventStatus, EventType, VolunteerAssignment
+from events.models import Event, EventStatus, EventType, VolunteerAssignment, PastEvent
 from users.serializers import UserSerializer
 
 
@@ -33,6 +33,8 @@ class EventListSerializer(serializers.ModelSerializer):
             'status',
             'is_team_event',
             'is_open_to_external',
+            'is_flagship',
+            'points',
             'banner_image_url',
             'registration_deadline',
             'registered_count',
@@ -80,6 +82,8 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'min_team_size',
             'max_team_size',
             'is_open_to_external',
+            'is_flagship',
+            'points',
             'banner_image_url',
             'registration_deadline',
             'registered_count',
@@ -120,6 +124,8 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'is_team_event',
             'min_team_size',
             'max_team_size',
+            'is_flagship',
+            'points',
             'status',
             'prizes',
             'rules',
@@ -221,3 +227,10 @@ class VolunteerAssignmentSerializer(serializers.ModelSerializer):
 class AssignVolunteerSerializer(serializers.Serializer):
     """Validates POST /events/{id}/volunteers/ — just a user_id."""
     user_id = serializers.UUIDField()
+
+
+class PastEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PastEvent
+        fields = ['id', 'title', 'logo_url', 'order', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']

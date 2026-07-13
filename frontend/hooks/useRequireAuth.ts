@@ -55,6 +55,16 @@ export function useRequireAuth(
       return;
     }
 
+    // Check if profile is incomplete
+    const isCuIncomplete = user.is_cu_student && (!user.full_name || !user.student_uid);
+    const isExtIncomplete = !user.is_cu_student && (!user.full_name || !user.institution || !user.degree_type || !user.graduation_year);
+    
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+    if ((isCuIncomplete || isExtIncomplete) && currentPath !== "/onboarding") {
+      router.replace("/onboarding");
+      return;
+    }
+
     if (requiredRole) {
       const userRank = ROLE_RANK[user.role] ?? 0;
       const requiredRank = ROLE_RANK[requiredRole] ?? 0;

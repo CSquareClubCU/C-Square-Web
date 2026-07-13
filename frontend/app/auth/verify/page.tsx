@@ -26,11 +26,20 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { verifyMagicLink } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import type { User } from "@/types";
 
 type VerifyState = "loading" | "success" | "error";
 
 function getRoleRedirect(user: User): string {
+  // Check if profile is incomplete
+  const isCuIncomplete = user.is_cu_student && (!user.full_name || !user.student_uid);
+  const isExtIncomplete = !user.is_cu_student && (!user.full_name || !user.institution || !user.degree_type || !user.graduation_year);
+  
+  if (isCuIncomplete || isExtIncomplete) {
+    return "/onboarding";
+  }
+
   // Check if the user was redirected from a specific page before login
   const rawNext = typeof window !== "undefined" ? sessionStorage.getItem("auth_next") : null;
   if (rawNext) {
@@ -57,6 +66,7 @@ function VerifyContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
+  const { setUser: setGlobalUser } = useAuth();
 
   const [state, setState] = useState<VerifyState>("loading");
   const [error, setError] = useState<string>("");
@@ -77,7 +87,10 @@ function VerifyContent() {
       try {
         const verifiedUser = await verifyMagicLink(token as string);
         if (cancelled) return;
+        
+        // Update both local and global auth state
         setUser(verifiedUser);
+        setGlobalUser(verifiedUser);
         setState("success");
 
         // Brief delay so user sees the success state

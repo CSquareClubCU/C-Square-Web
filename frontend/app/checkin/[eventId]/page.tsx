@@ -37,9 +37,12 @@ import {
   fetchAttendanceList,
   checkinByQR,
   manualCheckin,
+  revokeCheckin,
 } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/utils";
 import type { Event, CheckinStats, AttendanceRecord } from "@/types";
+import { StatusSelect } from "@/components/ui/StatusSelect";
+import { ConfirmAlert } from "@/components/ui/ConfirmAlert";
 
 type Mode = "qr" | "manual";
 
@@ -144,7 +147,7 @@ function QRScanner({ onScan }: { onScan: (token: string) => void }) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-black aspect-square max-w-sm mx-auto">
+    <div className="relative overflow-hidden rounded-[24px] bg-[#f8f9fa] border-4 border-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] aspect-square max-w-sm mx-auto">
       <video
         ref={videoRef}
         muted
@@ -155,15 +158,15 @@ function QRScanner({ onScan }: { onScan: (token: string) => void }) {
 
       {/* Scan overlay */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-56 h-56 border-2 border-white/60 rounded-2xl relative">
+        <div className="w-56 h-56 border border-white/40 rounded-[24px] relative">
           {/* Corner accents */}
-          {["top-0 left-0 border-t-4 border-l-4", "top-0 right-0 border-t-4 border-r-4", "bottom-0 left-0 border-b-4 border-l-4", "bottom-0 right-0 border-b-4 border-r-4"].map((cls, i) => (
-            <div key={i} className={`absolute w-6 h-6 border-white rounded-sm ${cls}`} />
+          {["top-0 left-0 border-t-4 border-l-4 rounded-tl-[24px]", "top-0 right-0 border-t-4 border-r-4 rounded-tr-[24px]", "bottom-0 left-0 border-b-4 border-l-4 rounded-bl-[24px]", "bottom-0 right-0 border-b-4 border-r-4 rounded-br-[24px]"].map((cls, i) => (
+            <div key={i} className={`absolute w-8 h-8 border-white ${cls}`} />
           ))}
           {/* Scan line */}
           <motion.div
-            className="absolute left-2 right-2 h-0.5 bg-white/70"
-            animate={{ top: ["10%", "90%", "10%"] }}
+            className="absolute left-4 right-4 h-0.5 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+            animate={{ top: ["15%", "85%", "15%"] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
           />
         </div>
@@ -190,12 +193,14 @@ export default function CheckinPage() {
   const [stats, setStats] = useState<CheckinStats | null>(null);
   const [mode, setMode] = useState<Mode>("qr");
   const [feedback, setFeedback] = useState<CheckinFeedback | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ type: "checkin" | "revoke"; recordId: string; recordName: string } | null>(null);
   const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>([]);
   const [listSearch, setListSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [manualLoading, setManualLoading] = useState<string | null>(null);
   const [listLoading, setListLoading] = useState(false);
   const [qrLoading, setQrLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Debounce list search
   useEffect(() => {
@@ -207,16 +212,24 @@ export default function CheckinPage() {
   useEffect(() => {
     fetchEventById(eventId)
       .then(setEvent)
-      .catch(console.error);
+      .catch((err: any) => setError(err.message || "Failed to load event."));
   }, [eventId]);
 
   // Load stats + poll every 5s
   const refreshStats = useCallback(async () => {
+    if (!event?.id) return;
     try {
-      const data = await fetchCheckinStats(eventId);
+      const data = await fetchCheckinStats(event.id);
       setStats(data);
-    } catch (err) { console.error(err); }
-  }, [eventId]);
+      setError(null);
+    } catch (err: any) {
+      if (err.message === "You are not assigned to this event.") {
+        setError(err.message);
+      } else {
+        console.error(err);
+      }
+    }
+  }, [event?.id]);
 
   useEffect(() => {
     let mounted = true;
@@ -233,15 +246,23 @@ export default function CheckinPage() {
 
   // Load attendance list
   const loadList = useCallback(async () => {
+    if (!event?.id) return;
     setListLoading(true);
     try {
-      const data = await fetchAttendanceList(eventId, {
+      const data = await fetchAttendanceList(event.id, {
         search: debouncedSearch || undefined,
       });
       setAttendanceList(data.results);
-    } catch (err) { console.error(err); }
+      setError(null);
+    } catch (err: any) {
+      if (err.message === "You are not assigned to this event.") {
+        setError(err.message);
+      } else {
+        console.error(err);
+      }
+    }
     finally { setListLoading(false); }
-  }, [eventId, debouncedSearch]);
+  }, [event?.id, debouncedSearch]);
 
   useEffect(() => {
     let mounted = true;
@@ -307,75 +328,78 @@ export default function CheckinPage() {
     }
   }
 
-  const checkedInPercent = stats
-    ? Math.round((stats.checked_in / Math.max(stats.total_approved, 1)) * 100)
-    : 0;
+  // Handle revoke check-in
+  async function handleRevokeCheckin(registrationId: string) {
+    setManualLoading(registrationId);
+    try {
+      await revokeCheckin(registrationId);
+      showFeedback({
+        type: "success",
+        name: "",
+        message: "Check-in revoked successfully.",
+      });
+      refreshStats();
+      loadList();
+    } catch (err: unknown) {
+      showFeedback({
+        type: "error",
+        name: "",
+        message: err instanceof Error ? err.message : "Failed to revoke check-in",
+      });
+    } finally {
+      setManualLoading(null);
+    }
+  }
 
   return (
-    <div className="w-full">
+    <div className="w-full min-h-screen bg-white">
       {/* Header */}
-      <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-8 relative overflow-hidden">
-        <div className="max-w-[900px] mx-auto px-5 md:px-10 relative z-10">
-          <Link
-            href="/admin"
-            className="text-sm text-white/40 hover:text-white transition-colors flex items-center mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Admin
-          </Link>
-
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight gradient-text">
-                {event?.title || "Check-in Scanner"}
-              </h1>
-              {event && (
-                <div className="flex flex-wrap items-center gap-3 text-sm text-white/40 mt-1">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    {formatDate(event.start_datetime)} · {formatTime(event.start_datetime)}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {event.venue}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Live stats */}
+      <section className="w-full pt-10 pb-6 relative overflow-hidden">
+        <div className="max-w-[800px] mx-auto px-5 md:px-10 relative z-10">
+          <div className="flex items-center justify-between mb-2">
+            <Link
+              href="/admin"
+              className="text-sm font-medium text-gray-500 hover:text-black transition-colors inline-flex items-center"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" /> Admin
+            </Link>
             {stats && (
-              <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{stats.checked_in}</p>
-                  <p className="text-xs text-white/40">Checked in</p>
-                </div>
-                <div className="h-8 w-px bg-white/10" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{stats.total_approved}</p>
-                  <p className="text-xs text-white/40">Approved</p>
-                </div>
-                <div className="h-8 w-px bg-white/10" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-emerald-400">{checkedInPercent}%</p>
-                  <p className="text-xs text-white/40">Rate</p>
-                </div>
+              <div className="text-[11px] font-bold text-emerald-600 flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full tracking-widest uppercase">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live
               </div>
             )}
           </div>
 
-          {/* Progress bar */}
-          {stats && (
-            <div className="mt-5">
-              <div className="w-full bg-white/10 rounded-full h-2">
-                <motion.div
-                  className="bg-emerald-400 h-2 rounded-full"
-                  animate={{ width: `${checkedInPercent}%` }}
-                  transition={{ duration: 0.6 }}
-                />
-              </div>
-            </div>
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tighter text-black mb-1">
+            {event?.title || "Loading event..."}
+          </h1>
+          {event && (
+            <p className="text-gray-500 text-[14px] mt-1 flex flex-wrap gap-3">
+              <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{formatDate(event.start_datetime)}</span>
+              <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />{event.venue}</span>
+            </p>
           )}
+
+          {/* Mode Toggle */}
+          <div className="flex bg-[#f8f9fa] p-1 rounded-[16px] mt-6 border border-black/[0.04] w-fit">
+            <button
+              onClick={() => setMode("qr")}
+              className={`flex items-center gap-2 px-6 py-2 rounded-[12px] text-[14px] font-semibold transition-all ${
+                mode === "qr" ? "bg-white text-black shadow-sm" : "text-gray-500 hover:text-black hover:bg-gray-50"
+              }`}
+            >
+              <QrCode className="w-4 h-4" /> Scanner
+            </button>
+            <button
+              onClick={() => setMode("manual")}
+              className={`flex items-center gap-2 px-6 py-2 rounded-[12px] text-[14px] font-semibold transition-all ${
+                mode === "manual" ? "bg-white text-black shadow-sm" : "text-gray-500 hover:text-black hover:bg-gray-50"
+              }`}
+            >
+              <List className="w-4 h-4" /> Manual
+            </button>
+          </div>
         </div>
       </section>
 
@@ -411,46 +435,35 @@ export default function CheckinPage() {
         )}
       </AnimatePresence>
 
-      {/* Mode tabs + content */}
-      <div className="max-w-[900px] mx-auto px-5 md:px-10 py-8">
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8 p-1 bg-gray-100 rounded-xl w-fit">
-          {([
-            { id: "qr" as Mode, label: "QR Scanner", icon: <QrCode className="w-4 h-4" /> },
-            { id: "manual" as Mode, label: "Manual List", icon: <List className="w-4 h-4" /> },
-          ]).map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setMode(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                mode === tab.id
-                  ? "bg-white text-black shadow-sm"
-                  : "text-[var(--c-muted-text)] hover:text-black"
-              }`}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      {/* Main Content */}
+      <div className="max-w-[800px] mx-auto px-5 md:px-10 pb-24 space-y-6">
+        {/* Stats Row */}
+        {stats && (
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Checked In", value: stats.checked_in, color: "text-emerald-600" },
+              { label: "Approved", value: stats.total_approved, color: "text-black" },
+              { label: "Remaining", value: stats.total_approved - stats.checked_in, color: "text-gray-500" },
+            ].map((s, i) => (
+              <div key={i} className="bg-white border border-black/[0.04] rounded-[24px] p-4 text-center shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                <p className="text-[13px] text-gray-500 font-medium mb-1">{s.label}</p>
+                <p className={`text-2xl font-bold tracking-tight ${s.color}`}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* QR Scanner mode */}
         {mode === "qr" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-sm mx-auto"
+            className="max-w-sm mx-auto pt-4"
           >
             <QRScanner onScan={handleQRScan} />
-            <p className="text-center text-sm text-[var(--c-muted-text)] mt-4">
-              Point the camera at a student&apos;s QR code to check them in instantly.
+            <p className="text-center text-sm text-gray-400 mt-6">
+              Point camera at student QR code.
             </p>
-            {qrLoading && (
-              <div className="flex items-center justify-center gap-2 mt-4 text-[var(--c-muted-text)]">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Processing...</span>
-              </div>
-            )}
           </motion.div>
         )}
 
@@ -462,90 +475,120 @@ export default function CheckinPage() {
             className="space-y-4"
           >
             {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--c-muted-text)]" />
+            <div className="relative mb-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by name, email, or student UID..."
+                placeholder="Search name, email, UID..."
                 value={listSearch}
                 onChange={(e) => setListSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-[var(--c-border)] bg-white focus:outline-none focus:border-black transition-all text-sm"
+                className="w-full pl-9 pr-4 py-3 rounded-[12px] border border-black/[0.08] bg-[#f8f9fa] focus:outline-none focus:border-black transition-all text-[15px]"
               />
             </div>
 
             {/* List */}
-            <div className="bg-white border border-[var(--c-border)] rounded-2xl overflow-hidden">
+            <div className="bg-white border border-black/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.02)] rounded-[24px]">
               {listLoading ? (
                 <div className="py-12 flex items-center justify-center">
                   <Loader2 className="w-7 h-7 animate-spin text-gray-300" />
                 </div>
-              ) : attendanceList.length === 0 ? (
-                <div className="py-12 text-center">
-                  <Users className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                  <p className="text-[var(--c-secondary-text)] font-medium">No approved registrations</p>
-                  <p className="text-sm text-[var(--c-muted-text)] mt-1">
-                    {debouncedSearch ? "No match for your search." : "No one approved yet."}
-                  </p>
-                </div>
               ) : (
-                <div className="divide-y divide-[var(--c-border)]">
-                  {attendanceList.map((record) => (
-                    <div
-                      key={record.id}
-                      className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        {/* Check-in status indicator */}
-                        <div
-                          className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                            record.is_checked_in ? "bg-emerald-400" : "bg-gray-200"
-                          }`}
-                        />
-                        <div className="min-w-0">
-                          <p className={`font-medium text-sm truncate ${record.is_checked_in ? "text-[var(--c-muted-text)]" : ""}`}>
-                            {record.user_full_name}
-                          </p>
-                          <p className="text-xs text-[var(--c-muted-text)] truncate">
-                            {record.user_email}
-                            {record.user_student_uid && ` · ${record.user_student_uid}`}
+                <>
+                  <div className="hidden sm:grid grid-cols-[1fr_1fr_130px] gap-4 px-6 py-3 border-b border-[#e5e7eb] bg-[#f8f9fa] text-[13px] font-semibold text-[#6b7280] uppercase tracking-wider rounded-t-[24px]">
+                    <span>Name</span>
+                    <span>Mail</span>
+                    <span>Status</span>
+                  </div>
+                  <div className="divide-y divide-[#e5e7eb]">
+                    {attendanceList.map((record) => (
+                      <div
+                        key={record.id}
+                        className={`flex flex-col sm:grid sm:grid-cols-[1fr_1fr_130px] sm:items-center gap-4 px-6 py-5 hover:bg-gray-50 transition-colors last:rounded-b-[24px] ${
+                          record.is_checked_in ? "" : "opacity-70"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* Check-in status indicator */}
+                          <div
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              record.is_checked_in ? "bg-[#10b981]" : "bg-gray-300"
+                            }`}
+                          />
+                          <p className="font-semibold text-[15px] text-[#111111] truncate">
+                            {record.user_full_name || record.user_email.split('@')[0]}
                           </p>
                         </div>
-                      </div>
+                        
+                        <div className="min-w-0">
+                          <p className="text-[14px] text-[#6b7280] truncate">
+                            {record.user_email}
+                          </p>
+                        </div>
 
-                      <div className="shrink-0 ml-4">
-                        {record.is_checked_in ? (
-                          <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Checked in
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => handleManualCheckin(record.registration_id)}
-                            disabled={manualLoading === record.registration_id}
-                            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
-                          >
-                            {manualLoading === record.registration_id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                            )}
-                            Check in
-                          </button>
-                        )}
+                        <div className="shrink-0 flex items-center">
+                          {manualLoading === record.registration_id ? (
+                            <div className="px-4 py-1.5 flex items-center justify-center">
+                              <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                            </div>
+                          ) : (
+                            <StatusSelect
+                              isCheckedIn={record.is_checked_in}
+                              onSelect={(newStatus) => {
+                                if (newStatus === "checked_in" && !record.is_checked_in) {
+                                  setConfirmAction({
+                                    type: "checkin",
+                                    recordId: record.registration_id,
+                                    recordName: record.user_full_name || record.user_email.split('@')[0]
+                                  });
+                                } else if (newStatus === "pending" && record.is_checked_in) {
+                                  setConfirmAction({
+                                    type: "revoke",
+                                    recordId: record.registration_id,
+                                    recordName: record.user_full_name || record.user_email.split('@')[0]
+                                  });
+                                }
+                              }}
+                            />
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
 
-            <p className="text-xs text-center text-[var(--c-muted-text)]">
+            <p className="text-[13px] text-center text-gray-500 mt-4">
               Showing approved registrations only. 
               <span className="text-emerald-600 font-semibold"> {attendanceList.filter(r => r.is_checked_in).length}</span> of {attendanceList.length} checked in.
             </p>
           </motion.div>
         )}
       </div>
+
+      {/* Confirmation Alert */}
+      <ConfirmAlert
+        isOpen={!!confirmAction}
+        title={confirmAction?.type === "checkin" ? "Check In Student" : "Revoke Check-In"}
+        message={
+          <>
+            Are you sure you want to {confirmAction?.type === "checkin" ? "check in" : "revoke check-in for"}{" "}
+            <span className="font-semibold text-black">{confirmAction?.recordName}</span>?
+          </>
+        }
+        confirmText={confirmAction?.type === "checkin" ? "Check In" : "Revoke"}
+        isDestructive={confirmAction?.type === "revoke"}
+        onCancel={() => setConfirmAction(null)}
+        onConfirm={() => {
+          if (!confirmAction) return;
+          if (confirmAction.type === "checkin") {
+            handleManualCheckin(confirmAction.recordId);
+          } else {
+            handleRevokeCheckin(confirmAction.recordId);
+          }
+          setConfirmAction(null);
+        }}
+      />
     </div>
   );
 }

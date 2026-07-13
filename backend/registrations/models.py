@@ -160,3 +160,31 @@ class Registration(BaseModel):
 
     def __str__(self):
         return f'{self.user.email} -> {self.event.title}'
+
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+
+@receiver(pre_delete, sender=Registration)
+def cleanup_registration_qr(sender, instance, **kwargs):
+    if instance.qr_image_url:
+        from django.conf import settings
+        from django.core.files.storage import default_storage
+        
+        # Check if local storage
+        if instance.qr_image_url.startswith('http://localhost:8000/media/'):
+            path = instance.qr_image_url.replace('http://localhost:8000/media/', '')
+            if default_storage.exists(path):
+                default_storage.delete(path)
+        elif 'blob.core.windows.net' in instance.qr_image_url:
+            # Delete from Azure blob
+            from azure.storage.blob import BlobServiceClient
+            if getattr(settings, 'AZURE_STORAGE_CONNECTION_STRING', None):
+                try:
+                    blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
+                    blob_client = blob_service_client.get_blob_client(
+                        container=settings.AZURE_STORAGE_CONTAINER_NAME,
+                        blob=f'qr-codes/{instance.id}/qr.png'
+                    )
+                    blob_client.delete_blob()
+                except Exception:
+                    pass

@@ -35,8 +35,8 @@ def upload_to_blob(blob_path: str, file_data: bytes | BytesIO, content_type: str
     """
     from core.exceptions import AppError
 
-    connection_string = settings.AZURE_STORAGE_CONNECTION_STRING
-    container_name = settings.AZURE_STORAGE_CONTAINER_NAME
+    connection_string = getattr(settings, 'AZURE_STORAGE_CONNECTION_STRING', None)
+    container_name = getattr(settings, 'AZURE_STORAGE_CONTAINER_NAME', None)
 
     if not connection_string:
         if not settings.DEBUG:

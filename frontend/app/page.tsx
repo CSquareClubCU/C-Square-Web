@@ -34,7 +34,7 @@ import { HoverDotGrid } from "@/components/animations/HoverDotGrid";
 import { ScrollGallery } from "@/components/animations/ScrollGallery";
 import { fetchStats, fetchEvents, fetchTeam, type PublicStats } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
-import type { Event, TeamMemberPublic } from "@/types";
+import type { Event, CoreTeamMemberPublic } from "@/types";
 
 const getGradientForType = (type: string) => {
   switch (type.toLowerCase()) {
@@ -56,6 +56,59 @@ const getDotColorForType = (type: string) => {
   }
 };
 
+function useCountdown(targetDate: string | undefined) {
+  const [timeLeft, setTimeLeft] = useState({
+    days: "00",
+    hours: "00",
+    minutes: "00",
+    seconds: "00",
+  });
+
+  useEffect(() => {
+    if (!targetDate) return;
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const target = new Date(targetDate).getTime();
+      const distance = target - now;
+
+      if (distance < 0) {
+        clearInterval(interval);
+        setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
+        return;
+      }
+
+      setTimeLeft({
+        days: String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2, "0"),
+        hours: String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, "0"),
+        minutes: String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, "0"),
+        seconds: String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, "0"),
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  return timeLeft;
+}
+
+function CountdownTimer({ targetDate }: { targetDate: string }) {
+  const timeLeft = useCountdown(targetDate);
+  return (
+    <>
+      {[
+        { value: timeLeft.days, label: "DAYS" },
+        { value: timeLeft.hours, label: "HOURS" },
+        { value: timeLeft.minutes, label: "MINUTES" },
+        { value: timeLeft.seconds, label: "SECONDS" }
+      ].map((time) => (
+        <div key={time.label} className="bg-black/20 border border-white/[0.08] rounded-[16px] md:rounded-[20px] p-3 md:p-4 flex flex-col items-center justify-center backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.2)]">
+          <span className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-1 text-white">{time.value}</span>
+          <span className="text-[8px] md:text-[9px] font-semibold tracking-[0.15em] text-white/80 uppercase">{time.label}</span>
+        </div>
+      ))}
+    </>
+  );
+}
+
 export default function Home() {
   const [stats, setStats] = useState<PublicStats>({
     total_registrations: 0,
@@ -63,15 +116,15 @@ export default function Home() {
     total_checkins: 0,
     active_team_members: 0,
   });
-  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
-  const [teamMembers, setTeamMembers] = useState<TeamMemberPublic[]>([]);
+  const [homeEvents, setHomeEvents] = useState<Event[]>([]);
+  const [teamMembers, setTeamMembers] = useState<CoreTeamMemberPublic[]>([]);
   const [statsLoaded, setStatsLoaded] = useState(false);
 
   useEffect(() => {
     // Fetch all homepage live data in parallel
     Promise.allSettled([
       fetchStats(),
-      fetchEvents({ upcoming: true, status: "published" }),
+      fetchEvents({ status: "published" }),
       fetchTeam(),
     ]).then(([statsRes, eventsRes, teamRes]) => {
       if (statsRes.status === "fulfilled") {
@@ -79,8 +132,8 @@ export default function Home() {
       }
       setStatsLoaded(true);
       if (eventsRes.status === "fulfilled") {
-        // Show at most 3 upcoming events
-        setUpcomingEvents(eventsRes.value.results.slice(0, 3));
+        // Show at most 6 events on the homepage
+        setHomeEvents(eventsRes.value.results.slice(0, 6));
       }
       if (teamRes.status === "fulfilled") {
         // Show at most 6 team members
@@ -123,9 +176,6 @@ export default function Home() {
       <section className="relative w-full min-h-[calc(100vh-165px)] overflow-hidden flex flex-col items-center text-center px-5 md:px-10 bg-white text-black noise-overlay">
         {/* Interactive dots background */}
         <HoverDotGrid />
-        {/* Subtle white ambient glows */}
-        <div className="hero-glow hero-glow-1" />
-        <div className="hero-glow hero-glow-2" />
 
         <div className="flex-1 flex items-center justify-center w-full pb-24">
         <div className="relative z-10 max-w-[900px] w-full">
@@ -139,7 +189,7 @@ export default function Home() {
               <span className="w-2 h-2 rounded-full bg-black" />
               CHANDIGARH UNIVERSITY&apos;S TECH CLUB
             </div>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] text-black">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tighter leading-[1.05] text-black">
               <span>Build the future,</span>
               <br />
               <span className="text-black/80">one line at a time.</span>
@@ -201,7 +251,7 @@ export default function Home() {
       </section>
 
       {/* ─── MARQUEE TICKER ─── */}
-      <section className="w-full bg-gradient-to-b from-white to-[#f8f9fa] text-black py-5 border-b border-black/[0.04]">
+      <section className="w-full bg-white text-black py-5 border-b border-black/[0.04]">
         <Marquee speed={25}>
           <div className="flex items-center gap-12 px-6">
             {[
@@ -226,14 +276,61 @@ export default function Home() {
         </Marquee>
       </section>
 
+      {/* ─── STATS BAR ─── */}
+      <section className="relative w-full bg-white pt-6 pb-2 md:pt-8 md:pb-4">
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10">
+          <div className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] shadow-sm p-6 md:p-8 flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-16">
+            
+            <div className="lg:w-[240px] shrink-0 border-l-2 border-[#111111] pl-5">
+               <p className="text-[14px] leading-relaxed text-[#6b7280] font-medium">
+                 <span className="text-[#111111] font-semibold tracking-tight">C Square Impact</span><br />
+                 Building the next generation of tech talent, one event at a time.
+               </p>
+            </div>
+            
+            <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
+              {statCards.map((stat, i) => (
+                <FadeUp key={i} delay={i * 0.1} className="flex flex-col cursor-default">
+                   <span className="text-3xl md:text-4xl font-semibold tracking-tighter text-[#111111] flex items-baseline leading-none mb-2">
+                      {statsLoaded ? (
+                        <>
+                          <AnimatedCounter value={stat.value} />
+                          <span className="text-[#6b7280] ml-1">{stat.suffix}</span>
+                        </>
+                      ) : (
+                        <span className="inline-block w-12 h-8 bg-[#f5f5f5] rounded animate-pulse" />
+                      )}
+                   </span>
+                   <span className="text-[11px] font-semibold tracking-wide text-[#6b7280] uppercase flex items-center gap-1.5">
+                     {stat.icon && React.cloneElement(stat.icon as React.ReactElement<any>, { className: "w-3.5 h-3.5 text-[#111111]" })}
+                     {stat.label}
+                   </span>
+                </FadeUp>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* ─── FLAGSHIP SECTION ─── */}
-      <section className="w-full bg-[#f8f9fa] border-b border-black/[0.04] py-16 md:py-24">
+      {(() => {
+        const flagship = homeEvents.find(e => e.is_flagship) || homeEvents[0];
+        if (!flagship) return null;
+        
+        const prizePool = flagship.prizes && flagship.prizes.length > 0 ? flagship.prizes[0].award : "TBA";
+        const isPast = new Date(flagship.start_datetime) < new Date();
+        const durationText = flagship.end_datetime 
+          ? `${Math.max(1, Math.floor((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60)))} hours` 
+          : "TBA";
+        return (
+      <section className="w-full bg-white pt-6 pb-12 md:pt-8 md:pb-16">
         <div className="max-w-[1200px] w-full mx-auto px-5 md:px-10">
           <FadeUp>
             <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-orange-600 mb-3 inline-block">
               FLAGSHIP EVENT
             </span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-8 md:mb-10 text-black">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tighter mb-8 md:mb-10 text-black">
               Our biggest weekend of the year.
             </h2>
           </FadeUp>
@@ -244,47 +341,45 @@ export default function Home() {
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold text-white/90 mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                  Flagship • Hackathon
+                  Flagship • {flagship.event_type.charAt(0).toUpperCase() + flagship.event_type.slice(1)}
                 </div>
                 
-                <h3 className="text-4xl md:text-5xl font-bold tracking-tight mb-3 text-white">
-                  CodeStorm 2026
+                <h3 className="text-4xl md:text-5xl font-semibold tracking-tighter mb-3 text-white">
+                  {flagship.title}
                 </h3>
                 
                 <p className="text-lg text-gray-400 mb-8 font-medium">
-                  48-hour flagship hackathon. ₹5L prize pool.
+                  {flagship.description || "Join us for our biggest event of the year."}
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-4 mb-8 text-[14px] font-medium text-gray-300">
                   <div className="flex items-center gap-3">
                     <Calendar className="w-4 h-4 text-gray-500" />
-                    Friday, August 14
+                    {new Date(flagship.start_datetime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                   </div>
                   <div className="flex items-center gap-3">
                     <MapPin className="w-4 h-4 text-gray-500" />
-                    CU Innovation Hub, Block C
+                    {flagship.venue}
                   </div>
                   <div className="flex items-center gap-3">
                     <Trophy className="w-4 h-4 text-gray-500" />
-                    ₹5,00,000 prize pool
+                    {prizePool}
                   </div>
                   <div className="flex items-center gap-3">
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-gray-500 ml-0.5">
-                      <path d="M12 2L22 20H2L12 2Z" />
-                    </svg>
-                    48-hour build sprint
+                    <Clock className="w-4 h-4 text-gray-500 ml-0.5" />
+                    {durationText} duration
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 pt-2">
-                <Link href="/events/codestorm-2026">
+                <Link href={`/events/${flagship.slug}`}>
                   <Button className="bg-orange-500 text-white hover:bg-orange-600 h-12 px-6 text-[14px] font-semibold group border border-orange-500">
                     Register now
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform opacity-70" />
                   </Button>
                 </Link>
-                <Link href="/events/codestorm-2026">
+                <Link href={`/events/${flagship.slug}`}>
                   <Button variant="outline" className="border-white/10 text-white h-12 px-6 text-[14px] font-semibold hover:bg-white/5 bg-transparent">
                     View details
                   </Button>
@@ -293,97 +388,53 @@ export default function Home() {
             </FadeUp>
 
             {/* Right Card */}
-            <FadeUp delay={0.2} className="relative rounded-[24px] overflow-hidden p-8 md:p-10 flex flex-col justify-between text-white bg-gradient-to-tr from-[#161420] via-[#1a1722] to-[#6d3039] shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+            <FadeUp delay={0.2} className={`relative rounded-[24px] overflow-hidden p-8 md:p-10 flex flex-col justify-between text-white shadow-[0_4px_30px_rgba(0,0,0,0.1)] ${isPast ? 'bg-gray-800' : 'bg-gradient-to-tr from-[#161420] via-[#1a1722] to-[#6d3039]'}`}>
               <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none" style={{ backgroundImage: 'url("/noise.png")' }}></div>
 
               <div className="relative z-10 mb-8">
                 <div className="inline-flex px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-white/90 backdrop-blur-sm">
-                  Starts in
+                  {isPast ? "Event Concluded" : "Starts in"}
                 </div>
               </div>
 
-              <div className="relative z-10 grid grid-cols-4 gap-2 md:gap-3 mb-10">
-                {[
-                  { value: "33", label: "DAYS" },
-                  { value: "08", label: "HOURS" },
-                  { value: "08", label: "MINUTES" },
-                  { value: "16", label: "SECONDS" }
-                ].map((time) => (
-                  <div key={time.label} className="bg-black/20 border border-white/[0.08] rounded-[16px] md:rounded-[20px] p-3 md:p-4 flex flex-col items-center justify-center backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.2)]">
-                    <span className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-1 text-white">{time.value}</span>
-                    <span className="text-[8px] md:text-[9px] font-semibold tracking-[0.15em] text-white/80 uppercase">{time.label}</span>
-                  </div>
-                ))}
-              </div>
+              {!isPast && (
+                <div className="relative z-10 grid grid-cols-4 gap-2 md:gap-3 mb-10">
+                  <CountdownTimer targetDate={flagship.start_datetime} />
+                </div>
+              )}
 
               <div className="relative z-10 flex items-end justify-between pt-6 mt-auto">
                 <div>
                   <div className="text-[10px] font-semibold tracking-[0.15em] text-white/50 uppercase mb-2">PRIZE POOL</div>
-                  <div className="text-3xl md:text-4xl font-bold">₹5,00,000</div>
+                  <div className="text-3xl md:text-4xl font-bold">{prizePool}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] font-semibold tracking-[0.15em] text-white/50 uppercase mb-2">TEAMS</div>
-                  <div className="text-3xl md:text-4xl font-bold">240+</div>
+                  <div className="text-[10px] font-semibold tracking-[0.15em] text-white/50 uppercase mb-2">STUDENTS</div>
+                  <div className="text-3xl md:text-4xl font-bold">{flagship.registered_count || 0}+</div>
                 </div>
               </div>
               
               <div className="relative z-10 mt-6 pt-5 border-t border-white/10 text-xs md:text-sm text-white/50 font-medium">
-                48 hours • 3 tracks • Open to CU students and external participants.
+                {durationText} • {flagship.is_open_to_external ? "Open to CU students and external participants." : "Exclusive to CU students."}
               </div>
             </FadeUp>
           </div>
         </div>
       </section>
+      );
+    })()}
 
-      {/* ─── STATS BAR ─── */}
-      <section className="relative w-full bg-white border-y border-black/[0.04] py-8 shadow-[0_4px_40px_rgba(0,0,0,0.01)] overflow-hidden">
-        {/* Soft background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[100px] bg-gradient-to-r from-orange-500/10 via-purple-500/10 to-blue-500/10 blur-3xl rounded-full pointer-events-none opacity-50" />
 
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10 flex flex-col md:flex-row md:items-center gap-8 md:gap-16 relative z-10">
-          
-          <div className="md:w-[220px] shrink-0 border-l-2 border-black/10 pl-5">
-             <p className="text-[14px] leading-relaxed text-gray-500 font-medium">
-               <span className="text-black font-semibold">C Square Impact.</span><br />
-               Building the next generation of tech talent.
-             </p>
-          </div>
-          
-          <div className="flex-1 flex flex-wrap items-center justify-between gap-x-8 gap-y-6">
-            {statCards.map((stat, i) => (
-              <FadeUp key={i} delay={i * 0.1} className="flex items-center gap-3.5 group cursor-default">
-                 <div className="w-10 h-10 rounded-[12px] bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-black group-hover:text-white group-hover:border-black transition-all duration-300 shadow-sm">
-                   {stat.icon && React.cloneElement(stat.icon as React.ReactElement<any>, { className: "w-4 h-4 transition-colors" })}
-                 </div>
-                 <div className="flex flex-col justify-center">
-                   <span className="text-xl md:text-2xl font-bold tracking-tight text-black flex items-baseline leading-none mb-1">
-                      {statsLoaded ? (
-                        <>
-                          <AnimatedCounter value={stat.value} />
-                          <span className="text-black/40 ml-0.5">{stat.suffix}</span>
-                        </>
-                      ) : (
-                        <span className="inline-block w-8 h-5 bg-black/5 rounded animate-pulse" />
-                      )}
-                   </span>
-                   <span className="text-[12px] font-semibold tracking-wide text-gray-400 uppercase">{stat.label.split(' ')[0]}</span>
-                 </div>
-              </FadeUp>
-            ))}
-          </div>
-
-        </div>
-      </section>
 
       {/* ─── UPCOMING EVENTS PREVIEW ─── */}
-      <section className="w-full pt-16 md:pt-24 pb-4 md:pb-8 bg-white">
+      <section className="w-full pt-6 pb-4 md:pt-8 md:pb-8 bg-white">
         <div className="max-w-[1200px] mx-auto px-5 md:px-10">
           <FadeUp className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div>
               <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-blue-600 mb-3 inline-block">
                 UPCOMING
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-black">
+              <h2 className="text-4xl md:text-5xl font-semibold tracking-tighter text-black">
                 What&apos;s on the calendar.
               </h2>
             </div>
@@ -391,13 +442,16 @@ export default function Home() {
               <div className="px-5 py-2 rounded-[12px] bg-black text-white text-[13px] font-semibold cursor-default">All</div>
               <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Hackathon</div>
               <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Workshop</div>
-              <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Seminar</div>
               <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Competition</div>
+              <div className="w-[1px] h-4 bg-gray-200 mx-1"></div>
+              <Link href="/events" className="px-5 py-2 rounded-[12px] text-black hover:bg-gray-50 text-[13px] font-semibold transition-colors flex items-center gap-1">
+                View all <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </FadeUp>
 
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(upcomingEvents.length > 0 ? upcomingEvents : [
+            {(homeEvents.length > 0 ? homeEvents : [
               {
                 id: '1', slug: 'codestorm-2026', title: 'CodeStorm 2026', event_type: 'hackathon',
                 start_datetime: '2026-08-14T09:00:00Z', venue: 'CU Innovation Hub, Block C',
@@ -424,7 +478,7 @@ export default function Home() {
                   <StaggerItem key={event.id}>
                     <TiltCard className="h-full">
                       <Link href={`/events/${event.slug}`} className="block h-full group">
-                        <div className="h-full flex flex-col rounded-[24px] border border-gray-100 bg-white overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-xl transition-all duration-500">
+                        <div className={`h-full flex flex-col rounded-[24px] border border-gray-100 bg-white overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all duration-500 ${eventDate < new Date() ? 'opacity-60 grayscale' : 'hover:shadow-xl'}`}>
                           
                           {/* Banner */}
                           <div className={`h-48 relative overflow-hidden bg-gradient-to-br ${gradient} p-4`}>
@@ -454,7 +508,7 @@ export default function Home() {
                     
                           {/* Content */}
                           <div className="flex-1 p-6 flex flex-col">
-                            <h3 className="font-bold text-xl mb-2 text-black leading-snug group-hover:text-blue-600 transition-colors">
+                            <h3 className="font-semibold tracking-tight text-xl mb-2 text-black leading-snug group-hover:text-blue-600 transition-colors">
                               {event.title}
                             </h3>
                             
@@ -499,13 +553,13 @@ export default function Home() {
 
       {/* ─── MEET THE TEAM PREVIEW ─── */}
       {teamMembers.length > 0 && (
-        <section className="w-full pt-16 md:pt-24 pb-20 md:pb-32 bg-[#f8f9fa] border-t border-black/[0.04]">
+        <section className="w-full pt-6 pb-16 md:pt-8 md:pb-24 bg-white">
           <div className="max-w-[1200px] mx-auto px-5 md:px-10">
             <FadeUp className="text-center mb-16">
               <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-500 mb-3 inline-block">
                 THE TEAM
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-black">
+              <h2 className="text-4xl md:text-5xl font-semibold tracking-tighter mb-4 text-black">
                 Meet the Curators
               </h2>
               <p className="text-gray-500 text-[15px] md:text-[16px] font-medium max-w-xl mx-auto">
@@ -516,10 +570,8 @@ export default function Home() {
             <StaggerContainer className="flex flex-wrap justify-center gap-6 max-w-5xl mx-auto">
               {teamMembers.slice(0, 5).map((member) => (
                 <StaggerItem key={member.id} className="w-full sm:w-[calc(50%-12px)] md:w-[calc(25%-18px)] max-w-[240px]">
-                  <TiltCard className="flex flex-col items-center text-center group cursor-default bg-white rounded-3xl border border-black/[0.04] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] p-8 transition-all duration-300 h-full">
-                    
-                    {/* Avatar Image */}
-                    <div className="relative w-[72px] h-[72px] rounded-full overflow-hidden bg-gray-50 shadow-sm border border-black/[0.04] mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                  <TiltCard className="flex flex-col items-center text-center group cursor-default bg-white rounded-[32px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-8 border border-black/[0.04] h-full">
+                    <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-[#F5F5F5] mb-5 overflow-hidden relative transition-transform duration-500 group-hover:scale-110 flex items-center justify-center">
                       {member.photo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -528,14 +580,33 @@ export default function Home() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                          <User className="w-6 h-6 text-black/40 stroke-0" fill="currentColor" />
-                        </div>
+                        <svg className="w-8 h-8 text-[#999]" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
                       )}
                     </div>
+                    <h3 className="font-semibold tracking-tight text-[#111] text-lg mb-1">{member.full_name}</h3>
+                    <p className="text-sm text-[#777] font-medium mb-6">
+                      {member.designation}
+                    </p>
                     
-                    <p className="font-bold text-[15px] text-gray-900 mb-1.5 leading-snug">{member.full_name}</p>
-                    <p className="text-[13px] font-medium text-gray-500">{member.designation}</p>
+                    <div className="flex items-center gap-4 mt-auto">
+                      {member.twitter_url && (
+                        <a href={member.twitter_url} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-black transition-colors">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                        </a>
+                      )}
+                      {member.github_url && (
+                        <a href={member.github_url} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-black transition-colors">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                        </a>
+                      )}
+                      {member.linkedin_url && (
+                        <a href={member.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-black transition-colors">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                        </a>
+                      )}
+                    </div>
                   </TiltCard>
                 </StaggerItem>
               ))}

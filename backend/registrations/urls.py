@@ -15,6 +15,7 @@ from registrations.views import (
     RegisterTeamView,
     RegistrationDetailView,
     RejectRegistrationView,
+    AdminDeleteRegistrationView,
 )
 
 app_name = 'registrations'
@@ -33,4 +34,5 @@ urlpatterns = [
     path('<uuid:pk>/approve/', ApproveRegistrationView.as_view(), name='approve-registration'),
     path('<uuid:pk>/reject/', RejectRegistrationView.as_view(), name='reject-registration'),
     path('<uuid:pk>/move-from-waitlist/', MoveFromWaitlistView.as_view(), name='move-from-waitlist'),
+    path('<uuid:pk>/admin-delete/', AdminDeleteRegistrationView.as_view(), name='admin-delete-registration'),
 ]

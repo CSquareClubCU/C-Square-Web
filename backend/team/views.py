@@ -75,7 +75,7 @@ class TeamMemberDetailView(APIView):
 
     def delete(self, request, pk):
         member = services.get_team_member_or_404(pk)
-        services.deactivate_team_member(member)
+        services.delete_team_member(member)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

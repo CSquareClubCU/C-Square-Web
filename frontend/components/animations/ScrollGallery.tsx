@@ -1,25 +1,30 @@
 "use client";
 
-import { Rocket, Shield, Terminal, Zap, Code, Trophy, Cpu, Globe, Target } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Image as ImageIcon } from "lucide-react";
 import { FadeUp, StaggerContainer, StaggerItem } from "./MotionElements";
+import { fetchPastEvents } from "@/lib/api";
+import { PastEvent } from "@/types";
 
 export function ScrollGallery() {
-  const pastEvents = [
-    { title: "CodeStorm 2024", icon: <Terminal className="w-5 h-5" /> },
-    { title: "Web3 Summit", icon: <Globe className="w-5 h-5" /> },
-    { title: "AI Horizons", icon: <Cpu className="w-5 h-5" /> },
-    { title: "Cyber Sec", icon: <Shield className="w-5 h-5" /> },
-    { title: "Hack to the Future", icon: <Rocket className="w-5 h-5" /> },
-    { title: "Design Sprint", icon: <Target className="w-5 h-5" /> },
-    { title: "Code Relay", icon: <Zap className="w-5 h-5" /> },
-    { title: "Algorithm Quest", icon: <Code className="w-5 h-5" /> },
-    { title: "Game Jam", icon: <Trophy className="w-5 h-5" /> },
-  ];
+  const [pastEvents, setPastEvents] = useState<PastEvent[]>([]);
 
-  const EventCard = ({ event }: { event: any }) => (
+  useEffect(() => {
+    fetchPastEvents()
+      .then(data => {
+        setPastEvents(Array.isArray(data) ? data : (data as any).results || []);
+      })
+      .catch(console.error);
+  }, []);
+
+  const EventCard = ({ event }: { event: PastEvent }) => (
     <div className="w-full h-[72px] bg-[#111] rounded-2xl border border-white/10 flex items-center px-4 gap-4 hover:bg-[#1a1a1a] hover:border-white/30 hover:scale-[1.02] transition-all duration-300 shadow-lg">
-      <div className="w-10 h-10 rounded-[12px] bg-white/10 flex items-center justify-center text-white/90 shrink-0">
-        {event.icon}
+      <div className="w-10 h-10 rounded-[12px] bg-white/10 flex items-center justify-center text-white/90 shrink-0 overflow-hidden">
+        {event.logo_url ? (
+          <img src={event.logo_url} alt={event.title} className="w-full h-full object-cover p-1" />
+        ) : (
+          <ImageIcon className="w-5 h-5 text-white/60" />
+        )}
       </div>
       <h3 className="text-[14px] md:text-[15px] font-bold text-white truncate">
         {event.title}

@@ -48,6 +48,12 @@ def _do_checkin(record: AttendanceRecord, method: str, marked_by) -> AttendanceR
     record.save(update_fields=[
         'is_checked_in', 'checked_in_at', 'check_in_method', 'marked_by', 'updated_at'
     ])
+    
+    # Award club points
+    user = record.user
+    user.club_points += record.event.points
+    user.save(update_fields=['club_points', 'updated_at'])
+
     logger.info(
         '%s checked in via %s at %s by %s',
         record.user.email, method, record.event.title, marked_by.email,
@@ -121,6 +127,56 @@ def checkin_manual(registration_id: uuid.UUID, marked_by) -> AttendanceRecord:
     return _do_checkin(record, CheckInMethod.MANUAL, marked_by)
 
 
+def revoke_checkin(registration_id: uuid.UUID, revoked_by) -> AttendanceRecord:
+    """
+    Revokes a check-in by registration ID.
+    Deducts the club points previously awarded.
+
+    Args:
+        registration_id: The UUID of the registration.
+        revoked_by: The admin or volunteer performing the revocation.
+
+    Returns:
+        The updated AttendanceRecord.
+
+    Raises:
+        AppError(NOT_FOUND, 404): Registration or attendance record not found.
+        AppError(NOT_ASSIGNED, 403): Volunteer not assigned to this event.
+        AppError(BAD_REQUEST, 400): User is not checked in.
+    """
+    try:
+        record = AttendanceRecord.objects.select_related('event', 'user').get(
+            registration_id=registration_id,
+        )
+    except AttendanceRecord.DoesNotExist:
+        raise AppError('NOT_FOUND', 'Attendance record not found.', 404)
+
+    _verify_volunteer_access(record.event, revoked_by)
+
+    if not record.is_checked_in:
+        raise AppError('BAD_REQUEST', 'User is not checked in.', 400)
+
+    # Revert check-in
+    record.is_checked_in = False
+    record.checked_in_at = None
+    record.check_in_method = None
+    record.marked_by = None
+    record.save(update_fields=[
+        'is_checked_in', 'checked_in_at', 'check_in_method', 'marked_by', 'updated_at'
+    ])
+
+    # Revert club points
+    user = record.user
+    user.club_points = max(0, user.club_points - record.event.points)
+    user.save(update_fields=['club_points', 'updated_at'])
+
+    logger.info(
+        '%s had check-in revoked at %s by %s',
+        record.user.email, record.event.title, revoked_by.email,
+    )
+    return record
+
+
 def get_attendance_list(event: Event, marked_by, search: Optional[str] = None) -> QuerySet:
     """
     Get all attendance records for an event.
@@ -188,9 +244,9 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
         'Full Name',
         'Email',
         'Student UID',
-        'Branch',
-        'Year',
-        'Semester',
+        'Institution',
+        'Degree Type',
+        'Graduation Year',
         'Batch',
         'Phone',
         'Registration Status',
@@ -204,9 +260,9 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
             _sanitize_csv_value(record.user.full_name),
             _sanitize_csv_value(record.user.email),
             _sanitize_csv_value(record.user.student_uid),
-            _sanitize_csv_value(record.user.branch),
-            _sanitize_csv_value(record.user.year),
-            _sanitize_csv_value(record.user.semester),
+            _sanitize_csv_value(record.user.institution),
+            _sanitize_csv_value(record.user.degree_type),
+            _sanitize_csv_value(record.user.graduation_year),
             _sanitize_csv_value(record.user.batch),
             _sanitize_csv_value(record.user.phone),
             record.registration.status,

@@ -91,8 +91,6 @@ class RegistrationAdminListSerializer(serializers.ModelSerializer):
     user_email = serializers.CharField(source='user.email', read_only=True)
     user_full_name = serializers.CharField(source='user.full_name', read_only=True)
     user_student_uid = serializers.CharField(source='user.student_uid', read_only=True)
-    user_branch = serializers.CharField(source='user.branch', read_only=True)
-    user_year = serializers.IntegerField(source='user.year', read_only=True)
     user_phone = serializers.CharField(source='user.phone', read_only=True)
 
     class Meta:
@@ -106,8 +104,6 @@ class RegistrationAdminListSerializer(serializers.ModelSerializer):
             'user_email',
             'user_full_name',
             'user_student_uid',
-            'user_branch',
-            'user_year',
             'user_phone',
             'status',
             'qr_token',

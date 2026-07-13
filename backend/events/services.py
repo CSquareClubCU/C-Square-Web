@@ -145,13 +145,21 @@ def assign_volunteer(event: Event, user_id: UUID, assigned_by) -> VolunteerAssig
             status=404,
         )
 
-    # Must have volunteer role
-    if volunteer.role != 'volunteer':
+    # Check if the user is a Core Team member
+    from team.models import TeamMember
+    is_core_team = TeamMember.objects.filter(user=volunteer, is_active=True).exists()
+    
+    if not is_core_team:
         raise AppError(
-            code='NOT_A_VOLUNTEER',
-            message='User must have the volunteer role to be assigned to an event.',
+            code='NOT_CORE_TEAM',
+            message='Only active Core Team members can be assigned as volunteers.',
             status=400,
         )
+
+    # Upgrade role if needed
+    if volunteer.role == 'student':
+        volunteer.role = 'volunteer'
+        volunteer.save(update_fields=['role', 'updated_at'])
 
     # Check for duplicate assignment
     if VolunteerAssignment.objects.filter(event=event, volunteer=volunteer).exists():

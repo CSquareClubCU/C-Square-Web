@@ -59,6 +59,10 @@ class Event(BaseModel):
     min_team_size = models.PositiveIntegerField(null=True, blank=True)
     max_team_size = models.PositiveIntegerField(null=True, blank=True)
 
+    # Engagement & Features
+    is_flagship = models.BooleanField(default=False)
+    points = models.IntegerField(default=100)
+
     # Media
     banner_image_url = models.CharField(max_length=500, null=True, blank=True)
 
@@ -171,4 +175,23 @@ class VolunteerAssignment(BaseModel):
         ]
 
     def __str__(self):
-        return f'{self.volunteer} → {self.event}'
+        return f"{self.volunteer.email} -> {self.event.title}"
+
+
+class PastEvent(BaseModel):
+    """
+    Model for the homepage's Scroll Gallery of past events.
+    Completely independent from the main Event model to allow adding purely historical events.
+    """
+    title = models.CharField(max_length=255)
+    logo_url = models.CharField(max_length=500, null=True, blank=True)
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        db_table = 'events_pastevent'
+        ordering = ['order', '-created_at']
+        verbose_name = 'Past Event'
+        verbose_name_plural = 'Past Events'
+
+    def __str__(self):
+        return self.title

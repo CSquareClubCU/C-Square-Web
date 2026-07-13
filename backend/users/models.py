@@ -56,12 +56,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_cu_student = models.BooleanField(default=False)
 
     # Student profile fields — NULL on first login, filled at first registration
-    student_uid = models.CharField(max_length=20, null=True, blank=True)
-    branch = models.CharField(max_length=100, null=True, blank=True)
-    year = models.IntegerField(null=True, blank=True)
-    semester = models.IntegerField(null=True, blank=True)
+    student_uid = models.CharField(max_length=20, null=True, blank=True, db_index=True)
     batch = models.CharField(max_length=20, null=True, blank=True)
     phone = models.CharField(max_length=15, null=True, blank=True)
+
+    # External student fields
+    institution = models.CharField(max_length=255, null=True, blank=True)
+    degree_type = models.CharField(max_length=100, null=True, blank=True)
+    graduation_year = models.IntegerField(null=True, blank=True)
+
+    # Engagement
+    club_points = models.IntegerField(default=0)
 
     # Django internals
     is_active = models.BooleanField(default=True)

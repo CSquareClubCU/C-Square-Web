@@ -11,6 +11,9 @@ from events.views import (
     EventListView,
     EventVolunteerDetailView,
     EventVolunteersView,
+    PastEventListView,
+    PastEventDetailView,
+    PastEventLogoUploadView,
 )
 
 app_name = 'events'
@@ -18,6 +21,12 @@ app_name = 'events'
 urlpatterns = [
     # Public + Admin — list and create
     path('', EventListView.as_view(), name='event-list'),
+
+    # Past Events (Must be before slug)
+    path('past/', PastEventListView.as_view(), name='past-event-list'),
+    path('past/<uuid:pk>/', PastEventDetailView.as_view(), name='past-event-detail'),
+    path('past/<uuid:pk>/logo/', PastEventLogoUploadView.as_view(), name='past-event-logo'),
+
     # Slug-based detail/update/delete
     path('<slug:slug>/', EventDetailView.as_view(), name='event-detail'),
 

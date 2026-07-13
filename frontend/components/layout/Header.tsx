@@ -237,7 +237,7 @@ export function Header() {
       </div>
 
       {/* ── Spacer so content doesn't sit under the fixed header ── */}
-      <div className="h-[104px]" />
+      <div className="h-[80px]" />
 
       {/* ── Mobile drawer ── */}
       <AnimatePresence>

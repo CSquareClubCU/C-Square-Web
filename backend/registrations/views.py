@@ -317,3 +317,45 @@ class MoveFromWaitlistView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class AdminDeleteRegistrationView(APIView):
+    """
+    DELETE /api/registrations/{id}/admin-delete/
+    Completely remove a registration and its attendance data. Admin only.
+    """
+    permission_classes = [IsAdmin]
+
+    def delete(self, request, pk):
+        from registrations.models import Registration
+        try:
+            registration = Registration.objects.get(id=pk)
+            # This relies on cascading deletes for attendance record if they exist.
+            # If `record.is_checked_in`, we should technically deduct points first.
+            try:
+                record = registration.attendance_record
+                if record.is_checked_in:
+                    user = record.user
+                    user.club_points = max(0, user.club_points - record.event.points)
+                    user.save(update_fields=['club_points', 'updated_at'])
+            except Exception:
+                pass
+
+            # Decrease the event's registered_count if the status was approved/pending, or just decrement always?
+            # actually we can just delete it, and count will be re-computed or we manually decrement.
+            # But the simplest is to just delete and rely on the database cascade/signals.
+            
+            # The safest approach since `registered_count` is manually tracked in `services.py` 
+            # is to cancel it first to update the count properly, then delete it.
+            if registration.status in ['approved', 'pending', 'waitlisted']:
+                from registrations import services as reg_services
+                try:
+                    reg_services.cancel_registration(registration_id=pk, user=registration.user)
+                except Exception:
+                    pass
+
+            registration.delete()
+
+            return Response({'success': True, 'message': 'Registration completely removed.'}, status=status.HTTP_200_OK)
+        except Registration.DoesNotExist:
+            return Response({'error': 'Registration not found'}, status=status.HTTP_404_NOT_FOUND)

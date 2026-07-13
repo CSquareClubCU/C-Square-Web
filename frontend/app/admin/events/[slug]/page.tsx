@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -32,13 +32,14 @@ import {
   Image as ImageIcon,
   Plus,
   Trash2,
+  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FadeUp } from "@/components/animations/MotionElements";
-import { fetchEventById, fetchEventRegistrations, approveRegistration, rejectRegistration, moveFromWaitlist, exportAttendanceCsv, updateEvent, uploadEventBanner } from "@/lib/api";
-import type { EventCreateData } from "@/lib/api";
+import { fetchEventById, fetchEventRegistrations, approveRegistration, rejectRegistration, moveFromWaitlist, exportAttendanceCsv, updateEvent, uploadEventBanner, awardBonusPoints, deleteRegistration, fetchEventVolunteers, assignVolunteer, removeVolunteer, fetchTeam, deleteEvent } from "@/lib/api";
+import type { EventCreateData, VolunteerAssignment } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/utils";
-import type { Event, RegistrationAdmin, RegistrationStatus } from "@/types";
+import type { Event, RegistrationAdmin, RegistrationStatus, CoreTeamMemberPublic } from "@/types";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const STATUS_TABS: Array<{ value: RegistrationStatus | ""; label: string; icon: React.ReactNode }> = [
@@ -49,17 +50,12 @@ const STATUS_TABS: Array<{ value: RegistrationStatus | ""; label: string; icon: 
   { value: "rejected", label: "Rejected", icon: <XCircle className="w-3.5 h-3.5" /> },
 ];
 
-const rowStatusStyle: Record<string, string> = {
-  approved: "border-l-4 border-l-emerald-400",
-  pending: "border-l-4 border-l-amber-400",
-  rejected: "border-l-4 border-l-red-400",
-  waitlisted: "border-l-4 border-l-gray-300",
-  cancelled: "border-l-4 border-l-gray-200 opacity-60",
-};
+
 
 export default function AdminEventDetailPage() {
   useRequireAuth({ role: "admin" });
   const params = useParams();
+  const router = useRouter();
   const eventSlug = params.slug as string;
 
   const [event, setEvent] = useState<Event | null>(null);
@@ -75,11 +71,22 @@ export default function AdminEventDetailPage() {
   const [rejectModal, setRejectModal] = useState<{ id: string; name: string } | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [exportLoading, setExportLoading] = useState(false);
+
+  // Bonus Points
+  const [bonusModal, setBonusModal] = useState<{ id: string; name: string; userId: string; points: number } | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<Partial<EventCreateData>>({});
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [bannerLoading, setBannerLoading] = useState(false);
+
+  // Volunteers
+  const [volunteers, setVolunteers] = useState<VolunteerAssignment["volunteers"]>([]);
+  const [coreTeam, setCoreTeam] = useState<CoreTeamMemberPublic[]>([]);
+  const [selectedVolunteerId, setSelectedVolunteerId] = useState("");
+  const [assigningLoading, setAssigningLoading] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [volunteersModalOpen, setVolunteersModalOpen] = useState(false);
 
   const handlePrizeChange = (index: number, field: string, value: string) => {
     setEditForm((prev) => {
@@ -135,6 +142,28 @@ export default function AdminEventDetailPage() {
       .finally(() => setLoadingEvent(false));
   }, [eventSlug]);
 
+  const loadVolunteers = useCallback(async () => {
+    if (!event) return;
+    try {
+      const data = await fetchEventVolunteers(event.id);
+      setVolunteers(data.volunteers || []);
+    } catch (err) {
+      console.error("Failed to fetch volunteers:", err);
+    }
+  }, [event]);
+
+  useEffect(() => {
+    if (event) {
+      loadVolunteers();
+    }
+  }, [event, loadVolunteers]);
+
+  useEffect(() => {
+    fetchTeam()
+      .then(setCoreTeam)
+      .catch(console.error);
+  }, []);
+
   // Load registrations (uses event UUID from event.id)
   const loadRegistrations = useCallback(async () => {
     if (!event) return;
@@ -173,7 +202,7 @@ export default function AdminEventDetailPage() {
     try {
       await approveRegistration(id);
       await loadRegistrations();
-    } catch (err) { console.error(err); }
+    } catch (err: any) { alert(err.message || "Failed to approve registration."); console.error(err); }
     finally { setActionLoading(null); }
   }
 
@@ -185,7 +214,7 @@ export default function AdminEventDetailPage() {
       setRejectModal(null);
       setRejectReason("");
       await loadRegistrations();
-    } catch (err) { console.error(err); }
+    } catch (err: any) { alert(err.message || "Failed to reject registration."); console.error(err); }
     finally { setActionLoading(null); }
   }
 
@@ -194,8 +223,62 @@ export default function AdminEventDetailPage() {
     try {
       await moveFromWaitlist(id);
       await loadRegistrations();
-    } catch (err) { console.error(err); }
+    } catch (err: any) { alert(err.message || "Failed to move from waitlist."); console.error(err); }
     finally { setActionLoading(null); }
+  }
+
+  async function handleRemoveRegistration(regId: string, name: string) {
+    if (!confirm(`Are you sure you want to completely remove ${name} from this event? This action cannot be undone.`)) return;
+    setActionLoading(regId);
+    try {
+      await deleteRegistration(regId);
+      await loadRegistrations();
+    } catch (err: any) {
+      alert(err.message || "Failed to remove registration.");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleAwardBonus() {
+    if (!bonusModal || !bonusModal.points) return;
+    setActionLoading(bonusModal.id);
+    try {
+      await awardBonusPoints(bonusModal.userId, bonusModal.points);
+      setBonusModal(null);
+      // Wait for 1 second so the action button stops spinning
+      setTimeout(() => setActionLoading(null), 1000);
+    } catch (err) {
+      console.error(err);
+      setActionLoading(null);
+    }
+  }
+
+  async function handleAssignVolunteer() {
+    if (!event || !selectedVolunteerId) return;
+    setAssigningLoading(true);
+    try {
+      await assignVolunteer(event.id, selectedVolunteerId);
+      setSelectedVolunteerId("");
+      await loadVolunteers();
+    } catch (err: any) {
+      alert(err.message || "Failed to assign volunteer.");
+    } finally {
+      setAssigningLoading(false);
+    }
+  }
+
+  async function handleRemoveVolunteer(assignmentId: string) {
+    if (!event) return;
+    setRemovingId(assignmentId);
+    try {
+      await removeVolunteer(event.id, assignmentId);
+      await loadVolunteers();
+    } catch (err: any) {
+      alert(err.message || "Failed to remove volunteer.");
+    } finally {
+      setRemovingId(null);
+    }
   }
 
   async function handleExport() {
@@ -239,6 +322,8 @@ export default function AdminEventDetailPage() {
       contact_name: event.contact_name || "",
       contact_email: event.contact_email || "",
       is_registration_open: event.is_registration_open,
+      is_flagship: event.is_flagship,
+      points: event.points,
     });
     setEditError(null);
     setEditOpen(true);
@@ -258,6 +343,17 @@ export default function AdminEventDetailPage() {
       setEditError(err instanceof Error ? err.message : "Failed to update event");
     } finally {
       setEditLoading(false);
+    }
+  }
+
+  async function handleDeleteEvent() {
+    if (!event) return;
+    if (!confirm("Are you SURE you want to delete this event completely? This cannot be undone.")) return;
+    try {
+      await deleteEvent(event.slug);
+      router.push("/admin/events");
+    } catch (err: any) {
+      alert(err.message || "Failed to delete event.");
     }
   }
 
@@ -281,11 +377,11 @@ export default function AdminEventDetailPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full min-h-screen bg-white">
       {/* Header */}
-      <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-10 relative overflow-hidden">
+      <section className="w-full pt-12 pb-8 relative overflow-hidden">
         {event.banner_image_url && (
-          <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={event.banner_image_url} alt="Banner" className="w-full h-full object-cover blur-sm" />
           </div>
@@ -294,66 +390,79 @@ export default function AdminEventDetailPage() {
           <FadeUp>
             <Link
               href="/admin/events"
-              className="text-sm text-white/40 hover:text-white transition-colors flex items-center mb-5"
+              className="text-sm font-medium text-gray-500 hover:text-black transition-colors mb-4 inline-flex items-center"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              All Events
+              <ArrowLeft className="w-4 h-4 mr-1" /> All Events
             </Link>
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                <span className="text-xs font-semibold tracking-widest uppercase text-white/30">
-                  {event.event_type} · {event.status}
-                </span>
-                <h1 className="text-3xl font-bold tracking-tight mt-1 gradient-text">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-widest bg-gray-50 text-gray-500 border-gray-200">
+                    {event.event_type}
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-widest ${
+                    event.status === "published" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                    event.status === "draft" ? "bg-gray-100 text-gray-600 border-gray-200" :
+                    event.status === "cancelled" ? "bg-red-50 text-red-600 border-red-200" :
+                    "bg-blue-50 text-blue-700 border-blue-200"
+                  }`}>
+                    {event.status}
+                  </span>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-semibold tracking-tighter text-black mb-2">
                   {event.title}
                 </h1>
-                <p className="text-white/40 text-sm mt-1">
+                <p className="text-gray-600 text-[15px]">
                   {formatDate(event.start_datetime)} · {formatTime(event.start_datetime)} · {event.venue}
                 </p>
               </div>
               <div className="flex gap-2 shrink-0 flex-wrap items-center">
-                <label className="cursor-pointer group relative">
-                  <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp" onChange={handleBannerUpload} disabled={bannerLoading} />
-                  <Button variant="secondary" className="bg-white/5 text-white border-white/10 hover:bg-white/10 pointer-events-none" disabled={bannerLoading}>
-                    {bannerLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ImageIcon className="w-4 h-4 mr-2" />}
-                    {event.banner_image_url ? "Change Banner" : "Upload Banner"}
-                  </Button>
-                </label>
                 <Button
-                  variant="secondary"
-                  className="bg-white/5 text-white border-white/10 hover:bg-white/10"
+                  variant="outline"
+                  size="sm"
+                  className="border-[#e5e7eb] text-black hover:bg-gray-50"
+                  onClick={() => setVolunteersModalOpen(true)}
+                >
+                  <Users className="w-4 h-4 mr-1.5" />
+                  Volunteers
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-[#e5e7eb] text-black hover:bg-gray-50"
                   onClick={openEdit}
                 >
-                  <Edit3 className="w-4 h-4 mr-2" />
-                  Edit Event
+                  <Edit3 className="w-4 h-4 mr-1.5" />
+                  Edit
                 </Button>
-                <Link href={`/admin/events/${eventSlug}/attendance`}>
-                  <Button variant="secondary" className="bg-white/5 text-white border-white/10 hover:bg-white/10">
-                    <QrCode className="w-4 h-4 mr-2" />
-                    Live Attendance
+                <Link href={`/checkin/${eventSlug}`}>
+                  <Button variant="outline" size="sm" className="border-[#e5e7eb] text-black hover:bg-gray-50">
+                    <QrCode className="w-4 h-4 mr-1.5" />
+                    Scanner
                   </Button>
                 </Link>
                 <Button
-                  variant="secondary"
-                  className="bg-white/5 text-white border-white/10 hover:bg-white/10"
+                  size="sm"
+                  className="bg-black text-white hover:bg-gray-800"
                   onClick={handleExport}
                   disabled={exportLoading}
                 >
-                  {exportLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-                  Export CSV
+                  {exportLoading ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Download className="w-4 h-4 mr-1.5" />}
+                  Export
                 </Button>
               </div>
             </div>
 
             {/* Capacity bar */}
-            <div className="mt-6 max-w-sm">
-              <div className="flex justify-between text-xs text-white/40 mb-2">
-                <span>{event.registered_count} registered</span>
+            {/* Capacity bar */}
+            <div className="mt-8 max-w-sm">
+              <div className="flex justify-between text-[13px] text-gray-500 font-medium mb-2">
+                <span className="text-[#111111]">{event.registered_count} registered</span>
                 <span>{event.capacity} capacity</span>
               </div>
-              <div className="w-full bg-white/10 rounded-full h-1.5">
+              <div className="w-full bg-[#e5e7eb] rounded-full h-1.5 overflow-hidden">
                 <div
-                  className="bg-white h-1.5 rounded-full transition-all duration-700"
+                  className="bg-[#111111] h-1.5 rounded-full transition-all duration-700"
                   style={{
                     width: `${Math.min(
                       (event.registered_count / Math.max(event.capacity, 1)) * 100,
@@ -368,20 +477,20 @@ export default function AdminEventDetailPage() {
       </section>
 
       {/* Registrations */}
-      <div className="max-w-[1200px] mx-auto px-5 md:px-10 py-8 space-y-5">
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 pb-24 space-y-6">
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Status tabs */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
             {STATUS_TABS.map((tab) => (
               <button
                 key={tab.value}
                 onClick={() => setStatusFilter(tab.value)}
-                className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border transition-all duration-200 ${
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                   statusFilter === tab.value
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-[var(--c-secondary-text)] border-[var(--c-border)] hover:border-black"
+                    ? "bg-[#111111] text-white"
+                    : "text-[#6b7280] hover:text-black hover:bg-gray-100"
                 }`}
               >
                 {tab.icon}
@@ -391,14 +500,14 @@ export default function AdminEventDetailPage() {
           </div>
 
           {/* Search */}
-          <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--c-muted-text)]" />
+          <div className="relative flex-1 sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search name, email, UID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm rounded-full border border-[var(--c-border)] bg-white focus:outline-none focus:border-black transition-all"
+              className="w-full pl-9 pr-4 py-2 text-[14px] rounded-full border border-[#e5e7eb] bg-[#f8f9fa] focus:outline-none focus:border-black focus:bg-white transition-all"
             />
           </div>
         </div>
@@ -410,21 +519,21 @@ export default function AdminEventDetailPage() {
         </p>
 
         {/* Table */}
-        <div className="bg-white border border-[var(--c-border)] rounded-2xl overflow-hidden">
+        <div className="bg-white border border-[#e5e7eb] rounded-[12px] overflow-hidden">
           {loadingRegs ? (
             <div className="py-16 flex items-center justify-center">
               <Loader2 className="w-7 h-7 animate-spin text-gray-300" />
             </div>
           ) : registrations.length === 0 ? (
-            <div className="py-16 text-center">
-              <Users className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-[var(--c-secondary-text)] font-medium">No registrations</p>
-              <p className="text-sm text-[var(--c-muted-text)] mt-1">
+            <div className="py-20 text-center bg-[#f8f9fa]">
+              <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 font-medium">No registrations</p>
+              <p className="text-sm text-gray-400 mt-1">
                 {search || statusFilter ? "Try adjusting your filters." : "No one has registered yet."}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-[var(--c-border)]">
+            <div className="divide-y divide-[#e5e7eb]">
               <AnimatePresence>
                 {registrations.map((reg) => (
                   <motion.div
@@ -433,30 +542,36 @@ export default function AdminEventDetailPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 transition-colors ${rowStatusStyle[reg.status] || ""}`}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 hover:bg-gray-50 transition-colors"
                   >
                     {/* Student info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-sm truncate">
-                          {reg.user_full_name || "—"}
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${
+                          reg.status === 'approved' ? 'bg-[#10b981]' :
+                          reg.status === 'pending' ? 'bg-[#f59e0b]' :
+                          reg.status === 'rejected' ? 'bg-[#ef4444]' :
+                          'bg-[#d1d5db]'
+                        }`} />
+                        <p className="font-semibold text-[14px] text-[#111111] truncate">
+                          {reg.user_full_name || reg.user_email.split('@')[0]}
                         </p>
                         {reg.waitlist_position && (
-                          <span className="text-xs text-[var(--c-muted-text)] bg-gray-100 px-2 py-0.5 rounded-full">
-                            #{reg.waitlist_position}
+                          <span className="text-[11px] font-medium text-[#6b7280] bg-gray-100 px-2 py-0.5 rounded-full border border-[#e5e7eb]">
+                            Waitlist #{reg.waitlist_position}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-[var(--c-muted-text)] truncate">{reg.user_email}</p>
-                      <div className="flex flex-wrap gap-2 mt-1 text-xs text-[var(--c-muted-text)]">
-                        {reg.user_student_uid && <span>{reg.user_student_uid}</span>}
-                        {reg.user_branch && <span>· {reg.user_branch}</span>}
-                        {reg.user_year && <span>· Yr {reg.user_year}</span>}
-                      </div>
+                      <p className="text-[13px] text-[#6b7280] truncate mt-0.5 ml-4">{reg.user_email}</p>
+                      {reg.user_student_uid && (
+                        <div className="flex flex-wrap gap-2 mt-1 ml-4 text-[12px] text-[#9ca3af] font-medium">
+                          <span>{reg.user_student_uid}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center justify-end gap-2 shrink-0 min-w-[140px]">
                       {actionLoading === reg.id ? (
                         <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
                       ) : (
@@ -499,10 +614,21 @@ export default function AdminEventDetailPage() {
                             </Button>
                           )}
                           {reg.status === "approved" && (
-                            <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              Approved
-                            </span>
+                            <div className="flex items-center gap-3">
+                              <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Approved
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setBonusModal({ id: reg.id, name: reg.user_full_name, userId: reg.user, points: 50 })}
+                                className="text-xs text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                              >
+                                <Trophy className="w-3.5 h-3.5 mr-1" />
+                                Bonus
+                              </Button>
+                            </div>
                           )}
                           {reg.status === "rejected" && (
                             <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
@@ -510,6 +636,16 @@ export default function AdminEventDetailPage() {
                               Rejected
                             </span>
                           )}
+                          <div className="w-px h-6 bg-gray-200 mx-1" />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveRegistration(reg.id, reg.user_full_name)}
+                            className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2"
+                            title="Completely Remove Registration"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </>
                       )}
                     </div>
@@ -600,6 +736,61 @@ export default function AdminEventDetailPage() {
         )}
       </AnimatePresence>
 
+      {/* Bonus Points Modal */}
+      <AnimatePresence>
+        {bonusModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && setBonusModal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-[24px] p-6 max-w-sm w-full shadow-2xl"
+            >
+              <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-yellow-500" />
+                Award Bonus Points
+              </h3>
+              <p className="text-sm text-[var(--c-secondary-text)] mb-4">
+                Award points manually to <strong>{bonusModal.name}</strong>.
+              </p>
+              <input
+                type="number"
+                min="0"
+                value={bonusModal.points}
+                onChange={(e) => setBonusModal({ ...bonusModal, points: parseInt(e.target.value, 10) || 0 })}
+                className="w-full px-4 py-3 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black mb-4"
+              />
+              <div className="flex gap-3">
+                <Button
+                  variant="ghost"
+                  className="flex-1 text-[var(--c-muted-text)]"
+                  onClick={() => setBonusModal(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
+                  disabled={!bonusModal.points || actionLoading === bonusModal.id}
+                  onClick={handleAwardBonus}
+                >
+                  {actionLoading === bonusModal.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Award"
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Edit Event Panel */}
       <AnimatePresence>
         {editOpen && (
@@ -615,14 +806,14 @@ export default function AdminEventDetailPage() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="bg-white rounded-2xl w-full max-w-xl h-full overflow-auto shadow-2xl"
+              className="bg-white rounded-[24px] w-full max-w-xl h-full overflow-auto shadow-2xl"
             >
               {/* Panel header */}
-              <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--c-border)] sticky top-0 bg-white z-10">
-                <h3 className="font-bold text-lg">Edit Event</h3>
+              <div className="flex items-center justify-between px-6 py-5 border-b border-black/[0.04] sticky top-0 bg-[#f8f9fa] z-10">
+                <h3 className="font-semibold text-lg text-black">Edit Event</h3>
                 <button
                   onClick={() => setEditOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 -mr-2 text-gray-400 hover:bg-black/5 hover:text-black rounded-full transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -649,10 +840,51 @@ export default function AdminEventDetailPage() {
                           [field.name]: field.type === "number" ? Number(e.target.value) : e.target.value,
                         }))
                       }
-                      className="w-full px-4 py-2.5 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black transition-all"
+                        className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
+                      />
+                    </div>
+                  ))}
+
+                  <div className="flex items-center justify-between border border-[var(--c-border)] p-4 rounded-xl mt-4">
+                    <div>
+                      <div className="font-semibold text-sm">Event Banner</div>
+                      <div className="text-xs text-[var(--c-muted-text)]">Max size 5MB, JPG/PNG/WEBP only</div>
+                    </div>
+                    <label className="cursor-pointer group relative">
+                      <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp" onChange={handleBannerUpload} disabled={bannerLoading} />
+                      <Button variant="outline" className="border-black/[0.08] text-black hover:bg-gray-50 pointer-events-none" disabled={bannerLoading}>
+                        {bannerLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ImageIcon className="w-4 h-4 mr-2" />}
+                        {event.banner_image_url ? "Change Banner" : "Upload Banner"}
+                      </Button>
+                    </label>
+                  </div>
+
+                  <div className="flex items-center justify-between border border-[var(--c-border)] p-4 rounded-xl mt-4">
+                    <div>
+                      <div className="font-semibold text-sm">Flagship Event</div>
+                      <div className="text-xs text-[var(--c-muted-text)]">Show this event on the homepage</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={editForm.is_flagship}
+                        onChange={(e) => setEditForm(p => ({ ...p, is_flagship: e.target.checked }))}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <label htmlFor="edit-points" className="block text-sm font-medium mb-1.5">Club Points</label>
+                    <input
+                      id="edit-points"
+                      type="number"
+                      value={editForm.points ?? 100}
+                      onChange={(e) => setEditForm((p) => ({ ...p, points: parseInt(e.target.value, 10) || 0 }))}
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
                     />
                   </div>
-                ))}
 
                 <div>
                   <label htmlFor="edit-status" className="block text-sm font-medium mb-1.5">Status</label>
@@ -660,7 +892,7 @@ export default function AdminEventDetailPage() {
                     id="edit-status"
                     value={editForm.status ?? ""}
                     onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value as Event["status"] }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black transition-all"
+                    className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
                   >
                     {["draft", "published", "cancelled", "completed"].map((s) => (
                       <option key={s} value={s} className="capitalize">{s.charAt(0).toUpperCase() + s.slice(1)}</option>
@@ -681,7 +913,7 @@ export default function AdminEventDetailPage() {
                         type="datetime-local"
                         value={(editForm as Record<string, unknown>)[field.name] as string ?? ""}
                         onChange={(e) => setEditForm((p) => ({ ...p, [field.name]: e.target.value }))}
-                        className="w-full px-4 py-2.5 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black transition-all"
+                        className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
                       />
                     </div>
                   ))}
@@ -695,7 +927,7 @@ export default function AdminEventDetailPage() {
                       type="text"
                       value={editForm.contact_name || ""}
                       onChange={(e) => setEditForm((p) => ({ ...p, contact_name: e.target.value }))}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black transition-all"
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
                     />
                   </div>
                   <div>
@@ -705,7 +937,7 @@ export default function AdminEventDetailPage() {
                       type="email"
                       value={editForm.contact_email || ""}
                       onChange={(e) => setEditForm((p) => ({ ...p, contact_email: e.target.value }))}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black transition-all"
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
                     />
                   </div>
                 </div>
@@ -717,7 +949,7 @@ export default function AdminEventDetailPage() {
                     rows={4}
                     value={editForm.rules || ""}
                     onChange={(e) => setEditForm((p) => ({ ...p, rules: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black transition-all resize-none"
+                    className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors resize-none"
                   />
                 </div>
 
@@ -789,16 +1021,103 @@ export default function AdminEventDetailPage() {
                   </p>
                 )}
 
-                <div className="flex gap-3 pt-2">
-                  <Button type="button" variant="ghost" className="flex-1 text-[var(--c-muted-text)]" onClick={() => setEditOpen(false)}>
-                    Cancel
+                <div className="px-6 py-5 border-t border-black/[0.04] bg-[#f8f9fa] flex items-center justify-between gap-3 sticky bottom-0">
+                  <Button type="button" variant="ghost" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={handleDeleteEvent}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Event
                   </Button>
-                  <Button type="submit" disabled={editLoading} className="flex-1">
-                    {editLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                    {editLoading ? "Saving..." : "Save Changes"}
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <Button type="button" variant="outline" className="border-black/[0.08]" onClick={() => setEditOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={editLoading} className="bg-black text-white hover:bg-gray-800">
+                      {editLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                      {editLoading ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
                 </div>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Volunteers Modal */}
+      <AnimatePresence>
+        {volunteersModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && setVolunteersModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-black/[0.04]">
+                <h3 className="font-bold text-xl">Manage Volunteers</h3>
+                <button
+                  onClick={() => setVolunteersModalOpen(false)}
+                  className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6 overflow-y-auto">
+                <p className="text-sm text-gray-500">Core team members assigned to check-in attendees.</p>
+
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedVolunteerId}
+                    onChange={(e) => setSelectedVolunteerId(e.target.value)}
+                    className="flex-1 px-3 py-2 text-[14px] rounded-[8px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors"
+                  >
+                    <option value="">Select Core Team Member...</option>
+                    {coreTeam
+                      .filter((ct) => ct.user && !volunteers.some((v) => v.user.id === ct.user))
+                      .map((ct) => (
+                        <option key={ct.id} value={ct.user || ""}>
+                          {ct.full_name}
+                        </option>
+                      ))}
+                  </select>
+                  <Button 
+                    onClick={handleAssignVolunteer} 
+                    disabled={!selectedVolunteerId || assigningLoading}
+                    className="bg-black text-white hover:bg-gray-800 px-3 py-2"
+                  >
+                    {assigningLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  {volunteers.length === 0 ? (
+                    <p className="text-sm text-gray-500 text-center py-4">No volunteers assigned.</p>
+                  ) : (
+                    volunteers.map((assignment) => (
+                      <div key={assignment.id} className="flex items-center justify-between p-3 rounded-[8px] bg-gray-50 border border-gray-100">
+                        <div className="overflow-hidden">
+                          <p className="text-[14px] font-medium text-black truncate">{assignment.user.full_name}</p>
+                          <p className="text-[12px] text-gray-500 truncate">{assignment.user.email}</p>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveVolunteer(assignment.id)}
+                          disabled={removingId === assignment.id}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors flex-shrink-0"
+                          title="Remove volunteer"
+                        >
+                          {removingId === assignment.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}

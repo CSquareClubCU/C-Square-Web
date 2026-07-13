@@ -33,7 +33,7 @@ def _build_checkin_response(record, was_already_checked_in: bool) -> dict:
     {
       success, already_checked_in, message,
       event_id, registration_id,
-      student: { full_name, email, student_uid, branch },
+      student: { full_name, email, student_uid, institution, degree_type, graduation_year },
       checked_in_at, check_in_method
     }
     """
@@ -52,7 +52,9 @@ def _build_checkin_response(record, was_already_checked_in: bool) -> dict:
             'full_name': student.full_name,
             'email': student.email,
             'student_uid': student.student_uid,
-            'branch': student.branch,
+            'institution': student.institution,
+            'degree_type': student.degree_type,
+            'graduation_year': student.graduation_year,
         },
         'checked_in_at': record.checked_in_at,
         'check_in_method': record.check_in_method,
@@ -110,6 +112,20 @@ class ManualCheckinView(APIView):
             marked_by=request.user,
         )
         return Response(_build_checkin_response(record, was_already))
+
+    def delete(self, request, registration_id):
+        try:
+            record = services.revoke_checkin(
+                registration_id=registration_id,
+                revoked_by=request.user,
+            )
+        except AppError as e:
+            return Response(
+                {'code': e.code, 'message': e.message},
+                status=e.status_code
+            )
+        
+        return Response({'success': True, 'message': 'Check-in revoked.', 'is_checked_in': record.is_checked_in})
 
 
 class AttendanceListView(APIView):

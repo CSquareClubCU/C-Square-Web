@@ -24,6 +24,7 @@ const PROTECTED_ROUTES: Array<{
   allowedRoles?: string[];
 }> = [
   { prefix: "/dashboard" },
+  { prefix: "/onboarding" },
   { prefix: "/admin", allowedRoles: ["admin"] },
   { prefix: "/checkin", allowedRoles: ["admin", "volunteer"] },
 ];
@@ -50,6 +51,7 @@ export const config = {
    */
   matcher: [
     "/dashboard/:path*",
+    "/onboarding/:path*",
     "/admin/:path*",
     "/checkin/:path*",
   ],
