@@ -17,8 +17,10 @@ class UserManager(BaseUserManager):
             raise ValueError('Email is required.')
         email = self.normalize_email(email)
         user = self.model(email=email, full_name=full_name, **extra_fields)
-        # We don't use passwords — set an unusable password for compatibility
-        user.set_unusable_password()
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
         user.save(using=self._db)
         return user
 
@@ -26,10 +28,6 @@ class UserManager(BaseUserManager):
         """
         Creates a Django superuser for admin access.
         Used for the initial admin seed — sets role=admin and is_staff=True.
-
-        NOTE: Since this system uses magic-link login exclusively, this method sets
-        an unusable password (passwords provided via manage.py createsuperuser are discarded).
-        Admin users must authenticate via magic-link.
         """
         extra_fields.setdefault('role', 'admin')
         extra_fields.setdefault('is_staff', True)
