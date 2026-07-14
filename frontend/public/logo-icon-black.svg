@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!--
+    C SQUARE Club logo mark — icon only (no wordmark), black version.
+    The mark: a large diamond (rotated square) divided into 4 sections
+    by a cross, with a circular ring + inner dot at centre.
+    Four "quadrant" shapes radiate from center like compass points.
+  -->
+  <g transform="translate(60 60) rotate(45)">
+    <!-- Four quadrant blocks: each is a square slightly inset from the diamond corners -->
+    <!-- Top-right quadrant -->
+    <rect x="4"  y="-54" width="46" height="46" rx="4" fill="#111"/>
+    <!-- Bottom-right quadrant -->
+    <rect x="4"  y="8"   width="46" height="46" rx="4" fill="#111"/>
+    <!-- Bottom-left quadrant -->
+    <rect x="-50" y="8"  width="46" height="46" rx="4" fill="#111"/>
+    <!-- Top-left quadrant -->
+    <rect x="-50" y="-54" width="46" height="46" rx="4" fill="#111"/>
+  </g>
+
+  <!-- Center circular elements (drawn in normal coordinate space) -->
+  <!-- Outer ring (dark) -->
+  <circle cx="60" cy="60" r="20" fill="#111"/>
+  <!-- Ring gap (white) -->
+  <circle cx="60" cy="60" r="15" fill="white"/>
+  <!-- Inner dot (dark) -->
+  <circle cx="60" cy="60" r="9"  fill="#111"/>
+
+  <!-- Cross gaps between quadrants (white lines cutting through) -->
+  <rect x="0"  y="57" width="120" height="6" fill="white"/>
+  <rect x="57" y="0"  width="6"   height="120" fill="white"/>
+</svg>

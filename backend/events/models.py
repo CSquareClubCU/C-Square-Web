@@ -69,7 +69,10 @@ class Event(BaseModel):
     # Enhancements
     prizes = models.JSONField(null=True, blank=True)
     rules = models.TextField(null=True, blank=True)
+<<<<<<< HEAD
     faqs = models.JSONField(null=True, blank=True)
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     contact_name = models.CharField(max_length=255, null=True, blank=True)
     contact_email = models.EmailField(null=True, blank=True)
     is_registration_open = models.BooleanField(default=True)
@@ -106,7 +109,11 @@ class Event(BaseModel):
         slug = base_slug
         counter = 2
         qs = Event.objects.exclude(pk=self.pk) if self.pk else Event.objects.all()
+<<<<<<< HEAD
         while slug == 'past' or qs.filter(slug=slug).exists():
+=======
+        while qs.filter(slug=slug).exists():
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             slug = f'{base_slug}-{counter}'
             counter += 1
         return slug

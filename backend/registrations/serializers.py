@@ -19,7 +19,10 @@ class EventSummarySerializer(serializers.Serializer):
     Used by RegistrationMyListSerializer and RegistrationDetailSerializer.
     """
     id = serializers.UUIDField(read_only=True)
+<<<<<<< HEAD
     slug = serializers.SlugField(read_only=True)
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     title = serializers.CharField(read_only=True)
     event_type = serializers.CharField(read_only=True)
     start_datetime = serializers.DateTimeField(read_only=True)
@@ -92,6 +95,11 @@ class RegistrationAdminListSerializer(serializers.ModelSerializer):
     user_email = serializers.CharField(source='user.email', read_only=True)
     user_full_name = serializers.CharField(source='user.full_name', read_only=True)
     user_student_uid = serializers.CharField(source='user.student_uid', read_only=True)
+<<<<<<< HEAD
+=======
+    user_branch = serializers.CharField(source='user.branch', read_only=True)
+    user_year = serializers.IntegerField(source='user.year', read_only=True)
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     user_phone = serializers.CharField(source='user.phone', read_only=True)
 
     class Meta:
@@ -105,6 +113,11 @@ class RegistrationAdminListSerializer(serializers.ModelSerializer):
             'user_email',
             'user_full_name',
             'user_student_uid',
+<<<<<<< HEAD
+=======
+            'user_branch',
+            'user_year',
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             'user_phone',
             'status',
             'qr_token',

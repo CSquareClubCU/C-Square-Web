@@ -20,10 +20,16 @@ import {
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/animations/MotionElements";
+<<<<<<< HEAD
 import { fetchMyRegistrations, logout, fetchSettings } from "@/lib/api";
 import { QRCodeSVG } from "qrcode.react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import type { Registration, Event } from "@/types";
+=======
+import { fetchMyRegistrations, logout } from "@/lib/api";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import type { Registration } from "@/types";
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
 const statusConfig: Record<
   string,
@@ -68,18 +74,27 @@ export default function DashboardPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+<<<<<<< HEAD
   const [whatsappLink, setWhatsappLink] = useState("");
+=======
+  const [loggingOut, setLoggingOut] = useState(false);
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
   useEffect(() => {
     if (authLoading || !user) return;
     async function loadData() {
       try {
+<<<<<<< HEAD
         const [regsData, settingsData] = await Promise.all([
           fetchMyRegistrations(),
           fetchSettings().catch(() => ({ whatsapp_group_link: "" }))
         ]);
         setRegistrations(regsData.results);
         setWhatsappLink(settingsData?.whatsapp_group_link || "");
+=======
+        const regsData = await fetchMyRegistrations();
+        setRegistrations(regsData.results);
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : "Failed to load dashboard data";
@@ -92,13 +107,24 @@ export default function DashboardPage() {
   }, [user, authLoading]);
 
   async function handleLogout() {
+<<<<<<< HEAD
+=======
+    setLoggingOut(true);
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     try {
       await logout();
       router.replace("/login");
     } catch {
+<<<<<<< HEAD
       // Ignore
     }
   }
+=======
+      setLoggingOut(false);
+    }
+  }
+
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
   if (loading) {
     return (
@@ -368,6 +394,7 @@ export default function DashboardPage() {
                   <h3 className="text-lg font-semibold tracking-tight text-black">{user.full_name}</h3>
                 </div>
               </div>
+<<<<<<< HEAD
               
               <div className="space-y-4 mb-8">
                 <div className="flex items-center justify-between text-[13px]">
@@ -384,6 +411,27 @@ export default function DashboardPage() {
                   <span className="text-gray-500 font-medium">Leaderboard</span>
                   <span className="text-black font-semibold">#47</span>
                 </div>
+=======
+              <div className="flex items-center space-x-3">
+                <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+                  <User className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/50 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10"
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                >
+                  {loggingOut ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <LogOut className="w-4 h-4 mr-2" />
+                  )}
+                  {loggingOut ? "Logging out..." : "Log out"}
+                </Button>
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
               </div>
               
               <Button variant="outline" className="w-full h-11 border-black/[0.08]">
@@ -393,6 +441,93 @@ export default function DashboardPage() {
           </div>
           
         </div>
+<<<<<<< HEAD
+=======
+      </section>
+
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 py-10 md:py-16">
+        {/* Tab Switcher */}
+        <div className="flex items-center space-x-2 mb-10">
+          {(["upcoming", "past"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                activeTab === tab
+                  ? "bg-black text-white"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              {tab === "upcoming" ? "Upcoming" : "Past"}
+            </button>
+          ))}
+        </div>
+
+        {/* Registrations */}
+        <StaggerContainer className="space-y-4">
+          {filteredRegistrations.length === 0 ? (
+            <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-100">
+              <p className="text-gray-500 mb-4">No {activeTab} registrations found.</p>
+              <Link href="/events">
+                <Button variant="outline">Browse Events</Button>
+              </Link>
+            </div>
+          ) : (
+            filteredRegistrations.map((reg) => {
+              const status = statusConfig[reg.status] || statusConfig.pending;
+              return (
+                <StaggerItem key={reg.id}>
+                  <Link href={`/dashboard/${reg.id}`}>
+                  <motion.div
+                    whileHover={{ y: -2 }}
+                    className="w-full bg-white border border-[var(--c-border)] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase ${status.bg} ${status.color}`}
+                        >
+                          {status.icon}
+                          <span className="ml-1.5">{status.label}</span>
+                        </span>
+                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          Registered {formatDate(reg.registered_at)}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-bold hover:text-[var(--c-primary)] transition-colors mb-2">
+                        {reg.event.title}
+                      </h3>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-sm text-[var(--c-secondary-text)]">
+                        <span className="flex items-center gap-1.5">
+                          <CalendarDays className="w-4 h-4 text-gray-400" />
+                          {formatDate(reg.event.start_datetime)}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <QrCode className="w-4 h-4 text-gray-400" />
+                          {reg.event.venue}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-[var(--c-border)]">
+                      {reg.status === "approved" && (
+                        <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white text-sm font-medium">
+                          <QrCode className="w-4 h-4" />
+                          View Ticket
+                        </span>
+                      )}
+                      <span className="px-4 py-2 rounded-xl border border-[var(--c-border)] text-sm font-medium text-[var(--c-secondary-text)] hover:border-black transition-colors">
+                        Details
+                      </span>
+                    </div>
+                  </motion.div>
+                  </Link>
+                </StaggerItem>
+              );
+            })
+          )}
+        </StaggerContainer>
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
       </div>
     </div>
   );

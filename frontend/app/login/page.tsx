@@ -12,6 +12,7 @@ import { requestMagicLink } from "@/lib/api";
 function LoginForm() {
   const searchParams = useSearchParams();
   const rawNext = searchParams.get("next") || "";
+<<<<<<< HEAD
   let nextUrl = "";
   if (rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.startsWith("/\\")) {
     try {
@@ -21,6 +22,9 @@ function LoginForm() {
       nextUrl = "";
     }
   }
+=======
+  const nextUrl = (rawNext.startsWith("/") && !rawNext.startsWith("//")) ? rawNext : "";
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);

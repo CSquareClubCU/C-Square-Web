@@ -54,6 +54,16 @@ export interface Prize {
   description: string;
 }
 
+// ---------------------------------------------------------------------------
+// Event
+// ---------------------------------------------------------------------------
+
+export interface Prize {
+  position: string;
+  award: string;
+  description: string;
+}
+
 export interface Event {
   id: string;
   slug: string;
@@ -80,6 +90,7 @@ export interface Event {
   contact_name: string | null;
   contact_email: string | null;
   is_registration_open: boolean;
+<<<<<<< HEAD
   is_flagship: boolean;
   points: number;
   faqs: { question: string; answer: string }[] | null;
@@ -92,6 +103,8 @@ export interface PastEvent {
   order: number;
   created_at?: string;
   updated_at?: string;
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 }
 
 // ---------------------------------------------------------------------------
@@ -107,7 +120,10 @@ export interface EventSummary {
   start_datetime: string;
   end_datetime: string;
   venue: string;
+<<<<<<< HEAD
   status: EventStatus;
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 }
 
 /** Registration as seen by the student (GET /registrations/me/ and /registrations/{id}/). */
@@ -139,6 +155,11 @@ export interface RegistrationAdmin {
   user_email: string;
   user_full_name: string;
   user_student_uid: string | null;
+<<<<<<< HEAD
+=======
+  user_branch: string | null;
+  user_year: number | null;
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   user_phone: string | null;
   status: RegistrationStatus;
   qr_token: string | null;
@@ -203,9 +224,13 @@ export interface CheckinResponse {
     full_name: string;
     email: string;
     student_uid: string | null;
+<<<<<<< HEAD
     institution: string | null;
     degree_type: string | null;
     graduation_year: number | null;
+=======
+    branch: string | null;
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   };
   checked_in_at: string | null;
   check_in_method: CheckInMethod | null;
@@ -222,22 +247,33 @@ export interface CheckinStats {
 }
 
 // ---------------------------------------------------------------------------
+<<<<<<< HEAD
 // Public Core Team Page
 // ---------------------------------------------------------------------------
 
 /** Core Team member as shown on the public /team page. */
 export interface CoreTeamMemberPublic {
+=======
+// Public Team Page
+// ---------------------------------------------------------------------------
+
+/** Team member as shown on the public /team page. */
+export interface TeamMemberPublic {
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   id: string;
   full_name: string;
   designation: string;
   photo_url: string | null;
   display_order: number;
   is_active: boolean;
+<<<<<<< HEAD
   user: string | null; // UUID
   user_email?: string | null;
   github_url: string | null;
   linkedin_url: string | null;
   twitter_url: string | null;
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 }
 
 // ---------------------------------------------------------------------------

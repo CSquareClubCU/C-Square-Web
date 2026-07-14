@@ -19,7 +19,11 @@ import type {
   RegistrationAdmin,
   CheckinStats,
   AttendanceRecord,
+<<<<<<< HEAD
   CoreTeamMemberPublic,
+=======
+  TeamMemberPublic,
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   PaginatedResponse,
   EventType,
   EventStatus,
@@ -69,6 +73,7 @@ export function invalidateCsrfToken(): void {
 // Shared fetch helpers
 // ============================================================================
 
+<<<<<<< HEAD
 export class ApiError extends Error {
   public code?: string;
   public fields?: Record<string, string[]>;
@@ -81,6 +86,8 @@ export class ApiError extends Error {
   }
 }
 
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 /**
  * Parse the standardised error shape from the backend:
  *   { error: { code: string, message: string, fields?: Record<string, string[]> } }
@@ -93,10 +100,16 @@ async function parseError(res: Response): Promise<Error> {
       body?.message ||
       body?.detail ||
       `Request failed with status ${res.status}`;
+<<<<<<< HEAD
     
     return new ApiError(message, body?.error?.code, body?.error?.fields);
   } catch {
     return new ApiError(`Request failed with status ${res.status}`);
+=======
+    return new Error(message);
+  } catch {
+    return new Error(`Request failed with status ${res.status}`);
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   }
 }
 
@@ -125,6 +138,7 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
   if (!res.ok) throw await parseError(res);
   return res.json() as Promise<T>;
 }
+<<<<<<< HEAD
 async function put<T>(path: string, body?: unknown): Promise<T> {
   const csrf = await getCsrfToken();
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -139,6 +153,8 @@ async function put<T>(path: string, body?: unknown): Promise<T> {
   if (!res.ok) throw await parseError(res);
   return res.json() as Promise<T>;
 }
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
 async function patch<T>(path: string, body?: unknown): Promise<T> {
   const csrf = await getCsrfToken();
@@ -233,11 +249,16 @@ export async function logout(): Promise<{ message: string }> {
  * Update the current user's mutable profile fields.
  */
 export async function updateUserProfile(
+<<<<<<< HEAD
   data: Partial<Pick<User, "full_name" | "student_uid" | "batch" | "phone" | "institution" | "degree_type" | "graduation_year">>
+=======
+  data: Partial<Pick<User, "full_name" | "student_uid" | "branch" | "year" | "semester" | "batch" | "phone">>
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 ): Promise<User> {
   return patch<User>("/users/me/", data);
 }
 
+<<<<<<< HEAD
 /**
  * GET /api/users/?search=...
  * Admin: list/search users
@@ -247,6 +268,8 @@ export async function searchUsers(query: string): Promise<User[]> {
   return Array.isArray(data) ? data : (data as PaginatedResponse<User>).results;
 }
 
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 // ============================================================================
 // EVENTS
 // ============================================================================
@@ -256,7 +279,10 @@ export interface EventListParams {
   upcoming?: boolean;
   status?: string;
   page?: number;
+<<<<<<< HEAD
   assigned_only?: boolean;
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 }
 
 /**
@@ -271,7 +297,10 @@ export async function fetchEvents(
   if (params.upcoming) qs.set("upcoming", "true");
   if (params.status) qs.set("status", params.status);
   if (params.page) qs.set("page", String(params.page));
+<<<<<<< HEAD
   if (params.assigned_only) qs.set("assigned_only", "true");
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
   const query = qs.toString() ? `?${qs.toString()}` : "";
   return get<PaginatedResponse<Event>>(`/events/${query}`);
@@ -415,13 +444,19 @@ export interface EventCreateData {
 
   // Enhancements
   prizes?: { position: string; award: string; description: string }[] | null;
+<<<<<<< HEAD
   faqs?: { question: string; answer: string }[] | null;
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   rules?: string | null;
   contact_name?: string | null;
   contact_email?: string | null;
   is_registration_open?: boolean;
+<<<<<<< HEAD
   is_flagship?: boolean;
   points?: number;
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 }
 
 /**
@@ -432,6 +467,7 @@ export async function createEvent(data: EventCreateData): Promise<Event> {
   return post<Event>("/events/", data);
 }
 
+<<<<<<< HEAD
 // ============================================================================
 // ADMIN — EVENT VOLUNTEERS
 // ============================================================================
@@ -466,6 +502,8 @@ export async function removeVolunteer(eventId: string, assignmentId: string): Pr
   return del(`/events/${eventId}/volunteers/${assignmentId}/`);
 }
 
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 /**
  * PATCH /api/events/{slug}/
  */
@@ -473,7 +511,10 @@ export async function updateEvent(slug: string, data: Partial<EventCreateData>):
   return patch<Event>(`/events/${slug}/`, data);
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 /**
  * POST /api/events/{id}/banner/
  */
@@ -491,7 +532,11 @@ export async function uploadEventBanner(id: string, file: File): Promise<Event> 
     credentials: "include",
   });
   if (!res.ok) {
+<<<<<<< HEAD
     throw await parseError(res);
+=======
+    throw new Error("Failed to upload banner.");
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   }
   return res.json();
 }
@@ -589,11 +634,19 @@ export async function fetchStats(): Promise<PublicStats> {
  * GET /api/team/
  * List all active public team members.
  */
+<<<<<<< HEAD
 export async function fetchTeam(): Promise<CoreTeamMemberPublic[]> {
   const data = await get<PaginatedResponse<CoreTeamMemberPublic> | CoreTeamMemberPublic[]>("/team/");
   // Handle both paginated and flat array responses
   if (Array.isArray(data)) return data;
   return (data as PaginatedResponse<CoreTeamMemberPublic>).results;
+=======
+export async function fetchTeam(): Promise<TeamMemberPublic[]> {
+  const data = await get<PaginatedResponse<TeamMemberPublic> | TeamMemberPublic[]>("/team/");
+  // Handle both paginated and flat array responses
+  if (Array.isArray(data)) return data;
+  return (data as PaginatedResponse<TeamMemberPublic>).results;
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 }
 
 /**
@@ -606,8 +659,13 @@ export async function createTeamMember(data: {
   photo_url?: string | null;
   display_order?: number;
   is_active?: boolean;
+<<<<<<< HEAD
 }): Promise<CoreTeamMemberPublic> {
   return post<CoreTeamMemberPublic>("/team/", data);
+=======
+}): Promise<TeamMemberPublic> {
+  return post<TeamMemberPublic>("/team/", data);
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 }
 
 /**
@@ -623,8 +681,13 @@ export async function updateTeamMember(
     display_order: number;
     is_active: boolean;
   }>
+<<<<<<< HEAD
 ): Promise<CoreTeamMemberPublic> {
   return patch<CoreTeamMemberPublic>(`/team/${id}/`, data);
+=======
+): Promise<TeamMemberPublic> {
+  return patch<TeamMemberPublic>(`/team/${id}/`, data);
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 }
 
 /**
@@ -635,6 +698,7 @@ export async function deleteTeamMember(id: string): Promise<void> {
   return del(`/team/${id}/`);
 }
 
+<<<<<<< HEAD
 /**
  * POST /api/team/{id}/photo/
  * Admin: upload team member photo
@@ -666,6 +730,8 @@ export async function awardBonusPoints(id: string, points: number): Promise<{ cl
   return post<{ club_points: number }>(`/users/${id}/bonus-points/`, { points });
 }
 
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 // ============================================================================
 // Deprecated aliases — kept for backwards compatibility during transition
 // ============================================================================
@@ -673,6 +739,7 @@ export async function awardBonusPoints(id: string, points: number): Promise<{ cl
 /** @deprecated Use fetchCurrentUser() instead */
 export const fetchUser = fetchCurrentUser;
 
+<<<<<<< HEAD
 // ============================================================================
 // New Endpoints
 // ============================================================================
@@ -719,11 +786,14 @@ export async function uploadPastEventLogo(id: string, file: File): Promise<{ log
   }
   return res.json();
 }
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 /** @deprecated Use fetchMyRegistrations() instead */
 export const fetchRegistrations = async () => {
   const data = await fetchMyRegistrations();
   return data.results;
 };
+<<<<<<< HEAD
 
 // ============================================================================
 // Site Settings
@@ -744,3 +814,5 @@ export async function fetchAdminSettings(): Promise<SiteSettings> {
 export async function updateAdminSettings(data: Partial<SiteSettings>): Promise<SiteSettings> {
   return put<SiteSettings>("/admin/settings/", data);
 }
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f

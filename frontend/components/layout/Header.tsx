@@ -12,10 +12,16 @@ import {
   LayoutDashboard,
   ShieldCheck,
   QrCode,
+<<<<<<< HEAD
   Loader2,
   ArrowRight,
   ChevronRight,
   ChevronDown,
+=======
+  ChevronDown,
+  Loader2,
+  ArrowRight,
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -82,6 +88,7 @@ export function Header() {
   return (
     <>
       {/* ── Outer fixed shell ── */}
+<<<<<<< HEAD
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4 pointer-events-none">
         <header
           className={`pointer-events-auto w-full max-w-[1200px] border transition-all duration-300 ${
@@ -91,6 +98,21 @@ export function Header() {
           }`}
         >
           <div className="relative flex items-center justify-between h-[56px] px-6">
+=======
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <header
+          className={`pointer-events-auto w-full border transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            scrolled
+              ? "max-w-[1088px] mt-3 rounded-[16px] bg-white border-[#e5e7eb] shadow-[0_2px_20px_rgba(0,0,0,0.09),0_1px_4px_rgba(0,0,0,0.04)]"
+              : "max-w-full mt-0 rounded-none bg-white/0 border-transparent shadow-none"
+          }`}
+        >
+          <div
+            className={`relative flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              scrolled ? "h-[56px] px-8" : "h-[68px] px-8 md:px-10"
+            }`}
+          >
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             {/* ── Logo ── */}
             <Link
               href="/"
@@ -102,11 +124,19 @@ export function Header() {
                 width={28}
                 height={28}
                 priority
+<<<<<<< HEAD
                 className="w-[24px] h-[24px] object-contain"
               />
               <span
                 style={{ fontFamily: "inherit", letterSpacing: "0.1em" }}
                 className="text-[14px] font-bold uppercase tracking-widest text-[#292929]"
+=======
+                className="w-[28px] h-[28px] object-contain"
+              />
+              <span
+                style={{ fontFamily: "inherit", letterSpacing: "0.1em" }}
+                className="text-[13px] font-bold uppercase tracking-widest text-[#111]"
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
               >
                 C Square
               </span>
@@ -209,16 +239,27 @@ export function Header() {
                 <>
                   <Link
                     href="/login"
+<<<<<<< HEAD
                     className="text-[14px] font-medium text-black hover:text-[#555] px-3 py-1.5 rounded-full transition-colors"
+=======
+                    className="text-[13.5px] font-medium text-[#444] hover:text-black px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all"
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                   >
                     Sign in
                   </Link>
                   <Link
                     href="/login"
+<<<<<<< HEAD
                     className="inline-flex items-center justify-between pl-4 pr-3 py-1.5 gap-2 text-[14px] font-medium text-white bg-black border border-[#141414] rounded-[12px] shadow-[inset_0_2px_0_0_rgba(255,255,255,0.15)] hover:bg-[#222] transition-colors group"
                   >
                     <span>Get started</span>
                     <ChevronRight className="w-4 h-4 text-[#898989] group-hover:text-white transition-colors" />
+=======
+                    className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold bg-black text-white px-4 py-1.5 rounded-full hover:bg-[#222] transition-colors"
+                  >
+                    Get started
+                    <ArrowRight className="w-3.5 h-3.5" />
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                   </Link>
                 </>
               )}
@@ -237,7 +278,11 @@ export function Header() {
       </div>
 
       {/* ── Spacer so content doesn't sit under the fixed header ── */}
+<<<<<<< HEAD
       <div className="h-[80px]" />
+=======
+      <div className="h-[68px]" />
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
       {/* ── Mobile drawer ── */}
       <AnimatePresence>
@@ -354,10 +399,17 @@ function NavLink({
   return (
     <Link
       href={href}
+<<<<<<< HEAD
       className={`text-[14px] font-medium px-4 py-2 rounded-full transition-all duration-150 flex items-center gap-1 ${
         active
           ? "text-black bg-gray-100"
           : "text-[#292929] hover:bg-gray-100/50"
+=======
+      className={`text-[13.5px] font-medium px-3 py-1.5 rounded-full transition-all duration-150 ${
+        active
+          ? "text-black bg-gray-100"
+          : "text-[#555] hover:text-black hover:bg-gray-100"
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
       }`}
     >
       {children}

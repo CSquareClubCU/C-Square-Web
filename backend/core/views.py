@@ -13,9 +13,12 @@ from rest_framework.views import APIView
 from django.core.cache import cache
 from django.db import Error as DBError
 import logging
+<<<<<<< HEAD
 from core.models import SiteSettings
 from core.serializers import SiteSettingsSerializer
 from core.permissions import IsAdmin
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +60,7 @@ class PublicStatsView(APIView):
         
         cache.set('public_stats', data, timeout=300)
         return Response(data)
+<<<<<<< HEAD
 
 class SettingsView(APIView):
     """
@@ -91,3 +95,5 @@ class SettingsAdminView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f

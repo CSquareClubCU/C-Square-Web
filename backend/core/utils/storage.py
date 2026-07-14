@@ -58,7 +58,15 @@ def upload_to_blob(blob_path: str, file_data: bytes | BytesIO, content_type: str
         from django.core.files.base import ContentFile
         import os
 
+<<<<<<< HEAD
         data = _get_bytes(file_data)
+=======
+        if isinstance(file_data, BytesIO):
+            file_data.seek(0)
+            data = file_data.read()
+        else:
+            data = file_data
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
         # Save file locally
         path = default_storage.save(blob_path, ContentFile(data))

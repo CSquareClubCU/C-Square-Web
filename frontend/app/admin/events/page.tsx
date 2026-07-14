@@ -22,8 +22,11 @@ import {
   Edit3,
   Loader2,
   CheckCircle2,
+<<<<<<< HEAD
   ArrowLeft,
   QrCode,
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FadeUp } from "@/components/animations/MotionElements";
@@ -100,6 +103,7 @@ export default function AdminEventsPage() {
   }
 
   return (
+<<<<<<< HEAD
     <div className="w-full min-h-screen bg-white">
       <div className="max-w-[1200px] mx-auto px-5 md:px-10 pt-12 pb-24">
         
@@ -130,14 +134,53 @@ export default function AdminEventsPage() {
         {/* Unified Filter Bar */}
         <div className="mb-8 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar">
+=======
+    <div className="w-full">
+      {/* Header */}
+      <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-10 relative overflow-hidden">
+        <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
+          <FadeUp>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <span className="text-xs font-semibold tracking-[0.2em] uppercase text-white/40">
+                  Admin › Events
+                </span>
+                <h1 className="text-3xl font-bold tracking-tight mt-1 gradient-text">
+                  Event Management
+                </h1>
+              </div>
+              <Link href="/admin/events/new">
+                <Button className="bg-white text-black hover:bg-gray-100 border-0 shrink-0">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Event
+                </Button>
+              </Link>
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 py-8 space-y-6">
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          <Filter className="w-4 h-4 text-[var(--c-muted-text)]" />
+          <div className="flex flex-wrap gap-2">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             {statusOptions.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setStatusFilter(opt.value as EventStatus | "")}
+<<<<<<< HEAD
                 className={`px-5 py-2 rounded-[12px] text-[13px] font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
                   statusFilter === opt.value
                     ? "bg-black text-white shadow-md"
                     : "text-gray-500 hover:text-black hover:bg-gray-50"
+=======
+                className={`text-sm font-medium px-4 py-1.5 rounded-full border transition-all duration-200 ${
+                  statusFilter === opt.value
+                    ? "bg-black text-white border-black"
+                    : "bg-white text-[var(--c-secondary-text)] border-[var(--c-border)] hover:border-[var(--c-accent)]"
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                 }`}
               >
                 {opt.label}
@@ -148,6 +191,7 @@ export default function AdminEventsPage() {
 
         {/* Event List */}
         {loading ? (
+<<<<<<< HEAD
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-28 rounded-[24px] bg-[#f8f9fa] animate-pulse border border-black/[0.04]" />
@@ -161,13 +205,33 @@ export default function AdminEventsPage() {
             </p>
             <Link href="/admin/events/new">
               <Button className="bg-black text-white hover:bg-gray-800 px-6">
+=======
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 rounded-2xl bg-gray-100 animate-pulse" />
+            ))}
+          </div>
+        ) : events.length === 0 ? (
+          <div className="py-20 text-center border border-dashed border-[var(--c-border)] rounded-2xl">
+            <CalendarDays className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="font-semibold text-[var(--c-secondary-text)]">No events found</p>
+            <p className="text-sm text-[var(--c-muted-text)] mt-1">
+              {statusFilter ? `No ${statusFilter} events.` : "Create your first event."}
+            </p>
+            <Link href="/admin/events/new" className="mt-5 inline-block">
+              <Button size="sm">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                 <Plus className="w-4 h-4 mr-2" />
                 Create Event
               </Button>
             </Link>
           </div>
         ) : (
+<<<<<<< HEAD
           <div className="space-y-4">
+=======
+          <div className="space-y-3">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             <AnimatePresence>
               {events.map((event) => (
                 <motion.div
@@ -176,6 +240,7 @@ export default function AdminEventsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97 }}
+<<<<<<< HEAD
                   className="w-full bg-white border border-black/[0.04] rounded-[24px] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group"
                 >
                   <div className="flex items-center gap-5 min-w-0">
@@ -215,11 +280,51 @@ export default function AdminEventsPage() {
                     <Link href={`/checkin/${event.slug}`}>
                       <Button variant="outline" size="sm" className="text-gray-600">
                         <QrCode className="w-4 h-4 mr-1.5" />
+=======
+                  className="bg-white border border-[var(--c-border)] rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+                >
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span
+                        className={`text-xs font-medium px-2.5 py-0.5 rounded-full border capitalize ${
+                          statusColors[event.status] || statusColors.draft
+                        }`}
+                      >
+                        {event.status}
+                      </span>
+                      <span className="text-xs text-[var(--c-muted-text)] capitalize">
+                        {event.event_type}
+                      </span>
+                    </div>
+                    <p className="font-semibold truncate">{event.title}</p>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--c-muted-text)] mt-1">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatDate(event.start_datetime)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        {event.registered_count}/{event.capacity}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Link href={`/admin/events/${event.slug}/attendance`}>
+                      <Button variant="ghost" size="sm" className="text-[var(--c-muted-text)]">
+                        <Search className="w-4 h-4 mr-1.5" />
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                         Attendance
                       </Button>
                     </Link>
                     <Link href={`/admin/events/${event.slug}`}>
+<<<<<<< HEAD
                       <Button variant="outline" size="sm" className="text-gray-600 bg-[#f8f9fa] border-transparent hover:bg-gray-100 hover:border-gray-200">
+=======
+                      <Button variant="secondary" size="sm">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                         <Edit3 className="w-4 h-4 mr-1.5" />
                         Manage
                       </Button>
@@ -228,10 +333,17 @@ export default function AdminEventsPage() {
                       <button
                         onClick={() => handleDelete(event.slug)}
                         disabled={deletingId === event.slug}
+<<<<<<< HEAD
                         className={`p-2 rounded-[8px] transition-all duration-200 ${
                           deleteConfirm === event.slug
                             ? "bg-red-50 text-red-600 border border-red-100"
                             : "text-gray-400 hover:text-red-500 hover:bg-red-50 border border-transparent"
+=======
+                        className={`p-2 rounded-lg transition-all duration-200 ${
+                          deleteConfirm === event.slug
+                            ? "bg-red-100 text-red-600 hover:bg-red-200"
+                            : "text-gray-400 hover:text-red-500 hover:bg-red-50"
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                         }`}
                         title={deleteConfirm === event.slug ? "Click again to confirm" : "Delete draft"}
                       >
