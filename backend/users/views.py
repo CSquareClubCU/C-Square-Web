@@ -248,10 +248,13 @@ class AwardBonusPointsView(APIView):
         except User.DoesNotExist:
             raise AppError('NOT_FOUND', 'User not found.', 404)
 
-        points = request.data.get('points', 0)
+        points = request.data.get('points')
+        if points is None:
+            raise AppError('VALIDATION_ERROR', 'Points field is required.', 400)
+            
         try:
             points = int(points)
-        except ValueError:
+        except (ValueError, TypeError):
             raise AppError('VALIDATION_ERROR', 'Points must be an integer.', 400)
 
         target_user.club_points += points

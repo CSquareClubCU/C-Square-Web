@@ -38,21 +38,25 @@ def _do_checkin(record: AttendanceRecord, method: str, marked_by) -> AttendanceR
     Internal: mark a single attendance record as checked-in.
     Idempotent — if already checked in, returns the record without error.
     """
-    if record.is_checked_in:
-        return record
-
-    record.is_checked_in = True
-    record.checked_in_at = timezone.now()
-    record.check_in_method = method
-    record.marked_by = marked_by
-    record.save(update_fields=[
-        'is_checked_in', 'checked_in_at', 'check_in_method', 'marked_by', 'updated_at'
-    ])
+    from django.db import transaction
     
-    # Award club points
-    user = record.user
-    user.club_points += record.event.points
-    user.save(update_fields=['club_points', 'updated_at'])
+    with transaction.atomic():
+        record = AttendanceRecord.objects.select_for_update().get(id=record.id)
+        if record.is_checked_in:
+            return record
+
+        record.is_checked_in = True
+        record.checked_in_at = timezone.now()
+        record.check_in_method = method
+        record.marked_by = marked_by
+        record.save(update_fields=[
+            'is_checked_in', 'checked_in_at', 'check_in_method', 'marked_by', 'updated_at'
+        ])
+        
+        # Award club points
+        user = record.user
+        user.club_points += record.event.points
+        user.save(update_fields=['club_points', 'updated_at'])
 
     logger.info(
         '%s checked in via %s at %s by %s',
@@ -144,31 +148,34 @@ def revoke_checkin(registration_id: uuid.UUID, revoked_by) -> AttendanceRecord:
         AppError(NOT_ASSIGNED, 403): Volunteer not assigned to this event.
         AppError(BAD_REQUEST, 400): User is not checked in.
     """
-    try:
-        record = AttendanceRecord.objects.select_related('event', 'user').get(
-            registration_id=registration_id,
-        )
-    except AttendanceRecord.DoesNotExist:
-        raise AppError('NOT_FOUND', 'Attendance record not found.', 404)
+    from django.db import transaction
 
-    _verify_volunteer_access(record.event, revoked_by)
+    with transaction.atomic():
+        try:
+            record = AttendanceRecord.objects.select_for_update().select_related('event', 'user').get(
+                registration_id=registration_id,
+            )
+        except AttendanceRecord.DoesNotExist:
+            raise AppError('NOT_FOUND', 'Attendance record not found.', 404)
 
-    if not record.is_checked_in:
-        raise AppError('BAD_REQUEST', 'User is not checked in.', 400)
+        _verify_volunteer_access(record.event, revoked_by)
 
-    # Revert check-in
-    record.is_checked_in = False
-    record.checked_in_at = None
-    record.check_in_method = None
-    record.marked_by = None
-    record.save(update_fields=[
-        'is_checked_in', 'checked_in_at', 'check_in_method', 'marked_by', 'updated_at'
-    ])
+        if not record.is_checked_in:
+            raise AppError('BAD_REQUEST', 'User is not checked in.', 400)
 
-    # Revert club points
-    user = record.user
-    user.club_points = max(0, user.club_points - record.event.points)
-    user.save(update_fields=['club_points', 'updated_at'])
+        # Revert check-in
+        record.is_checked_in = False
+        record.checked_in_at = None
+        record.check_in_method = None
+        record.marked_by = None
+        record.save(update_fields=[
+            'is_checked_in', 'checked_in_at', 'check_in_method', 'marked_by', 'updated_at'
+        ])
+
+        # Revert club points
+        user = record.user
+        user.club_points = max(0, user.club_points - record.event.points)
+        user.save(update_fields=['club_points', 'updated_at'])
 
     logger.info(
         '%s had check-in revoked at %s by %s',

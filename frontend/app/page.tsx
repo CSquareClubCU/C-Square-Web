@@ -451,26 +451,8 @@ export default function Home() {
           </FadeUp>
 
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(homeEvents.length > 0 ? homeEvents : [
-              {
-                id: '1', slug: 'codestorm-2026', title: 'CodeStorm 2026', event_type: 'hackathon',
-                start_datetime: '2026-08-14T09:00:00Z', venue: 'CU Innovation Hub, Block C',
-                description: '48-hour flagship hackathon. ₹5L prize pool.', banner_image_url: null,
-                registered_count: 120, capacity: 500, is_registration_open: true, registration_deadline: ''
-              },
-              {
-                id: '2', slug: 'react-workshop', title: 'React 20 Hands-on Workshop', event_type: 'workshop',
-                start_datetime: '2026-07-22T14:00:00Z', venue: 'Lecture Theatre 2, Block A',
-                description: 'Ship a full-stack app in one afternoon.', banner_image_url: null,
-                registered_count: 45, capacity: 60, is_registration_open: true, registration_deadline: ''
-              },
-              {
-                id: '3', slug: 'system-design', title: 'System Design Bootcamp', event_type: 'seminar',
-                start_datetime: '2026-07-28T10:00:00Z', venue: 'Auditorium, Block D',
-                description: 'Design at scale with senior engineers from Google & Stripe.', banner_image_url: null,
-                registered_count: 80, capacity: 200, is_registration_open: true, registration_deadline: ''
-              }
-            ] as Event[]).map((event) => {
+            {homeEvents.length > 0 ? (
+              homeEvents.map((event) => {
                 const gradient = getGradientForType(event.event_type);
                 const dotColor = getDotColorForType(event.event_type);
                 const eventDate = new Date(event.start_datetime);
@@ -537,7 +519,13 @@ export default function Home() {
                     </TiltCard>
                   </StaggerItem>
                 );
-              })}
+              })
+            ) : (
+              <div className="col-span-1 md:col-span-3 text-center py-20 bg-gray-50 rounded-[24px] border border-gray-200">
+                <p className="text-xl font-semibold text-gray-600">No upcoming events right now.</p>
+                <p className="text-gray-500 mt-2">Check back later for updates!</p>
+              </div>
+            )}
             </StaggerContainer>
 
             <div className="mt-8 text-center sm:hidden">
@@ -568,7 +556,7 @@ export default function Home() {
             </FadeUp>
 
             <StaggerContainer className="flex flex-wrap justify-center gap-6 max-w-5xl mx-auto">
-              {teamMembers.slice(0, 5).map((member) => (
+              {teamMembers.slice(0, 6).map((member) => (
                 <StaggerItem key={member.id} className="w-full sm:w-[calc(50%-12px)] md:w-[calc(25%-18px)] max-w-[240px]">
                   <TiltCard className="flex flex-col items-center text-center group cursor-default bg-white rounded-[32px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-8 border border-black/[0.04] h-full">
                     <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-[#F5F5F5] mb-5 overflow-hidden relative transition-transform duration-500 group-hover:scale-110 flex items-center justify-center">

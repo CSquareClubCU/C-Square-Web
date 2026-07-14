@@ -53,8 +53,8 @@ export function ScrollGallery() {
           {/* Static Grid */}
           <div className="lg:w-2/3 w-full relative z-10">
             <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-              {pastEvents.map((event, i) => (
-                <StaggerItem key={i}>
+              {pastEvents.map((event) => (
+                <StaggerItem key={event.id}>
                   <EventCard event={event} />
                 </StaggerItem>
               ))}

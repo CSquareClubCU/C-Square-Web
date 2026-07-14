@@ -106,6 +106,7 @@ export interface EventSummary {
   start_datetime: string;
   end_datetime: string;
   venue: string;
+  status: EventStatus;
 }
 
 /** Registration as seen by the student (GET /registrations/me/ and /registrations/{id}/). */

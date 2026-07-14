@@ -355,7 +355,7 @@ class PastEventLogoUploadView(APIView):
 
     def post(self, request, pk):
         from events.models import PastEvent
-        from core.storage import save_uploaded_file
+        from core.utils.storage import upload_to_blob
         try:
             event = PastEvent.objects.get(id=pk)
         except PastEvent.DoesNotExist:
@@ -365,8 +365,7 @@ class PastEventLogoUploadView(APIView):
             raise AppError('VALIDATION_ERROR', 'No logo file provided.')
 
         file_obj = request.FILES['logo']
-        # Simple local save
-        file_url = save_uploaded_file(file_obj, 'past_events')
+        file_url = upload_to_blob(f'past-events/{event.id}/{file_obj.name}', file_obj.read(), file_obj.content_type)
         event.logo_url = file_url
         event.save()
         return Response({'logo_url': file_url}, status=status.HTTP_200_OK)

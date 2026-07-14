@@ -6,12 +6,12 @@ import { fetchTeam } from "@/lib/api";
 import { FadeUp, StaggerContainer, StaggerItem, TiltCard } from "@/components/animations/MotionElements";
 import { TeamHeroBackground } from "@/components/animations/TeamHeroBackground";
 import type { CoreTeamMemberPublic } from "@/types";
+import { useCategoryFilter } from "@/hooks/useCategoryFilter";
 
 export default function TeamPage() {
   const [team, setTeam] = useState<CoreTeamMemberPublic[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState("All");
-  const filterBarRef = useRef<HTMLDivElement>(null);
+  const { activeCategory: activeFilter, filterBarRef, handleFilterClick } = useCategoryFilter<string>("All");
 
   const categories = [
     "All",
@@ -64,12 +64,7 @@ export default function TeamPage() {
       });
   }, []);
 
-  const handleFilterClick = (category: string) => {
-    setActiveFilter(category);
-    setTimeout(() => {
-      filterBarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
+
 
   return (
     <div className="w-full">

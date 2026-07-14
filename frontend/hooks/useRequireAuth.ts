@@ -30,6 +30,7 @@ interface UseRequireAuthOptions {
 interface UseRequireAuthResult {
   user: User | null;
   loading: boolean;
+  authorized: boolean;
 }
 
 const ROLE_RANK: Record<string, number> = {
@@ -77,5 +78,22 @@ export function useRequireAuth(
     }
   }, [user, loading, router, requiredRole, redirectTo]);
 
-  return { user, loading };
+  const isCuIncomplete = user?.is_cu_student && (!user.full_name || !user.student_uid);
+  const isExtIncomplete = user && !user.is_cu_student && (!user.full_name || !user.institution || !user.degree_type || !user.graduation_year);
+  const isIncomplete = isCuIncomplete || isExtIncomplete;
+  
+  let authorized = false;
+  if (!loading && user && !isIncomplete) {
+    if (!requiredRole) {
+      authorized = true;
+    } else {
+      const userRank = ROLE_RANK[user.role] ?? 0;
+      const requiredRank = ROLE_RANK[requiredRole] ?? 0;
+      if (userRank >= requiredRank) {
+        authorized = true;
+      }
+    }
+  }
+
+  return { user, loading, authorized };
 }

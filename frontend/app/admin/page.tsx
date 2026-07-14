@@ -94,8 +94,10 @@ export default function AdminPage() {
     );
   }
 
+  // Note: published is only based on the current page of results. 
+  // For a true total, backend stats would need to return published_events.
   const published = events.filter((e) => e.status === "published").length;
-  const total = events.length;
+  const total = stats?.total_events ?? 0;
 
   const now = new Date();
   

@@ -19,6 +19,7 @@ class EventSummarySerializer(serializers.Serializer):
     Used by RegistrationMyListSerializer and RegistrationDetailSerializer.
     """
     id = serializers.UUIDField(read_only=True)
+    slug = serializers.SlugField(read_only=True)
     title = serializers.CharField(read_only=True)
     event_type = serializers.CharField(read_only=True)
     start_datetime = serializers.DateTimeField(read_only=True)

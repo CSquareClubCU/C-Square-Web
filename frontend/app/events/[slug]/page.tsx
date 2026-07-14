@@ -167,8 +167,6 @@ export default function EventDetailPage() {
   const hasRegistration = !!myRegistration;
   const regStatus = myRegistration?.status;
 
-  const totalPrizePool = event.prizes ? event.prizes.length * 1000 : 0; // Mock total if no specific value
-
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-[#111] font-['Inter',sans-serif] pb-32">
 
@@ -201,19 +199,12 @@ export default function EventDetailPage() {
               </div>
 
               {/* Prizes */}
-              <div id="prizes" className="mb-12 pt-4">
-                <div className="flex items-center gap-6 mb-6">
-                  <h2 className="text-[28px] font-semibold tracking-tight text-[#111111]">Prizes</h2>
-                  <div className="flex-1 h-[1px] bg-[#e5e7eb]"></div>
-                </div>
-                <div className="bg-[#f5f5f5] rounded-[12px] border border-[#e5e7eb] p-8 md:p-12 flex flex-col items-center justify-center text-center mb-6">
-                  <h2 className="text-[48px] md:text-[64px] font-semibold text-[#111111] tracking-tighter mb-2 leading-[1.05]">
-                    ${totalPrizePool.toLocaleString()}
-                  </h2>
-                  <p className="text-[#6b7280] text-[16px]">Available in Prizes</p>
-                </div>
-                
-                {event.prizes && event.prizes.length > 0 && (
+              {event.prizes && event.prizes.length > 0 && (
+                <div id="prizes" className="mb-12 pt-4">
+                  <div className="flex items-center gap-6 mb-6">
+                    <h2 className="text-[28px] font-semibold tracking-tight text-[#111111]">Prizes</h2>
+                    <div className="flex-1 h-[1px] bg-[#e5e7eb]"></div>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {event.prizes.slice(0, 3).map((prize, idx) => (
                       <div key={idx} className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] p-5 flex items-center gap-4 hover:border-[#111111]/20 transition-colors shadow-sm">
@@ -227,24 +218,10 @@ export default function EventDetailPage() {
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
-              {/* Sponsors (Mock) */}
-              <div id="sponsors" className="mb-12 pt-4">
-                <div className="flex items-center gap-6 mb-6">
-                  <h2 className="text-[28px] font-semibold tracking-tight text-[#111111]">Sponsors</h2>
-                  <div className="flex-1 h-[1px] bg-[#e5e7eb]"></div>
-                </div>
-                <div className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] p-8 shadow-sm">
-                   <p className="font-semibold text-[#111111] mb-6 text-[16px]">Gold</p>
-                   <div className="flex flex-wrap gap-8 items-center opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
-                     <div className="h-12 w-32 bg-[#e5e7eb] rounded-[8px] animate-pulse"></div>
-                     <div className="h-12 w-40 bg-[#e5e7eb] rounded-[8px] animate-pulse"></div>
-                     <div className="h-12 w-24 bg-[#e5e7eb] rounded-[8px] animate-pulse"></div>
-                   </div>
-                </div>
-              </div>
+
 
               {/* FAQs */}
               <div id="faqs" className="mb-12 pt-4">
@@ -267,12 +244,14 @@ export default function EventDetailPage() {
                   {/* Team Size Card */}
                   <div className="bg-[#ffffff] border border-[#e5e7eb] rounded-[12px] p-6 shadow-sm flex flex-col justify-between">
                     <h4 className="font-semibold text-[#111111] text-[15px]">Team size</h4>
-                    <p className="text-[#374151] mt-6 text-[15px]">2 - 4</p>
+                    <p className="text-[#374151] mt-6 text-[15px]">
+                      {event.is_team_event ? `${event.min_team_size || 1} - ${event.max_team_size || 4}` : '1 (Individual)'}
+                    </p>
                   </div>
                   {/* Registration Costs Card */}
                   <div className="bg-[#ffffff] border border-[#e5e7eb] rounded-[12px] p-6 shadow-sm flex flex-col justify-between">
                     <h4 className="font-semibold text-[#111111] text-[15px]">Registration costs?</h4>
-                    <p className="text-[#374151] mt-6 text-[15px]">Nada.</p>
+                    <p className="text-[#374151] mt-6 text-[15px]">Free for all students.</p>
                   </div>
                 </div>
 

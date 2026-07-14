@@ -12,31 +12,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === "development"
-    ? "http://localhost:8000/api"
-    : "");
-
-/** Roles that can access each protected prefix. Empty means any authenticated user. */
-const PROTECTED_ROUTES: Array<{
-  prefix: string;
-  allowedRoles?: string[];
-}> = [
-  { prefix: "/dashboard" },
-  { prefix: "/onboarding" },
-  { prefix: "/admin", allowedRoles: ["admin"] },
-  { prefix: "/checkin", allowedRoles: ["admin", "volunteer"] },
-];
-
-function matchesProtected(
-  pathname: string
-): { prefix: string; allowedRoles?: string[] } | null {
-  return (
-    PROTECTED_ROUTES.find((route) => pathname.startsWith(route.prefix)) ?? null
-  );
-}
-
 export async function proxy(request: NextRequest) {
   // Authentication and role verification are entirely handled client-side via useRequireAuth,
   // providing a better user experience without double round-trips.

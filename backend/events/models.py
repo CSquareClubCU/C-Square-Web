@@ -105,7 +105,7 @@ class Event(BaseModel):
         slug = base_slug
         counter = 2
         qs = Event.objects.exclude(pk=self.pk) if self.pk else Event.objects.all()
-        while qs.filter(slug=slug).exists():
+        while slug == 'past' or qs.filter(slug=slug).exists():
             slug = f'{base_slug}-{counter}'
             counter += 1
         return slug

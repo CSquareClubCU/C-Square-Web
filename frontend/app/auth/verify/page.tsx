@@ -44,8 +44,13 @@ function getRoleRedirect(user: User): string {
   const rawNext = typeof window !== "undefined" ? sessionStorage.getItem("auth_next") : null;
   if (rawNext) {
     sessionStorage.removeItem("auth_next");
-    if (rawNext.startsWith("/") && !rawNext.startsWith("//")) {
-      return rawNext;
+    if (rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.startsWith("/\\")) {
+      try {
+        const parsed = new URL(rawNext, "http://localhost");
+        return parsed.pathname + parsed.search + parsed.hash;
+      } catch {
+        // ignore invalid URL
+      }
     }
   }
   switch (user.role) {

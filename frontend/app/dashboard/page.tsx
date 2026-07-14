@@ -122,11 +122,11 @@ export default function DashboardPage() {
   }).format(now);
 
   const upcomingRegs = registrations.filter(
-    (reg) => new Date(reg.event.start_datetime) >= now
+    (reg) => new Date(reg.event.start_datetime) >= now && reg.status !== "cancelled" && reg.status !== "rejected" && reg.event.status !== "draft"
   );
   
   const pastRegs = registrations.filter(
-    (reg) => new Date(reg.event.start_datetime) < now
+    (reg) => new Date(reg.event.start_datetime) < now && reg.status !== "cancelled" && reg.status !== "rejected" && reg.event.status !== "draft"
   );
   
   // Sort upcoming by soonest
@@ -220,7 +220,7 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="bg-white/5 rounded-2xl p-5 border border-white/10 backdrop-blur-sm">
                       <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">When</p>
-                      <p className="font-semibold">{new Date(nextUpEvent.start_datetime).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</p>
+                      <p className="font-semibold">{formatDate(nextUpEvent.start_datetime)}</p>
                     </div>
                     <div className="bg-white/5 rounded-2xl p-5 border border-white/10 backdrop-blur-sm">
                       <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest mb-1">Where</p>
@@ -285,8 +285,9 @@ export default function DashboardPage() {
                                 {status.icon}
                                 <span className="ml-1.5">{status.label}</span>
                               </span>
-                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                                Registered {new Date(reg.registered_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                              <span className="flex items-center gap-1 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                                <Clock className="w-3.5 h-3.5" />
+                                Registered {formatDate(reg.registered_at)}
                               </span>
                             </div>
                             <h3 className="text-lg font-semibold tracking-tight group-hover:text-black/70 transition-colors mb-2">

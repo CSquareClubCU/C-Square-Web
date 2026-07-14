@@ -99,7 +99,17 @@ class ConfirmTeamMemberView(APIView):
                 status=400,
             )
 
-        member = services.confirm_teammate(token=token, user=request.user)
+        import uuid
+        try:
+            parsed_token = uuid.UUID(token)
+        except ValueError:
+            raise AppError(
+                code='INVALID_TOKEN',
+                message='Invalid token format.',
+                status=400,
+            )
+
+        member = services.confirm_teammate(token=parsed_token, user=request.user)
 
         team = member.team
         return Response(
@@ -158,7 +168,7 @@ class RegistrationDetailView(APIView):
                 'event', 'user'
             ).get(pk=pk)
         except Registration.DoesNotExist:
-            raise AppError('NOT_FOUND', 'Registration not found.', 404)
+            raise AppError('NOT_FOUND', 'Registration not found.', status=404) from None
 
         user = request.user
         is_owner = registration.user == user
@@ -196,7 +206,7 @@ class CancelRegistrationView(APIView):
             try:
                 registration = Registration.objects.get(pk=pk)
             except Registration.DoesNotExist:
-                raise AppError('NOT_FOUND', 'Registration not found.', 404)
+                raise AppError('NOT_FOUND', 'Registration not found.', status=404) from None
             services.cancel_registration(registration_id=pk, user=registration.user)
         else:
             services.cancel_registration(registration_id=pk, user=request.user)
@@ -328,33 +338,27 @@ class AdminDeleteRegistrationView(APIView):
 
     def delete(self, request, pk):
         from registrations.models import Registration
+        from django.db import transaction
         try:
-            registration = Registration.objects.get(id=pk)
-            # This relies on cascading deletes for attendance record if they exist.
-            # If `record.is_checked_in`, we should technically deduct points first.
-            try:
-                record = registration.attendance_record
-                if record.is_checked_in:
-                    user = record.user
-                    user.club_points = max(0, user.club_points - record.event.points)
-                    user.save(update_fields=['club_points', 'updated_at'])
-            except Exception:
-                pass
-
-            # Decrease the event's registered_count if the status was approved/pending, or just decrement always?
-            # actually we can just delete it, and count will be re-computed or we manually decrement.
-            # But the simplest is to just delete and rely on the database cascade/signals.
-            
-            # The safest approach since `registered_count` is manually tracked in `services.py` 
-            # is to cancel it first to update the count properly, then delete it.
-            if registration.status in ['approved', 'pending', 'waitlisted']:
-                from registrations import services as reg_services
+            with transaction.atomic():
+                registration = Registration.objects.get(id=pk)
+                
                 try:
-                    reg_services.cancel_registration(registration_id=pk, user=registration.user)
-                except Exception:
-                    pass
+                    record = registration.attendance_record
+                    if record.is_checked_in:
+                        user = record.user
+                        user.club_points = max(0, user.club_points - record.event.points)
+                        user.save(update_fields=['club_points', 'updated_at'])
+                except Exception as e:
+                    # Narrow exception: usually RelatedObjectDoesNotExist or AttributeError if null
+                    if type(e).__name__ not in ('RelatedObjectDoesNotExist', 'AttendanceRecordDoesNotExist'):
+                        pass
 
-            registration.delete()
+                if registration.status in ['approved', 'pending', 'waitlisted']:
+                    from registrations import services as reg_services
+                    reg_services.cancel_registration(registration_id=pk, user=registration.user)
+
+                registration.delete()
 
             return Response({'success': True, 'message': 'Registration completely removed.'}, status=status.HTTP_200_OK)
         except Registration.DoesNotExist:

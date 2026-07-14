@@ -114,17 +114,10 @@ class ManualCheckinView(APIView):
         return Response(_build_checkin_response(record, was_already))
 
     def delete(self, request, registration_id):
-        try:
-            record = services.revoke_checkin(
-                registration_id=registration_id,
-                revoked_by=request.user,
-            )
-        except AppError as e:
-            return Response(
-                {'code': e.code, 'message': e.message},
-                status=e.status_code
-            )
-        
+        record = services.revoke_checkin(
+            registration_id=registration_id,
+            revoked_by=request.user,
+        )
         return Response({'success': True, 'message': 'Check-in revoked.', 'is_checked_in': record.is_checked_in})
 
 
@@ -137,11 +130,8 @@ class AttendanceListView(APIView):
     permission_classes = [IsAdminOrVolunteer]
 
     def get(self, request, event_id):
-        from events.models import Event
-        try:
-            event = Event.objects.get(id=event_id)
-        except Event.DoesNotExist as e:
-            raise AppError(code='NOT_FOUND', message='Event not found.', status=404) from e
+        from events.services import get_event_by_uuid
+        event = get_event_by_uuid(event_id)
         
         search = request.query_params.get('search')
         records = services.get_attendance_list(event=event, marked_by=request.user, search=search)
@@ -160,11 +150,8 @@ class AttendanceExportView(APIView):
     permission_classes = [IsAdmin]
 
     def get(self, request, event_id):
-        from events.models import Event
-        try:
-            event = Event.objects.get(id=event_id)
-        except Event.DoesNotExist as e:
-            raise AppError(code='NOT_FOUND', message='Event not found.', status=404) from e
+        from events.services import get_event_by_uuid
+        event = get_event_by_uuid(event_id)
             
         buffer = services.export_attendance_csv(event=event, marked_by=request.user)
 

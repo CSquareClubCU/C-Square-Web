@@ -15,4 +15,9 @@ class Migration(migrations.Migration):
             name='is_flagship',
             field=models.BooleanField(default=False),
         ),
+        migrations.AddField(
+            model_name='event',
+            name='points',
+            field=models.IntegerField(default=100),
+        ),
     ]

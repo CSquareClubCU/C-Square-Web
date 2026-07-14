@@ -10,6 +10,7 @@ import { FadeUp, StaggerContainer, StaggerItem, TiltCard } from "@/components/an
 import { Typewriter } from "@/components/animations/Typewriter";
 import { Event } from "@/types";
 import { motion } from "framer-motion";
+import { useCategoryFilter } from "@/hooks/useCategoryFilter";
 
 // Custom Countdown Hook
 function useCountdown(targetDate: string | undefined) {
@@ -54,10 +55,10 @@ const CountdownBlock = ({ label, value }: { label: string, value: number }) => (
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState("All");
+  const { activeCategory, setActiveCategory, filterBarRef, handleFilterClick } = useCategoryFilter<string>("All");
   const [activeStatus, setActiveStatus] = useState("Upcoming");
+  const [activeYear, setActiveYear] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const filterBarRef = useRef<HTMLDivElement>(null);
 
   const categories = ["All", "Hackathon", "Competition", "Workshop", "Seminar"];
 
@@ -76,7 +77,7 @@ export default function EventsPage() {
 
   // Use the event marked as flagship
   const flagshipEvent = useMemo(() => {
-    return events.find((e) => e.is_flagship) || events.find((e) => e.status === "published" || e.status === "draft") || null;
+    return events.find((e) => e.is_flagship) || events.find((e) => e.status === "published") || null;
   }, [events]);
 
   const timeLeft = useCountdown(flagshipEvent?.start_datetime);
@@ -92,7 +93,7 @@ export default function EventsPage() {
 
     // Status Filter (Upcoming / Past)
     if (activeStatus === "Upcoming") {
-      list = list.filter((e) => e.status === "published" || e.status === "draft");
+      list = list.filter((e) => e.status === "published");
     } else {
       list = list.filter((e) => e.status === "completed");
     }
@@ -112,15 +113,15 @@ export default function EventsPage() {
       );
     }
 
-    return list;
-  }, [events, flagshipEvent, activeStatus, activeCategory, searchQuery]);
+    // Year Filter
+    if (activeYear !== "All") {
+      list = list.filter((e) => new Date(e.start_datetime).getFullYear().toString() === activeYear);
+    }
 
-  const handleFilterClick = (category: string) => {
-    setActiveCategory(category);
-    setTimeout(() => {
-      filterBarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
+    return list;
+  }, [events, flagshipEvent, activeStatus, activeCategory, searchQuery, activeYear]);
+
+
 
   const EventCard = ({ event, isPast = false }: { event: Event, isPast?: boolean }) => {
     return (
@@ -167,7 +168,7 @@ export default function EventsPage() {
                 <div className="w-7 h-7 rounded-full border-2 border-gray-50 bg-gradient-to-br from-emerald-400 to-teal-500"></div>
               </div>
               <span className="text-[13px] font-bold text-emerald-600">
-                +{event.registered_count > 0 ? event.registered_count : 10} participating
+                +{event.registered_count} participating
               </span>
             </div>
           </div>
@@ -274,8 +275,14 @@ export default function EventsPage() {
 
             {/* Dropdown (Year/Type) */}
             <div className="relative flex-shrink-0 ml-1">
-              <select className="appearance-none bg-white border border-gray-200 rounded-[8px] px-4 py-2 pr-8 text-[13px] font-semibold text-gray-500 outline-none hover:text-black focus:border-gray-300 transition-colors cursor-pointer h-[40px]">
+              <select 
+                value={activeYear}
+                onChange={(e) => setActiveYear(e.target.value)}
+                className="appearance-none bg-white border border-gray-200 rounded-[8px] px-4 py-2 pr-8 text-[13px] font-semibold text-gray-500 outline-none hover:text-black focus:border-gray-300 transition-colors cursor-pointer h-[40px]"
+              >
                 <option value="All">All</option>
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
                 <option value="2024">2024</option>
                 <option value="2023">2023</option>
               </select>

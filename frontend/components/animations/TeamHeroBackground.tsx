@@ -80,7 +80,8 @@ export function TeamHeroBackground() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={square.photoUrl}
-                      alt="Team member"
+                      alt=""
+                      loading="lazy"
                       className="w-full h-full object-cover"
                     />
                   ) : null}

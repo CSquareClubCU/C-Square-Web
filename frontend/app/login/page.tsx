@@ -12,7 +12,15 @@ import { requestMagicLink } from "@/lib/api";
 function LoginForm() {
   const searchParams = useSearchParams();
   const rawNext = searchParams.get("next") || "";
-  const nextUrl = (rawNext.startsWith("/") && !rawNext.startsWith("//")) ? rawNext : "";
+  let nextUrl = "";
+  if (rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.startsWith("/\\")) {
+    try {
+      const parsed = new URL(rawNext, "http://localhost");
+      nextUrl = parsed.pathname + parsed.search + parsed.hash;
+    } catch {
+      nextUrl = "";
+    }
+  }
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);

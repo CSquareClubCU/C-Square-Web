@@ -18,6 +18,13 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+def _get_bytes(file_data: bytes | BytesIO) -> bytes:
+    if isinstance(file_data, BytesIO):
+        file_data.seek(0)
+        return file_data.read()
+    return file_data
+
+
 def upload_to_blob(blob_path: str, file_data: bytes | BytesIO, content_type: str) -> str:
     """
     Upload a file to Azure Blob Storage.
@@ -51,11 +58,7 @@ def upload_to_blob(blob_path: str, file_data: bytes | BytesIO, content_type: str
         from django.core.files.base import ContentFile
         import os
 
-        if isinstance(file_data, BytesIO):
-            file_data.seek(0)
-            data = file_data.read()
-        else:
-            data = file_data
+        data = _get_bytes(file_data)
 
         # Save file locally
         path = default_storage.save(blob_path, ContentFile(data))
@@ -72,11 +75,7 @@ def upload_to_blob(blob_path: str, file_data: bytes | BytesIO, content_type: str
             blob=blob_path,
         )
 
-        if isinstance(file_data, BytesIO):
-            file_data.seek(0)
-            data = file_data.read()
-        else:
-            data = file_data
+        data = _get_bytes(file_data)
 
         blob_client.upload_blob(
             data,

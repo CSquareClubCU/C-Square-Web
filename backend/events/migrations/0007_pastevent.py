@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('events', '0006_event_is_flagship_event_points'),
+        ('events', '0004_event_is_flagship'),
     ]
 
     operations = [
