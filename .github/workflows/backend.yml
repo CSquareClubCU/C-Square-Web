@@ -38,7 +38,7 @@ jobs:
           python manage.py collectstatic --noinput
         env:
           DJANGO_SETTINGS_MODULE: csquare.settings.production
-          SECRET_KEY: dummy-key-for-build
+          DJANGO_SECRET_KEY: dummy-key-for-build
           DATABASE_URL: "sqlite:///:memory:"
 
       - name: Zip artifact for deployment
