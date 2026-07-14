@@ -133,7 +133,8 @@ h3 {
   .hero-glow,
   .shimmer::after,
   .glow-card::before,
-  .marquee-track {
+  .marquee-track,
+  .animate-marquee-row {
     animation: none !important;
   }
 }

@@ -36,7 +36,9 @@ class SiteSettings(BaseModel):
 
     @classmethod
     def load(cls):
-        obj = cls.objects.first()
-        if not obj:
-            obj = cls.objects.create()
-        return obj
+        from django.db import transaction
+        with transaction.atomic():
+            obj = cls.objects.select_for_update().first()
+            if not obj:
+                obj = cls.objects.create()
+            return obj

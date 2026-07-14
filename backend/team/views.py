@@ -6,7 +6,7 @@ Endpoints:
 - GET  /api/team/         Public list of active members
 - POST /api/team/         Admin: create member
 - PATCH /api/team/{id}/   Admin: update member
-- DELETE /api/team/{id}/  Admin: soft delete
+- DELETE /api/team/{id}/  Admin: permanent deletion
 - POST /api/team/{id}/photo/  Admin: upload photo
 """
 
@@ -61,7 +61,7 @@ class TeamMemberListView(APIView):
 class TeamMemberDetailView(APIView):
     """
     PATCH  /api/team/{id}/  — Admin: partial update
-    DELETE /api/team/{id}/  — Admin: soft delete
+    DELETE /api/team/{id}/  — Admin: permanent deletion
     """
     permission_classes = [IsAdmin]
 

@@ -31,10 +31,11 @@ def update_team_member(member: TeamMember, validated_data: dict) -> TeamMember:
 
 def delete_team_member(member: TeamMember) -> None:
     """
-    Hard delete — completely removes the record.
+    Soft delete — sets is_active to False.
     """
     member_name = member.full_name
-    member.delete()
+    member.is_active = False
+    member.save(update_fields=['is_active', 'updated_at'])
     logger.info('Team member deleted: %s', member_name)
 
 

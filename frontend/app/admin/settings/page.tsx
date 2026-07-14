@@ -19,7 +19,7 @@ export default function AdminSettingsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<PastEvent | null>(null);
   const [title, setTitle] = useState("");
-  const [order, setOrder] = useState<number>(0);
+  const [order, setOrder] = useState<number | string>(0);
   const [file, setFile] = useState<File | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -83,10 +83,11 @@ export default function AdminSettingsPage() {
     setActionLoading(true);
     try {
       let savedEvent: PastEvent;
+      const finalOrder = typeof order === "string" ? parseInt(order, 10) || 0 : order;
       if (editingEvent) {
-        savedEvent = await updatePastEvent(editingEvent.id, { title, order });
+        savedEvent = await updatePastEvent(editingEvent.id, { title, order: finalOrder });
       } else {
-        savedEvent = await createPastEvent({ title, order });
+        savedEvent = await createPastEvent({ title, order: finalOrder });
       }
 
       if (file) {
@@ -218,7 +219,10 @@ export default function AdminSettingsPage() {
                   required
                   type="number"
                   value={order}
-                  onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setOrder(val === "" ? "" : parseInt(val, 10));
+                  }}
                   className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-black focus:outline-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">Lower numbers appear first.</p>

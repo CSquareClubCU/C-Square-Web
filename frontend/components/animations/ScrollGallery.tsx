@@ -8,14 +8,20 @@ import { PastEvent } from "@/types";
 
 export function ScrollGallery() {
   const [pastEvents, setPastEvents] = useState<PastEvent[]>([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetchPastEvents()
       .then(data => {
         setPastEvents(Array.isArray(data) ? data : (data as any).results || []);
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error(err);
+        setError(true);
+      });
   }, []);
+
+  if (error) return null;
 
   const EventCard = ({ event }: { event: PastEvent }) => (
     <div className="w-full h-[72px] bg-[#111] rounded-2xl border border-white/10 flex items-center px-4 gap-4 hover:bg-[#1a1a1a] hover:border-white/30 hover:scale-[1.02] transition-all duration-300 shadow-lg">

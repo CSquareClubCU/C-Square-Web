@@ -33,11 +33,7 @@ def _build_checkin_response(record, was_already_checked_in: bool) -> dict:
     {
       success, already_checked_in, message,
       event_id, registration_id,
-<<<<<<< HEAD
       student: { full_name, email, student_uid, institution, degree_type, graduation_year },
-=======
-      student: { full_name, email, student_uid, branch },
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
       checked_in_at, check_in_method
     }
     """
@@ -56,13 +52,9 @@ def _build_checkin_response(record, was_already_checked_in: bool) -> dict:
             'full_name': student.full_name,
             'email': student.email,
             'student_uid': student.student_uid,
-<<<<<<< HEAD
             'institution': student.institution,
             'degree_type': student.degree_type,
             'graduation_year': student.graduation_year,
-=======
-            'branch': student.branch,
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
         },
         'checked_in_at': record.checked_in_at,
         'check_in_method': record.check_in_method,
@@ -138,16 +130,8 @@ class AttendanceListView(APIView):
     permission_classes = [IsAdminOrVolunteer]
 
     def get(self, request, event_id):
-<<<<<<< HEAD
         from events.services import get_event_by_uuid
         event = get_event_by_uuid(event_id)
-=======
-        from events.models import Event
-        try:
-            event = Event.objects.get(id=event_id)
-        except Event.DoesNotExist as e:
-            raise AppError(code='NOT_FOUND', message='Event not found.', status=404) from e
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
         
         search = request.query_params.get('search')
         records = services.get_attendance_list(event=event, marked_by=request.user, search=search)
@@ -166,16 +150,8 @@ class AttendanceExportView(APIView):
     permission_classes = [IsAdmin]
 
     def get(self, request, event_id):
-<<<<<<< HEAD
         from events.services import get_event_by_uuid
         event = get_event_by_uuid(event_id)
-=======
-        from events.models import Event
-        try:
-            event = Event.objects.get(id=event_id)
-        except Event.DoesNotExist as e:
-            raise AppError(code='NOT_FOUND', message='Event not found.', status=404) from e
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             
         buffer = services.export_attendance_csv(event=event, marked_by=request.user)
 

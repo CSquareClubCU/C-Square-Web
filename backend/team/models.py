@@ -26,9 +26,9 @@ class TeamMember(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='team_profile')
 
     # Social links
-    github_url = models.CharField(max_length=500, null=True, blank=True)
-    linkedin_url = models.CharField(max_length=500, null=True, blank=True)
-    twitter_url = models.CharField(max_length=500, null=True, blank=True)
+    github_url = models.URLField(max_length=500, null=True, blank=True)
+    linkedin_url = models.URLField(max_length=500, null=True, blank=True)
+    twitter_url = models.URLField(max_length=500, null=True, blank=True)
 
     class Meta:
         db_table = 'team_teammember'
