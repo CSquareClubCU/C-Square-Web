@@ -23,6 +23,7 @@ import {
   AlertCircle,
   LogOut,
   ChevronRight,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/animations/MotionElements";
@@ -156,16 +157,16 @@ export default function AdminPage() {
               desc: "Manage team display",
             },
             {
-              href: "/checkin",
-              icon: <QrCode className="w-6 h-6 text-black" />,
-              label: "Check-in Scanner",
-              desc: "Start scanning QR codes",
+              href: "/admin/settings",
+              icon: <Settings className="w-6 h-6 text-black" />,
+              label: "Site Settings",
+              desc: "Global & Past Events",
             },
             {
-              href: "/admin/past-events",
-              icon: <ClipboardList className="w-6 h-6 text-black" />,
-              label: "Past Events",
-              desc: "Manage homepage gallery",
+              href: "/checkin",
+              icon: <QrCode className="w-6 h-6 text-black" />,
+              label: "Check-in Kiosk",
+              desc: "Scan attendee QRs",
             },
           ].map((item) => (
             <Link key={item.href} href={item.href}>

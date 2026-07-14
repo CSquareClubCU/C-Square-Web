@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import { updateUserProfile } from "@/lib/api";
+import { fetchSettings, updateUserProfile } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Loader2, User as UserIcon, CheckCircle2, AlertCircle } from "lucide-react";
-import { FadeUp } from "@/components/animations/MotionElements";
+import { FadeUp, StaggerContainer, StaggerItem } from "@/components/animations/MotionElements";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -25,6 +26,11 @@ export default function OnboardingPage() {
   const [isCuStudent, setIsCuStudent] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [whatsappLink, setWhatsappLink] = useState("");
+
+  useEffect(() => {
+    fetchSettings().then(s => setWhatsappLink(s.whatsapp_group_link || "")).catch(() => {});
+  }, []);
 
   // Initialize form fields once user is loaded
   useEffect(() => {
@@ -112,9 +118,9 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center py-12 px-5 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
+      <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         <FadeUp>
-          <div className="text-center mb-10">
+          <div className="text-center md:text-left mb-10">
             <div className="mx-auto w-16 h-16 bg-black rounded-[16px] flex items-center justify-center mb-6 shadow-xl">
               <UserIcon className="w-8 h-8 text-white" />
             </div>
@@ -239,6 +245,28 @@ export default function OnboardingPage() {
             </form>
           </div>
         </FadeUp>
+
+        {whatsappLink && (
+          <FadeUp delay={0.1}>
+            <div className="bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-black/[0.04] p-8 text-center flex flex-col items-center justify-center h-full min-h-[300px]">
+              <h3 className="text-xl font-bold mb-2">Join our WhatsApp Community</h3>
+              <p className="text-sm text-gray-500 mb-6">Stay updated with the latest events and announcements.</p>
+              
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-6 inline-block">
+                <QRCodeSVG value={whatsappLink} size={160} level="M" />
+              </div>
+              
+              <a 
+                href={whatsappLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-black font-medium hover:underline inline-flex items-center"
+              >
+                Click here to join
+              </a>
+            </div>
+          </FadeUp>
+        )}
       </div>
     </div>
   );

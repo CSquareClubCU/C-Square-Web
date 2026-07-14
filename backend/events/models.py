@@ -69,6 +69,7 @@ class Event(BaseModel):
     # Enhancements
     prizes = models.JSONField(null=True, blank=True)
     rules = models.TextField(null=True, blank=True)
+    faqs = models.JSONField(null=True, blank=True)
     contact_name = models.CharField(max_length=255, null=True, blank=True)
     contact_email = models.EmailField(null=True, blank=True)
     is_registration_open = models.BooleanField(default=True)

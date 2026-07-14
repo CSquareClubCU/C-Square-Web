@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Plus, Image as ImageIcon, Trash2, Edit3, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { fetchPastEvents, createPastEvent, updatePastEvent, deletePastEvent, uploadPastEventLogo } from "@/lib/api";
+import { fetchPastEvents, createPastEvent, updatePastEvent, deletePastEvent, uploadPastEventLogo, fetchAdminSettings, updateAdminSettings } from "@/lib/api";
 import { PastEvent } from "@/types";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 
-export default function AdminPastEventsPage() {
+export default function AdminSettingsPage() {
   useRequireAuth({ role: "admin" });
   const [events, setEvents] = useState<PastEvent[]>([]);
+  const [whatsappLink, setWhatsappLink] = useState("");
+  const [savingSettings, setSavingSettings] = useState(false);
   const [loading, setLoading] = useState(true);
   
   // Modal states
@@ -24,10 +26,12 @@ export default function AdminPastEventsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const data = await fetchPastEvents();
-      // data might be { results, count } or just an array depending on pagination. 
-      // Our API view returns a raw array.
-      setEvents(Array.isArray(data) ? data : (data as any).results || []);
+      const [eventsData, settingsData] = await Promise.all([
+        fetchPastEvents(),
+        fetchAdminSettings().catch(() => ({ whatsapp_group_link: "" }))
+      ]);
+      setEvents(Array.isArray(eventsData) ? eventsData : (eventsData as any).results || []);
+      setWhatsappLink(settingsData?.whatsapp_group_link || "");
     } catch (err) {
       console.error(err);
     } finally {
@@ -38,6 +42,19 @@ export default function AdminPastEventsPage() {
   useEffect(() => {
     load();
   }, []);
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    try {
+      await updateAdminSettings({ whatsapp_group_link: whatsappLink });
+      alert("Settings saved successfully.");
+    } catch (err: any) {
+      alert(err.message || "Failed to save settings.");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   const handleOpenModal = (evt?: PastEvent) => {
     if (evt) {
@@ -105,13 +122,38 @@ export default function AdminPastEventsPage() {
               <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
             </Link>
             <h1 className="text-4xl md:text-5xl font-semibold tracking-tighter text-black mb-2">
-              Past Events Gallery
+              Site Settings
             </h1>
             <p className="text-gray-600 text-[15px]">
-              Manage the purely historical events shown on the homepage gallery.
+              Manage global settings and past events gallery.
             </p>
           </div>
-          
+        </div>
+
+        {/* Global Settings */}
+        <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 mb-12">
+          <h2 className="text-2xl font-bold mb-6">General</h2>
+          <form onSubmit={handleSaveSettings} className="max-w-xl space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">WhatsApp Community Link</label>
+              <input
+                type="url"
+                value={whatsappLink}
+                onChange={(e) => setWhatsappLink(e.target.value)}
+                placeholder="https://chat.whatsapp.com/..."
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:outline-none transition-colors"
+              />
+              <p className="text-xs text-gray-500 mt-2">Shown to users during onboarding and in their dashboard.</p>
+            </div>
+            <Button type="submit" disabled={savingSettings} className="bg-black text-white px-6">
+              {savingSettings && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              {savingSettings ? "Saving..." : "Save Settings"}
+            </Button>
+          </form>
+        </div>
+
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Past Events Gallery</h2>
           <Button onClick={() => handleOpenModal()} className="px-6 bg-black text-white hover:bg-gray-800">
             <Plus className="w-4 h-4 mr-2" />
             Add Past Event

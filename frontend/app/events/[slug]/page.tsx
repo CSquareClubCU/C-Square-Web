@@ -255,63 +255,37 @@ export default function EventDetailPage() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  {/* Contact Us Collapsible */}
-                  <div className="bg-[#ffffff] border border-[#e5e7eb] rounded-[12px] shadow-sm overflow-hidden transition-all duration-300">
-                    <div 
-                      className="flex justify-between items-center cursor-pointer p-6" 
-                      onClick={() => toggleFaq("contact")}
-                    >
-                      <h4 className="font-semibold text-[#111111] text-[15px]">Contact Us</h4>
-                      {openFaqs.includes("contact") ? <ChevronUp className="w-5 h-5 text-[#9ca3af]" /> : <ChevronDown className="w-5 h-5 text-[#9ca3af]" />}
-                    </div>
-                    <AnimatePresence initial={false}>
-                      {openFaqs.includes("contact") && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                {event.faqs && event.faqs.length > 0 && (
+                  <div className="space-y-4">
+                    {event.faqs.map((faq, idx) => (
+                      <div key={idx} className="bg-[#ffffff] border border-[#e5e7eb] rounded-[12px] shadow-sm overflow-hidden transition-all duration-300">
+                        <div 
+                          className="flex justify-between items-center cursor-pointer p-6" 
+                          onClick={() => toggleFaq(`faq-${idx}`)}
                         >
-                          <div className="px-6 pb-6 text-[#374151] text-[15px]">
-                            <div className="pt-4 border-t border-[#f3f4f6]">
-                              Reach out to us at <a href={`mailto:${event.contact_email || 'hello@csquare.club'}`} className="text-[#3b82f6] hover:underline font-medium">{event.contact_email || 'hello@csquare.club'}</a>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                          <h4 className="font-semibold text-[#111111] text-[15px]">{faq.question}</h4>
+                          {openFaqs.includes(`faq-${idx}`) ? <ChevronUp className="w-5 h-5 text-[#9ca3af]" /> : <ChevronDown className="w-5 h-5 text-[#9ca3af]" />}
+                        </div>
+                        <AnimatePresence initial={false}>
+                          {openFaqs.includes(`faq-${idx}`) && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3, ease: "easeInOut" }}
+                            >
+                              <div className="px-6 pb-6 text-[#374151] text-[15px]">
+                                <div className="pt-4 border-t border-[#f3f4f6]">
+                                  {faq.answer}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ))}
                   </div>
-                  
-                  {/* Whatsapp Collapsible */}
-                  <div className="bg-[#ffffff] border border-[#e5e7eb] rounded-[12px] shadow-sm overflow-hidden transition-all duration-300">
-                    <div 
-                      className="flex justify-between items-center cursor-pointer p-6" 
-                      onClick={() => toggleFaq("whatsapp")}
-                    >
-                      <h4 className="font-semibold text-[#111111] text-[15px]">Whatsapp Community Link</h4>
-                      {openFaqs.includes("whatsapp") ? <ChevronUp className="w-5 h-5 text-[#9ca3af]" /> : <ChevronDown className="w-5 h-5 text-[#9ca3af]" />}
-                    </div>
-                    <AnimatePresence initial={false}>
-                      {openFaqs.includes("whatsapp") && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" }}
-                        >
-                          <div className="px-6 pb-6 text-[#374151] text-[15px]">
-                            <div className="pt-4 border-t border-[#f3f4f6]">
-                              <a href="https://chat.whatsapp.com/EBVS53dYKhD8LvbZl8NZqL" className="text-[#3b82f6] hover:underline break-all font-medium">
-                                https://chat.whatsapp.com/EBVS53dYKhD8LvbZl8NZqL
-                              </a>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
+                )}
               </div>
 
             </FadeUp>

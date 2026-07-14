@@ -23,3 +23,20 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
         ordering = ['-created_at']
+
+class SiteSettings(BaseModel):
+    """
+    Singleton model for global site settings.
+    We just use the first object (or create one if it doesn't exist).
+    """
+    whatsapp_group_link = models.URLField(max_length=500, blank=True, null=True, help_text="Link to join the WhatsApp Community")
+
+    class Meta:
+        verbose_name_plural = "Site Settings"
+
+    @classmethod
+    def load(cls):
+        obj = cls.objects.first()
+        if not obj:
+            obj = cls.objects.create()
+        return obj

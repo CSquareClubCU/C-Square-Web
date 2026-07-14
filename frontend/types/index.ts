@@ -82,6 +82,7 @@ export interface Event {
   is_registration_open: boolean;
   is_flagship: boolean;
   points: number;
+  faqs: { question: string; answer: string }[] | null;
 }
 
 export interface PastEvent {

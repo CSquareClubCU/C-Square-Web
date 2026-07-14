@@ -415,6 +415,7 @@ export interface EventCreateData {
 
   // Enhancements
   prizes?: { position: string; award: string; description: string }[] | null;
+  faqs?: { question: string; answer: string }[] | null;
   rules?: string | null;
   contact_name?: string | null;
   contact_email?: string | null;
@@ -723,3 +724,23 @@ export const fetchRegistrations = async () => {
   const data = await fetchMyRegistrations();
   return data.results;
 };
+
+// ============================================================================
+// Site Settings
+// ============================================================================
+
+export interface SiteSettings {
+  whatsapp_group_link: string | null;
+}
+
+export async function fetchSettings(): Promise<SiteSettings> {
+  return get<SiteSettings>("/settings/");
+}
+
+export async function fetchAdminSettings(): Promise<SiteSettings> {
+  return get<SiteSettings>("/admin/settings/");
+}
+
+export async function updateAdminSettings(data: Partial<SiteSettings>): Promise<SiteSettings> {
+  return put<SiteSettings>("/admin/settings/", data);
+}

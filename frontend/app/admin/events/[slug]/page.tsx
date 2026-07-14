@@ -41,6 +41,7 @@ import type { EventCreateData, VolunteerAssignment } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/utils";
 import type { Event, RegistrationAdmin, RegistrationStatus, CoreTeamMemberPublic } from "@/types";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { ConfirmAlert } from "@/components/ui/ConfirmAlert";
 
 const STATUS_TABS: Array<{ value: RegistrationStatus | ""; label: string; icon: React.ReactNode }> = [
   { value: "", label: "All", icon: <Users className="w-3.5 h-3.5" /> },
@@ -88,6 +89,10 @@ export default function AdminEventDetailPage() {
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [volunteersModalOpen, setVolunteersModalOpen] = useState(false);
 
+  // Delete Event Alert
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const handlePrizeChange = (index: number, field: string, value: string) => {
     setEditForm((prev) => {
       const newPrizes = [...(prev.prizes || [])];
@@ -108,6 +113,29 @@ export default function AdminEventDetailPage() {
       const newPrizes = [...(prev.prizes || [])];
       newPrizes.splice(index, 1);
       return { ...prev, prizes: newPrizes };
+    });
+  };
+
+  const handleFaqChange = (index: number, field: string, value: string) => {
+    setEditForm((prev) => {
+      const newFaqs = [...(prev.faqs || [])];
+      newFaqs[index] = { ...newFaqs[index], [field]: value };
+      return { ...prev, faqs: newFaqs };
+    });
+  };
+
+  const addFaq = () => {
+    setEditForm((prev) => ({
+      ...prev,
+      faqs: [...(prev.faqs || []), { question: "", answer: "" }],
+    }));
+  };
+
+  const removeFaq = (index: number) => {
+    setEditForm((prev) => {
+      const newFaqs = [...(prev.faqs || [])];
+      newFaqs.splice(index, 1);
+      return { ...prev, faqs: newFaqs };
     });
   };
 
@@ -348,12 +376,14 @@ export default function AdminEventDetailPage() {
 
   async function handleDeleteEvent() {
     if (!event) return;
-    if (!confirm("Are you SURE you want to delete this event completely? This cannot be undone.")) return;
+    setDeleteLoading(true);
     try {
       await deleteEvent(event.slug);
       router.push("/admin/events");
     } catch (err: any) {
       alert(err.message || "Failed to delete event.");
+      setDeleteLoading(false);
+      setDeleteAlertOpen(false);
     }
   }
 
@@ -798,7 +828,7 @@ export default function AdminEventDetailPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start justify-end p-4 overflow-auto"
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start justify-end p-4"
             onClick={(e) => e.target === e.currentTarget && setEditOpen(false)}
           >
             <motion.div
@@ -806,10 +836,10 @@ export default function AdminEventDetailPage() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="bg-white rounded-[24px] w-full max-w-xl h-full overflow-auto shadow-2xl"
+              className="bg-white rounded-[24px] w-full max-w-xl max-h-full overflow-hidden shadow-2xl flex flex-col"
             >
               {/* Panel header */}
-              <div className="flex items-center justify-between px-6 py-5 border-b border-black/[0.04] sticky top-0 bg-[#f8f9fa] z-10">
+              <div className="flex items-center justify-between px-6 py-5 border-b border-black/[0.04] bg-[#f8f9fa] shrink-0">
                 <h3 className="font-semibold text-lg text-black">Edit Event</h3>
                 <button
                   onClick={() => setEditOpen(false)}
@@ -819,7 +849,8 @@ export default function AdminEventDetailPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleSaveEdit} className="p-6 space-y-5">
+              <form onSubmit={handleSaveEdit} className="flex flex-col flex-1 min-h-0">
+                <div className="p-6 space-y-5 flex-1 overflow-y-auto">
                 {[
                   { id: "edit-title", label: "Title", name: "title", type: "text", required: true },
                   { id: "edit-venue", label: "Venue", name: "venue", type: "text", required: true },
@@ -1004,6 +1035,50 @@ export default function AdminEventDetailPage() {
                   )}
                 </div>
 
+                {/* Enhancements: FAQs */}
+                <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[16px] p-5 md:p-6 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-semibold text-lg">Frequently Asked Questions</h2>
+                    <Button type="button" variant="outline" size="sm" onClick={addFaq}>
+                      <Plus className="w-4 h-4 mr-1" /> Add FAQ
+                    </Button>
+                  </div>
+
+                  {(!editForm.faqs || editForm.faqs.length === 0) ? (
+                    <p className="text-sm text-[var(--c-muted-text)]">No FAQs added yet.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {editForm.faqs.map((faq, idx) => (
+                        <div key={idx} className="flex gap-3 items-start border border-[var(--c-border)] p-4 rounded-xl relative bg-white">
+                          <div className="flex-1 space-y-3">
+                            <input
+                              type="text"
+                              placeholder="Question (e.g. Who can attend?)"
+                              value={faq.question}
+                              onChange={(e) => handleFaqChange(idx, "question", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-md border border-[var(--c-border)] text-sm focus:outline-none focus:border-black"
+                            />
+                            <textarea
+                              placeholder="Answer (e.g. Everyone!)"
+                              value={faq.answer}
+                              rows={2}
+                              onChange={(e) => handleFaqChange(idx, "answer", e.target.value)}
+                              className="w-full px-3 py-1.5 rounded-md border border-[var(--c-border)] text-sm focus:outline-none focus:border-black resize-none"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFaq(idx)}
+                            className="p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -1021,8 +1096,10 @@ export default function AdminEventDetailPage() {
                   </p>
                 )}
 
-                <div className="px-6 py-5 border-t border-black/[0.04] bg-[#f8f9fa] flex items-center justify-between gap-3 sticky bottom-0">
-                  <Button type="button" variant="ghost" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={handleDeleteEvent}>
+                </div>
+
+                <div className="px-6 py-5 border-t border-black/[0.04] bg-[#f8f9fa] flex items-center justify-between gap-3 shrink-0">
+                  <Button type="button" variant="ghost" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setDeleteAlertOpen(true)}>
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete Event
                   </Button>
@@ -1122,6 +1199,18 @@ export default function AdminEventDetailPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmAlert
+        isOpen={deleteAlertOpen}
+        title="Delete Event"
+        message={<>Are you SURE you want to delete this event completely? <strong>This cannot be undone.</strong></>}
+        confirmText="Delete Event"
+        cancelText="Cancel"
+        isDestructive={true}
+        loading={deleteLoading}
+        onConfirm={handleDeleteEvent}
+        onCancel={() => setDeleteAlertOpen(false)}
+      />
     </div>
   );
 }

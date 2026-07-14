@@ -69,6 +69,10 @@ export default function NewEventPage() {
     max_team_size: null,
     status: "draft",
     prizes: [],
+    faqs: [
+      { question: "Who can attend?", answer: "This event is open to all university students." },
+      { question: "Is there a registration fee?", answer: "No, the event is completely free!" },
+    ],
     rules: "",
     contact_name: "",
     contact_email: "",
@@ -97,6 +101,29 @@ export default function NewEventPage() {
       const newPrizes = [...(prev.prizes || [])];
       newPrizes.splice(index, 1);
       return { ...prev, prizes: newPrizes };
+    });
+  };
+
+  const handleFaqChange = (index: number, field: string, value: string) => {
+    setForm((prev) => {
+      const newFaqs = [...(prev.faqs || [])];
+      newFaqs[index] = { ...newFaqs[index], [field]: value };
+      return { ...prev, faqs: newFaqs };
+    });
+  };
+
+  const addFaq = () => {
+    setForm((prev) => ({
+      ...prev,
+      faqs: [...(prev.faqs || []), { question: "", answer: "" }],
+    }));
+  };
+
+  const removeFaq = (index: number) => {
+    setForm((prev) => {
+      const newFaqs = [...(prev.faqs || [])];
+      newFaqs.splice(index, 1);
+      return { ...prev, faqs: newFaqs };
     });
   };
 
@@ -387,6 +414,50 @@ export default function NewEventPage() {
                     <button
                       type="button"
                       onClick={() => removePrize(idx)}
+                      className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors mt-0.5"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Enhancements: FAQs */}
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-lg">Frequently Asked Questions</h2>
+              <Button type="button" variant="outline" size="sm" onClick={addFaq}>
+                <Plus className="w-4 h-4 mr-1" /> Add FAQ
+              </Button>
+            </div>
+
+            {(!form.faqs || form.faqs.length === 0) ? (
+              <p className="text-sm text-[var(--c-muted-text)]">No FAQs added yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {form.faqs.map((faq, idx) => (
+                  <div key={idx} className="flex gap-3 items-start border border-[var(--c-border)] p-4 rounded-xl relative">
+                    <div className="flex-1 space-y-3">
+                      <input
+                        type="text"
+                        placeholder="Question (e.g. Who can attend?)"
+                        value={faq.question}
+                        onChange={(e) => handleFaqChange(idx, "question", e.target.value)}
+                        className={inputClass + " py-2"}
+                      />
+                      <textarea
+                        placeholder="Answer (e.g. Everyone!)"
+                        value={faq.answer}
+                        rows={2}
+                        onChange={(e) => handleFaqChange(idx, "answer", e.target.value)}
+                        className={inputClass + " py-2 resize-none"}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFaq(idx)}
                       className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors mt-0.5"
                     >
                       <Trash2 className="w-5 h-5" />

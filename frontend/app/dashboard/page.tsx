@@ -20,7 +20,8 @@ import {
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/animations/MotionElements";
-import { fetchMyRegistrations, logout } from "@/lib/api";
+import { fetchMyRegistrations, logout, fetchSettings } from "@/lib/api";
+import { QRCodeSVG } from "qrcode.react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import type { Registration, Event } from "@/types";
 
@@ -67,13 +68,18 @@ export default function DashboardPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [whatsappLink, setWhatsappLink] = useState("");
 
   useEffect(() => {
     if (authLoading || !user) return;
     async function loadData() {
       try {
-        const regsData = await fetchMyRegistrations();
+        const [regsData, settingsData] = await Promise.all([
+          fetchMyRegistrations(),
+          fetchSettings().catch(() => ({ whatsapp_group_link: "" }))
+        ]);
         setRegistrations(regsData.results);
+        setWhatsappLink(settingsData?.whatsapp_group_link || "");
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : "Failed to load dashboard data";
@@ -164,6 +170,30 @@ export default function DashboardPage() {
             </Button>
           </div>
         </div>
+
+        {/* WhatsApp Community Banner */}
+        {whatsappLink && (
+          <div className="bg-white rounded-[24px] border border-black/[0.04] p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 mb-16">
+            <div>
+              <h3 className="font-bold text-xl mb-1">Join our WhatsApp Community</h3>
+              <p className="text-gray-500 text-sm">Scan the QR code or click the link to stay connected with fellow members and get instant updates.</p>
+            </div>
+            <div className="flex items-center gap-6 shrink-0">
+              <div className="bg-[#f8f9fa] p-2 rounded-xl border border-gray-100">
+                <QRCodeSVG value={whatsappLink} size={80} level="M" />
+              </div>
+              <a 
+                href={whatsappLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <Button className="bg-black text-white hover:bg-gray-800">
+                  Join WhatsApp
+                </Button>
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
