@@ -327,8 +327,8 @@ class PastEventDetailView(APIView):
         from events.models import PastEvent
         try:
             event = PastEvent.objects.get(id=pk)
-        except PastEvent.DoesNotExist:
-            raise AppError('NOT_FOUND', 'Past Event not found', status=404)
+        except PastEvent.DoesNotExist as e:
+            raise AppError('NOT_FOUND', 'Past Event not found', status=404) from e
             
         serializer = PastEventSerializer(event, data=request.data, partial=True)
         if not serializer.is_valid():
@@ -340,8 +340,8 @@ class PastEventDetailView(APIView):
         from events.models import PastEvent
         try:
             event = PastEvent.objects.get(id=pk)
-        except PastEvent.DoesNotExist:
-            raise AppError('NOT_FOUND', 'Past Event not found', status=404)
+        except PastEvent.DoesNotExist as e:
+            raise AppError('NOT_FOUND', 'Past Event not found', status=404) from e
         event.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -358,14 +358,19 @@ class PastEventLogoUploadView(APIView):
         from core.utils.storage import upload_to_blob
         try:
             event = PastEvent.objects.get(id=pk)
-        except PastEvent.DoesNotExist:
-            raise AppError('NOT_FOUND', 'Past Event not found', status=404)
+        except PastEvent.DoesNotExist as e:
+            raise AppError('NOT_FOUND', 'Past Event not found', status=404) from e
 
         if 'logo' not in request.FILES:
             raise AppError('VALIDATION_ERROR', 'No logo file provided.')
 
         file_obj = request.FILES['logo']
-        file_url = upload_to_blob(f'past-events/{event.id}/{file_obj.name}', file_obj.read(), file_obj.content_type)
+        ext_map = {'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp'}
+        ext = ext_map.get(file_obj.content_type)
+        if not ext:
+            raise AppError('INVALID_FILE', 'File must be jpg, png, or webp.')
+            
+        file_url = upload_to_blob(f'past-events/{event.id}/logo.{ext}', file_obj.read(), file_obj.content_type)
         event.logo_url = file_url
         event.save()
         return Response({'logo_url': file_url}, status=status.HTTP_200_OK)

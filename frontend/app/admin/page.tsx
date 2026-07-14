@@ -71,9 +71,10 @@ export default function AdminPage() {
   async function handleLogout() {
     try {
       await logout();
-      router.replace("/login");
     } catch {
       // Ignore
+    } finally {
+      router.replace("/login");
     }
   }
 

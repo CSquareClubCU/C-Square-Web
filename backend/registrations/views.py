@@ -99,7 +99,6 @@ class ConfirmTeamMemberView(APIView):
                 status=400,
             )
 
-<<<<<<< HEAD
         import uuid
         try:
             parsed_token = uuid.UUID(token)
@@ -111,9 +110,6 @@ class ConfirmTeamMemberView(APIView):
             )
 
         member = services.confirm_teammate(token=parsed_token, user=request.user)
-=======
-        member = services.confirm_teammate(token=token, user=request.user)
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
         team = member.team
         return Response(
@@ -210,11 +206,7 @@ class CancelRegistrationView(APIView):
             try:
                 registration = Registration.objects.get(pk=pk)
             except Registration.DoesNotExist:
-<<<<<<< HEAD
                 raise AppError('NOT_FOUND', 'Registration not found.', status=404) from None
-=======
-                raise AppError('NOT_FOUND', 'Registration not found.', 404)
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             services.cancel_registration(registration_id=pk, user=registration.user)
         else:
             services.cancel_registration(registration_id=pk, user=request.user)
@@ -335,7 +327,7 @@ class MoveFromWaitlistView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-<<<<<<< HEAD
+
 
 
 class AdminDeleteRegistrationView(APIView):
@@ -359,9 +351,9 @@ class AdminDeleteRegistrationView(APIView):
                         user.club_points = max(0, user.club_points - record.event.points)
                         user.save(update_fields=['club_points', 'updated_at'])
                 except Exception as e:
-                    # Narrow exception: usually RelatedObjectDoesNotExist or AttributeError if null
+                    # Narrow exception: usually RelatedObjectDoesNotExist or AttendanceRecordDoesNotExist
                     if type(e).__name__ not in ('RelatedObjectDoesNotExist', 'AttendanceRecordDoesNotExist'):
-                        pass
+                        raise e
 
                 if registration.status in ['approved', 'pending', 'waitlisted']:
                     from registrations import services as reg_services
@@ -372,5 +364,4 @@ class AdminDeleteRegistrationView(APIView):
             return Response({'success': True, 'message': 'Registration completely removed.'}, status=status.HTTP_200_OK)
         except Registration.DoesNotExist:
             return Response({'error': 'Registration not found'}, status=status.HTTP_404_NOT_FOUND)
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
+

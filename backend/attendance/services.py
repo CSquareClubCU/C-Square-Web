@@ -251,15 +251,9 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
         'Full Name',
         'Email',
         'Student UID',
-<<<<<<< HEAD
         'Institution',
         'Degree Type',
         'Graduation Year',
-=======
-        'Branch',
-        'Year',
-        'Semester',
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
         'Batch',
         'Phone',
         'Registration Status',
@@ -273,15 +267,9 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
             _sanitize_csv_value(record.user.full_name),
             _sanitize_csv_value(record.user.email),
             _sanitize_csv_value(record.user.student_uid),
-<<<<<<< HEAD
             _sanitize_csv_value(record.user.institution),
             _sanitize_csv_value(record.user.degree_type),
             _sanitize_csv_value(record.user.graduation_year),
-=======
-            _sanitize_csv_value(record.user.branch),
-            _sanitize_csv_value(record.user.year),
-            _sanitize_csv_value(record.user.semester),
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             _sanitize_csv_value(record.user.batch),
             _sanitize_csv_value(record.user.phone),
             record.registration.status,

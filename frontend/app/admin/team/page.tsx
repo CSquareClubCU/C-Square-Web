@@ -149,13 +149,13 @@ export default function AdminTeamPage() {
       const payload = {
         full_name: form.full_name.trim(),
         designation: form.designation.trim(),
-        photo_url: form.photo_url.trim() || null,
         display_order: parseInt(form.display_order, 10) || 0,
-        user_id: form.user_id || null,
+        user: form.user_id || null,
         github_url: form.github_url.trim() || null,
         linkedin_url: form.linkedin_url.trim() || null,
         twitter_url: form.twitter_url.trim() || null,
       };
+      
       let memberId = editingMember?.id;
       if (editingMember) {
         await updateTeamMember(editingMember.id, payload);
@@ -165,7 +165,15 @@ export default function AdminTeamPage() {
       }
       
       if (photoFile && memberId) {
-        await uploadTeamPhoto(memberId, photoFile);
+        try {
+          await uploadTeamPhoto(memberId, photoFile);
+        } catch (uploadErr: any) {
+          console.error("Photo upload failed:", uploadErr);
+          setFormError("Member saved, but photo upload failed. You may need to retry uploading the photo.");
+          setSubmitting(false);
+          load();
+          return; // Stop here so they can see the error, but member is already saved.
+        }
       }
 
       setModalOpen(false);

@@ -89,10 +89,7 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'registered_count',
             'prizes',
             'rules',
-<<<<<<< HEAD
             'faqs',
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             'contact_name',
             'contact_email',
             'is_registration_open',
@@ -133,10 +130,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'status',
             'prizes',
             'rules',
-<<<<<<< HEAD
             'faqs',
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             'contact_name',
             'contact_email',
             'is_registration_open',

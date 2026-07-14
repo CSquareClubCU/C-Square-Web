@@ -83,9 +83,12 @@ class MagicLinkVerifyView(APIView):
 
         # Establish Django session
         login(request, user, backend='sesame.backends.ModelBackend')
+        
+        # Re-fetch with annotations for serialization
+        annotated_user = services.get_users().get(pk=user.pk)
 
         return Response(
-            {'user': UserSerializer(user).data},
+            {'user': UserSerializer(annotated_user).data},
             status=status.HTTP_200_OK,
         )
 
@@ -130,8 +133,9 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        user = services.get_users().get(pk=request.user.pk)
         return Response(
-            UserSerializer(request.user).data,
+            UserSerializer(user).data,
             status=status.HTTP_200_OK,
         )
 
@@ -257,8 +261,10 @@ class AwardBonusPointsView(APIView):
         except (ValueError, TypeError):
             raise AppError('VALIDATION_ERROR', 'Points must be an integer.', 400)
 
-        target_user.club_points += points
+        from django.db.models import F
+        target_user.club_points = F('club_points') + points
         target_user.save(update_fields=['club_points', 'updated_at'])
+        target_user.refresh_from_db(fields=['club_points'])
 
         return Response(
             {'club_points': target_user.club_points},

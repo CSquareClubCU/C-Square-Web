@@ -179,7 +179,14 @@ def get_user_list(role: str | None = None, search: str | None = None):
     Return a queryset of all users, optionally filtered.
     Admin-only — permission enforced by view.
     """
-    qs = User.objects.all()
+    from django.db.models import F, Window
+    from django.db.models.functions import Rank
+    qs = User.objects.annotate(
+        annotated_rank=Window(
+            expression=Rank(),
+            order_by=F('club_points').desc(nulls_last=True)
+        )
+    )
 
     if role:
         if role not in UserRole.values:

@@ -602,6 +602,10 @@ export async function createTeamMember(data: {
   photo_url?: string | null;
   display_order?: number;
   is_active?: boolean;
+  user?: string | null;
+  github_url?: string | null;
+  linkedin_url?: string | null;
+  twitter_url?: string | null;
 }): Promise<TeamMember> {
   return post<TeamMember>("/team/", data);
 }
@@ -618,6 +622,10 @@ export async function updateTeamMember(
     photo_url: string | null;
     display_order: number;
     is_active: boolean;
+    user: string | null;
+    github_url: string | null;
+    linkedin_url: string | null;
+    twitter_url: string | null;
   }>
 ): Promise<TeamMember> {
   return patch<TeamMember>(`/team/${id}/`, data);

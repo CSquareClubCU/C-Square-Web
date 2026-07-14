@@ -70,6 +70,7 @@ export default function AdminEventDetailPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [rejectModal, setRejectModal] = useState<{ id: string; name: string } | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [removeModal, setRemoveModal] = useState<{ id: string; name: string } | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
 
   // Bonus Points
@@ -254,16 +255,17 @@ export default function AdminEventDetailPage() {
     finally { setActionLoading(null); }
   }
 
-  async function handleRemoveRegistration(regId: string, name: string) {
-    if (!confirm(`Are you sure you want to completely remove ${name} from this event? This action cannot be undone.`)) return;
-    setActionLoading(regId);
+  async function handleRemoveRegistration() {
+    if (!removeModal) return;
+    setActionLoading(removeModal.id);
     try {
-      await deleteRegistration(regId);
+      await deleteRegistration(removeModal.id);
       await loadRegistrations();
     } catch (err: any) {
       alert(err.message || "Failed to remove registration.");
     } finally {
       setActionLoading(null);
+      setRemoveModal(null);
     }
   }
 
@@ -345,6 +347,7 @@ export default function AdminEventDetailPage() {
       min_team_size: event.min_team_size ?? null,
       max_team_size: event.max_team_size ?? null,
       prizes: event.prizes || [],
+      faqs: event.faqs || [],
       rules: event.rules || "",
       contact_name: event.contact_name || "",
       contact_email: event.contact_email || "",
@@ -669,7 +672,7 @@ export default function AdminEventDetailPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleRemoveRegistration(reg.id, reg.user_full_name)}
+                            onClick={() => setRemoveModal({ id: reg.id, name: reg.user_full_name })}
                             className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2"
                             title="Completely Remove Registration"
                           >
@@ -1152,6 +1155,23 @@ export default function AdminEventDetailPage() {
         loading={deleteLoading}
         onConfirm={handleDeleteEvent}
         onCancel={() => setDeleteAlertOpen(false)}
+      />
+      {/* Remove Registration Confirm Alert */}
+      <ConfirmAlert
+        isOpen={!!removeModal}
+        title="Remove Registration"
+        message={
+          <>
+            Are you sure you want to completely remove <strong>{removeModal?.name}</strong> from this event?
+            <br />
+            This action cannot be undone.
+          </>
+        }
+        onConfirm={handleRemoveRegistration}
+        onCancel={() => setRemoveModal(null)}
+        confirmText="Remove"
+        isDestructive
+        loading={actionLoading === removeModal?.id}
       />
     </div>
   );

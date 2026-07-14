@@ -117,6 +117,7 @@ export default function Home() {
     active_team_members: 0,
   });
   const [homeEvents, setHomeEvents] = useState<Event[]>([]);
+  const [flagshipEvent, setFlagshipEvent] = useState<Event | null>(null);
   const [teamMembers, setTeamMembers] = useState<CoreTeamMemberPublic[]>([]);
   const [statsLoaded, setStatsLoaded] = useState(false);
 
@@ -132,8 +133,13 @@ export default function Home() {
       }
       setStatsLoaded(true);
       if (eventsRes.status === "fulfilled") {
-        // Show at most 6 events on the homepage
-        setHomeEvents(eventsRes.value.results.slice(0, 6));
+        const publishedEvents = eventsRes.value.results;
+        const flagship = publishedEvents.find((e: Event) => e.is_flagship) || publishedEvents[0] || null;
+        setFlagshipEvent(flagship);
+        
+        // Show at most 6 non-flagship events on the homepage
+        const nonFlagship = publishedEvents.filter((e: Event) => e.id !== flagship?.id);
+        setHomeEvents(nonFlagship.slice(0, 6));
       }
       if (teamRes.status === "fulfilled") {
         // Show at most 6 team members
@@ -313,9 +319,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── FLAGSHIP SECTION ─── */}
+      {/* ♦ FLAGSHIP SECTION ♦ */}
       {(() => {
-        const flagship = homeEvents.find(e => e.is_flagship) || homeEvents[0];
+        const flagship = flagshipEvent;
         if (!flagship) return null;
         
         const prizePool = flagship.prizes && flagship.prizes.length > 0 ? flagship.prizes[0].award : "TBA";

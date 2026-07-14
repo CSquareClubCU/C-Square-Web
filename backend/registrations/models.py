@@ -179,15 +179,5 @@ def cleanup_registration_qr(sender, instance, **kwargs):
             if default_storage.exists(path):
                 default_storage.delete(path)
         elif parsed_url.netloc.endswith('.blob.core.windows.net'):
-            # Delete from Azure blob
-            from azure.storage.blob import BlobServiceClient
-            if getattr(settings, 'AZURE_STORAGE_CONNECTION_STRING', None):
-                try:
-                    blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_STORAGE_CONNECTION_STRING)
-                    blob_client = blob_service_client.get_blob_client(
-                        container=settings.AZURE_STORAGE_CONTAINER_NAME,
-                        blob=f'qr-codes/{instance.id}/qr.png'
-                    )
-                    blob_client.delete_blob()
-                except Exception:
-                    pass
+            from core.utils.storage import delete_blob
+            delete_blob(f'qr-codes/{instance.id}/qr.png')
