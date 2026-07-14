@@ -89,7 +89,7 @@ export function Footer() {
           
           {/* Giant Background Typography */}
           <div className="w-full flex justify-center mb-8 mt-2 overflow-hidden">
-            <h1 className="text-[18vw] sm:text-[16vw] md:text-[180px] lg:text-[220px] font-black tracking-tighter leading-none text-white/10 select-none text-center">
+            <h1 aria-hidden="true" className="text-[18vw] sm:text-[16vw] md:text-[180px] lg:text-[220px] font-black tracking-tighter leading-none text-white/10 select-none text-center">
               CSQUARE
             </h1>
           </div>

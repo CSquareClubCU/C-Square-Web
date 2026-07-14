@@ -42,17 +42,10 @@ function FieldGroup({
 }
 
 const inputClass =
-<<<<<<< HEAD
   "w-full px-4 py-3 rounded-[8px] border border-black/[0.08] bg-white text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-all duration-200 text-[15px]";
 
 const selectClass =
   "w-full px-4 py-3 rounded-[8px] border border-black/[0.08] bg-white text-black focus:outline-none focus:border-black transition-all duration-200 text-[15px]";
-=======
-  "w-full px-4 py-3 rounded-xl border border-[var(--c-border)] bg-white text-[var(--c-primary-text)] placeholder:text-[var(--c-muted-text)] focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all duration-200 text-sm";
-
-const selectClass =
-  "w-full px-4 py-3 rounded-xl border border-[var(--c-border)] bg-white text-[var(--c-primary-text)] focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all duration-200 text-sm";
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
 export default function NewEventPage() {
   useRequireAuth({ role: "admin" });
@@ -76,22 +69,16 @@ export default function NewEventPage() {
     max_team_size: null,
     status: "draft",
     prizes: [],
-<<<<<<< HEAD
     faqs: [
       { question: "Who can attend?", answer: "This event is open to all university students." },
       { question: "Is there a registration fee?", answer: "No, the event is completely free!" },
     ],
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     rules: "",
     contact_name: "",
     contact_email: "",
     is_registration_open: true,
-<<<<<<< HEAD
     is_flagship: false,
     points: 100,
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   });
 
   const handlePrizeChange = (index: number, field: string, value: string) => {
@@ -117,7 +104,6 @@ export default function NewEventPage() {
     });
   };
 
-<<<<<<< HEAD
   const handleFaqChange = (index: number, field: string, value: string) => {
     setForm((prev) => {
       const newFaqs = [...(prev.faqs || [])];
@@ -141,8 +127,6 @@ export default function NewEventPage() {
     });
   };
 
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   function handleChange(
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -179,7 +163,6 @@ export default function NewEventPage() {
   }
 
   return (
-<<<<<<< HEAD
     <div className="w-full min-h-screen bg-white">
       {/* Header */}
       <section className="w-full pt-12 pb-8">
@@ -195,33 +178,11 @@ export default function NewEventPage() {
           </h1>
           <p className="text-gray-600 text-[15px]">
             Draft your event details. You can publish it whenever you're ready.
-=======
-    <div className="w-full">
-      {/* Header */}
-      <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-10 relative overflow-hidden">
-        <div className="max-w-[800px] mx-auto px-5 md:px-10 relative z-10">
-          <Link
-            href="/admin/events"
-            className="text-sm text-white/40 hover:text-white transition-colors flex items-center mb-5"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Events
-          </Link>
-          <h1 className="text-3xl font-bold tracking-tight gradient-text">
-            Create New Event
-          </h1>
-          <p className="text-white/40 mt-1">
-            Saved as draft until you publish it.
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
           </p>
         </div>
       </section>
 
-<<<<<<< HEAD
       <div className="max-w-[800px] mx-auto px-5 md:px-10 pb-24">
-=======
-      <div className="max-w-[800px] mx-auto px-5 md:px-10 py-10">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
         <motion.form
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -230,11 +191,7 @@ export default function NewEventPage() {
           className="space-y-8"
         >
           {/* Basic Info */}
-<<<<<<< HEAD
           <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-=======
-          <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             <h2 className="font-semibold text-lg">Basic Information</h2>
 
             <FieldGroup label="Event Title" htmlFor="title" required>
@@ -312,11 +269,7 @@ export default function NewEventPage() {
           </div>
 
           {/* Dates & Capacity */}
-<<<<<<< HEAD
           <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-=======
-          <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             <h2 className="font-semibold text-lg">
               <CalendarDays className="w-5 h-5 inline-block mr-2 text-[var(--c-muted-text)]" />
               Dates &amp; Capacity
@@ -377,11 +330,7 @@ export default function NewEventPage() {
           </div>
 
           {/* Enhancements: Contact & Rules */}
-<<<<<<< HEAD
           <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-=======
-          <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             <h2 className="font-semibold text-lg">Contact & Rules</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -423,11 +372,7 @@ export default function NewEventPage() {
           </div>
 
           {/* Enhancements: Prizes */}
-<<<<<<< HEAD
           <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-=======
-          <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-lg">Prizes</h2>
               <Button type="button" variant="outline" size="sm" onClick={addPrize}>
@@ -479,7 +424,6 @@ export default function NewEventPage() {
             )}
           </div>
 
-<<<<<<< HEAD
           {/* Enhancements: FAQs */}
           <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <div className="flex items-center justify-between">
@@ -561,11 +505,6 @@ export default function NewEventPage() {
           {/* Attendance Settings */}
           <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] mt-8">
             <h2 className="font-semibold text-lg mb-4">Attendance Settings</h2>
-=======
-          {/* Options */}
-          <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
-            <h2 className="font-semibold text-lg">Registration Options</h2>
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
             <div className="space-y-3">
               <label className="flex items-start gap-3 cursor-pointer group">

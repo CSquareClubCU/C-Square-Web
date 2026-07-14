@@ -30,10 +30,7 @@ interface UseRequireAuthOptions {
 interface UseRequireAuthResult {
   user: User | null;
   loading: boolean;
-<<<<<<< HEAD
   authorized: boolean;
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 }
 
 const ROLE_RANK: Record<string, number> = {
@@ -59,7 +56,6 @@ export function useRequireAuth(
       return;
     }
 
-<<<<<<< HEAD
     // Check if profile is incomplete
     const isCuIncomplete = user.is_cu_student && (!user.full_name || !user.student_uid);
     const isExtIncomplete = !user.is_cu_student && (!user.full_name || !user.institution || !user.degree_type || !user.graduation_year);
@@ -69,9 +65,6 @@ export function useRequireAuth(
       router.replace("/onboarding");
       return;
     }
-
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     if (requiredRole) {
       const userRank = ROLE_RANK[user.role] ?? 0;
       const requiredRank = ROLE_RANK[requiredRole] ?? 0;
@@ -84,7 +77,6 @@ export function useRequireAuth(
     }
   }, [user, loading, router, requiredRole, redirectTo]);
 
-<<<<<<< HEAD
   const isCuIncomplete = user?.is_cu_student && (!user.full_name || !user.student_uid);
   const isExtIncomplete = user && !user.is_cu_student && (!user.full_name || !user.institution || !user.degree_type || !user.graduation_year);
   const isIncomplete = isCuIncomplete || isExtIncomplete;
@@ -103,7 +95,4 @@ export function useRequireAuth(
   }
 
   return { user, loading, authorized };
-=======
-  return { user, loading };
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 }

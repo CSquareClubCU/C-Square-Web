@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export function Typewriter({ texts, speed = 100, pause = 2000 }: { texts: string[], speed?: number, pause?: number }) {
   const [textIndex, setTextIndex] = useState(0);
@@ -10,11 +10,19 @@ export function Typewriter({ texts, speed = 100, pause = 2000 }: { texts: string
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    if (isPaused) return;
+    let timeout: NodeJS.Timeout;
+
+    if (isPaused) {
+      timeout = setTimeout(() => {
+        setIsPaused(false);
+        setIsDeleting(true);
+      }, pause);
+      return () => clearTimeout(timeout);
+    }
 
     const currentText = texts[textIndex];
 
-    const timeout = setTimeout(() => {
+    timeout = setTimeout(() => {
       if (isDeleting) {
         setCharIndex((prev) => prev - 1);
         if (charIndex <= 0) {
@@ -25,10 +33,6 @@ export function Typewriter({ texts, speed = 100, pause = 2000 }: { texts: string
         setCharIndex((prev) => prev + 1);
         if (charIndex >= currentText.length) {
           setIsPaused(true);
-          setTimeout(() => {
-            setIsPaused(false);
-            setIsDeleting(true);
-          }, pause);
         }
       }
     }, isDeleting ? speed / 2 : speed);

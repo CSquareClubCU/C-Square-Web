@@ -63,7 +63,6 @@ export default function EventsPage() {
   const categories = ["All", "Hackathon", "Competition", "Workshop", "Seminar"];
 
   useEffect(() => {
-<<<<<<< HEAD
     fetchEvents()
       .then((data) => {
         setEvents(data.results);
@@ -74,14 +73,6 @@ export default function EventsPage() {
       .finally(() => {
         setLoading(false);
       });
-=======
-    fetchEvents().then((data) => {
-      setEvents(data.results);
-      setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   }, []);
 
   // Use the event marked as flagship
@@ -321,7 +312,7 @@ export default function EventsPage() {
             ))}
           </div>
         ) : (
-<<<<<<< HEAD
+
           <>
             {/* Split Flagship Event Card */}
             {flagshipEvent && activeStatus === "Upcoming" && activeCategory === "All" && searchQuery === "" && (
@@ -338,26 +329,7 @@ export default function EventsPage() {
                         <div className="w-1.5 h-1.5 rounded-full bg-[#FF5A00]"></div>
                         <span className="text-[10px] font-bold uppercase tracking-widest text-white/90">
                           Flagship • {flagshipEvent.event_type}
-=======
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 perspective-container">
-            {filtered.map((event) => (
-              <StaggerItem key={event.id}>
-                <TiltCard className="h-full">
-                  <div className="h-full flex flex-col rounded-[24px] border border-[var(--c-border)] bg-white overflow-hidden hover:shadow-xl transition-shadow duration-500">
-                    {/* Banner Area */}
-                    <div className="h-40 bg-black flex items-center justify-center relative overflow-hidden">
-                      {event.banner_image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={event.banner_image_url} alt={event.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-5xl font-black text-white/[0.04] tracking-tighter relative z-10">
-                          {event.event_type.toUpperCase()}
-                        </span>
-                      )}
-                      <div className="absolute top-4 left-4 z-10">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-black bg-white px-3 py-1 rounded-full">
-                          {event.event_type}
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
+
                         </span>
                       </div>
                       
@@ -381,48 +353,23 @@ export default function EventsPage() {
                       </div>
                     </div>
 
-<<<<<<< HEAD
+
                     <div className="flex flex-col sm:flex-row gap-3 mt-auto">
-                      <Link href={`/events/${flagshipEvent.slug}`} className="flex-1">
-                        <Button className="w-full rounded-[8px] text-sm font-semibold bg-[#FF5A00] text-white hover:bg-[#E04D00] border-0 flex items-center justify-center gap-2 group/btn shadow-[0_0_20px_rgba(255,90,0,0.3)]">
-                          Register now
-                          <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                      {flagshipEvent.is_registration_open && !(flagshipEvent.end_datetime ? new Date(flagshipEvent.end_datetime) < new Date() : new Date(flagshipEvent.start_datetime) < new Date()) ? (
+                        <Link href={`/events/${flagshipEvent.slug}`} className="flex-1">
+                          <Button className="w-full rounded-[8px] text-sm font-semibold bg-[#FF5A00] text-white hover:bg-[#E04D00] border-0 flex items-center justify-center gap-2 group/btn shadow-[0_0_20px_rgba(255,90,0,0.3)]">
+                            Register now
+                            <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button disabled className="flex-1 w-full rounded-[8px] text-sm font-semibold bg-[#1a1a1a] text-white/50 border-0 cursor-not-allowed">
+                          {(flagshipEvent.end_datetime ? new Date(flagshipEvent.end_datetime) < new Date() : new Date(flagshipEvent.start_datetime) < new Date()) ? "Event Concluded" : "Registration Closed"}
                         </Button>
-                      </Link>
+                      )}
                       <Link href={`/events/${flagshipEvent.slug}`} className="flex-1">
                         <Button variant="outline" className="w-full rounded-[8px] text-sm font-semibold bg-transparent text-white border-white/20 hover:bg-white/5 hover:border-white/40">
                           View details
-=======
-                    <div className="flex-1 flex flex-col p-8">
-                      <h3 className="text-xl font-semibold mb-4">{event.title}</h3>
-                      <div className="space-y-3 text-sm text-[var(--c-secondary-text)] mb-6 flex-1">
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-3 shrink-0" />
-                          <span>{formatDate(event.start_datetime)}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-3 shrink-0" />
-                          <span className="truncate">{event.venue}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Users className="w-4 h-4 mr-3 shrink-0" />
-                          <span>{event.registered_count} / {event.capacity}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Progress bar */}
-                      <div className="w-full bg-gray-100 rounded-full h-1.5 mb-6">
-                        <div
-                          className="bg-[var(--c-accent)] h-1.5 rounded-full transition-all duration-700"
-                          style={{ width: `${Math.max(0, Math.min((event.registered_count / (event.capacity || 1)) * 100, 100))}%` }}
-                        />
-                      </div>
-
-                      <Link href={`/events/${event.slug}`} className="w-full">
-                        <Button variant="outline" className="w-full group">
-                          View Details
-                          <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                         </Button>
                       </Link>
                     </div>
@@ -503,6 +450,8 @@ export default function EventsPage() {
                   className="mt-8 px-5 rounded-[8px] font-semibold"
                   onClick={() => {
                     setActiveCategory("All");
+                    setActiveStatus("Upcoming");
+                    setActiveYear("All");
                     setSearchQuery("");
                   }}
                 >

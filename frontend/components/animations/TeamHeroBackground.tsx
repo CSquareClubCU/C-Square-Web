@@ -19,12 +19,10 @@ export function TeamHeroBackground() {
     return Array.from({ length: rowCount }).map((_, rowIndex) => {
       const squares = Array.from({ length: squaresPerRow }).map((_, colIndex) => {
         const hasMember = imagePositions[rowIndex]?.includes(colIndex);
-        // Use stock images sequentially for a clean look
-        const photoUrl = hasMember ? `https://i.pravatar.cc/150?img=${rowIndex * 10 + (colIndex % 10)}` : null;
           
         return {
           id: `sq-${rowIndex}-${colIndex}`,
-          photoUrl
+          hasMember
         };
       });
       return squares;
@@ -73,18 +71,13 @@ export function TeamHeroBackground() {
               {row.map((square, j) => (
                 <div 
                   key={`${square.id}-${j}`}
-                  // Empty squares have a slightly greyish bg to stand out against pure white, images use pure white bg
-                  className={`w-[72px] h-[72px] rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-black/[0.03] flex items-center justify-center overflow-hidden shrink-0 ${square.photoUrl ? 'bg-white' : 'bg-[#FAFAFA]'}`}
+                  className={`w-[72px] h-[72px] rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-black/[0.03] flex items-center justify-center overflow-hidden shrink-0 ${square.hasMember ? 'bg-[#EFEFEF]' : 'bg-[#FAFAFA]'}`}
                 >
-                  {square.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={square.photoUrl}
-                      alt=""
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : null}
+                  {square.hasMember && (
+                    <svg className="w-8 h-8 text-black/10" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                  )}
                 </div>
               ))}
             </div>

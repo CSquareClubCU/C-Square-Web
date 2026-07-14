@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchSettings, updateUserProfile } from "@/lib/api";
+import { fetchSettings, updateUserProfile, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Loader2, User as UserIcon, CheckCircle2, AlertCircle } from "lucide-react";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/animations/MotionElements";
@@ -97,10 +97,12 @@ export default function OnboardingPage() {
       sessionStorage.removeItem("auth_next");
       router.replace("/dashboard");
     } catch (err: unknown) {
-      if (err && typeof err === 'object' && 'fields' in err && err.fields) {
-        const fields = err.fields as Record<string, string[]>;
+      if (err instanceof ApiError && err.fields) {
+        const fields = err.fields;
         const firstField = Object.keys(fields)[0];
-        setError(`${firstField}: ${fields[firstField][0]}`);
+        // Format the field name nicely (e.g. "student_uid" -> "Student Uid")
+        const formattedField = firstField.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        setError(`${formattedField}: ${fields[firstField][0]}`);
       } else {
         setError(err instanceof Error ? err.message : "Failed to update profile.");
       }

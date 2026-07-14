@@ -3,11 +3,7 @@
 /**
  * /admin/team
  *
-<<<<<<< HEAD
  * Full Core Team management — all in the portal.
-=======
- * Full team member CRUD management — all in the portal.
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
  * No Django Admin links needed.
  */
 
@@ -29,28 +25,19 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { FadeUp, StaggerContainer, StaggerItem } from "@/components/animations/MotionElements";
-<<<<<<< HEAD
 import { fetchTeam, createTeamMember, updateTeamMember, deleteTeamMember, uploadTeamPhoto, searchUsers } from "@/lib/api";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import type { CoreTeamMemberPublic, User } from "@/types";
-=======
-import { fetchTeam, createTeamMember, updateTeamMember, deleteTeamMember } from "@/lib/api";
-import { useRequireAuth } from "@/hooks/useRequireAuth";
-import type { TeamMemberPublic } from "@/types";
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
 type MemberForm = {
   full_name: string;
   designation: string;
   photo_url: string;
   display_order: string;
-<<<<<<< HEAD
   user_id: string;
   github_url: string;
   linkedin_url: string;
   twitter_url: string;
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 };
 
 const emptyForm: MemberForm = {
@@ -58,18 +45,14 @@ const emptyForm: MemberForm = {
   designation: "",
   photo_url: "",
   display_order: "0",
-<<<<<<< HEAD
   user_id: "",
   github_url: "",
   linkedin_url: "",
   twitter_url: "",
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 };
 
 export default function AdminTeamPage() {
   useRequireAuth({ role: "admin" });
-<<<<<<< HEAD
   const [members, setMembers] = useState<CoreTeamMemberPublic[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -78,29 +61,17 @@ export default function AdminTeamPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-=======
-  const [members, setMembers] = useState<TeamMemberPublic[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingMember, setEditingMember] = useState<TeamMemberPublic | null>(null);
-  const [form, setForm] = useState<MemberForm>(emptyForm);
-  const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-<<<<<<< HEAD
   // User Autocomplete state
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [userSearchResults, setUserSearchResults] = useState<User[]>([]);
   const [isSearchingUsers, setIsSearchingUsers] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-=======
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   // Keyboard access for modal
   useEffect(() => {
     if (!modalOpen) return;
@@ -131,7 +102,6 @@ export default function AdminTeamPage() {
   function openCreate() {
     setEditingMember(null);
     setForm(emptyForm);
-<<<<<<< HEAD
     setPhotoFile(null);
     setFormError(null);
     setUserSearchQuery("");
@@ -141,18 +111,10 @@ export default function AdminTeamPage() {
   }
 
   function openEdit(member: CoreTeamMemberPublic) {
-=======
-    setFormError(null);
-    setModalOpen(true);
-  }
-
-  function openEdit(member: TeamMemberPublic) {
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     setEditingMember(member);
     setForm({
       full_name: member.full_name,
       designation: member.designation,
-<<<<<<< HEAD
       photo_url: member.photo_url || "",
       display_order: String(member.display_order),
       user_id: member.user || "",
@@ -170,12 +132,6 @@ export default function AdminTeamPage() {
       setSelectedUser(null);
     }
     setUserSearchResults([]);
-=======
-      photo_url: member.photo_url ?? "",
-      display_order: String(member.display_order),
-    });
-    setFormError(null);
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     setModalOpen(true);
   }
 
@@ -184,12 +140,17 @@ export default function AdminTeamPage() {
     setSubmitting(true);
     setFormError(null);
     try {
+      if (form.user_id && members.some(m => m.user === form.user_id && m.id !== editingMember?.id)) {
+        setFormError("This user is already a team member.");
+        setSubmitting(false);
+        return;
+      }
+
       const payload = {
         full_name: form.full_name.trim(),
         designation: form.designation.trim(),
         photo_url: form.photo_url.trim() || null,
         display_order: parseInt(form.display_order, 10) || 0,
-<<<<<<< HEAD
         user_id: form.user_id || null,
         github_url: form.github_url.trim() || null,
         linkedin_url: form.linkedin_url.trim() || null,
@@ -207,14 +168,6 @@ export default function AdminTeamPage() {
         await uploadTeamPhoto(memberId, photoFile);
       }
 
-=======
-      };
-      if (editingMember) {
-        await updateTeamMember(editingMember.id, payload);
-      } else {
-        await createTeamMember(payload);
-      }
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
       setModalOpen(false);
       load();
     } catch (err: unknown) {
@@ -224,11 +177,7 @@ export default function AdminTeamPage() {
     }
   }
 
-<<<<<<< HEAD
   async function handleToggleActive(member: CoreTeamMemberPublic) {
-=======
-  async function handleToggleActive(member: TeamMemberPublic) {
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     setTogglingId(member.id);
     setActionError(null);
     try {
@@ -241,11 +190,7 @@ export default function AdminTeamPage() {
     }
   }
 
-<<<<<<< HEAD
   async function handleDelete(member: CoreTeamMemberPublic) {
-=======
-  async function handleDelete(member: TeamMemberPublic) {
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     if (deleteConfirm !== member.id) {
       setDeleteConfirm(member.id);
       setTimeout(() => setDeleteConfirm(null), 3000);
@@ -264,24 +209,27 @@ export default function AdminTeamPage() {
     }
   }
 
-<<<<<<< HEAD
   useEffect(() => {
     if (!userSearchQuery || userSearchQuery.trim().length < 2) {
       setUserSearchResults([]);
       return;
     }
+    let active = true;
     const delayDebounceFn = setTimeout(async () => {
       setIsSearchingUsers(true);
       try {
         const results = await searchUsers(userSearchQuery);
-        setUserSearchResults(results);
+        if (active) setUserSearchResults(results);
       } catch (err) {
-        console.error("Search failed:", err);
+        if (active) console.error("Search failed:", err);
       } finally {
-        setIsSearchingUsers(false);
+        if (active) setIsSearchingUsers(false);
       }
     }, 300);
-    return () => clearTimeout(delayDebounceFn);
+    return () => {
+      active = false;
+      clearTimeout(delayDebounceFn);
+    };
   }, [userSearchQuery]);
 
   const activeCount = members.filter((m) => m.is_active).length;
@@ -318,77 +266,23 @@ export default function AdminTeamPage() {
       </section>
 
       <div className="max-w-[1200px] mx-auto px-5 md:px-10 pb-24">
-=======
-  const activeCount = members.filter((m) => m.is_active).length;
-
-  return (
-    <div className="w-full">
-      {/* Header */}
-      <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-10 relative overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-10 relative z-10">
-          <FadeUp>
-            <Link
-              href="/admin"
-              className="text-sm text-white/40 hover:text-white transition-colors flex items-center mb-5"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Admin
-            </Link>
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-              <div>
-                <span className="text-xs font-semibold tracking-[0.2em] uppercase text-white/40">
-                  Admin › Team
-                </span>
-                <h1 className="text-3xl font-bold tracking-tight mt-1 gradient-text">
-                  Team Management
-                </h1>
-                <p className="text-white/40 text-sm mt-1">
-                  {activeCount} active member{activeCount !== 1 ? "s" : ""} shown on the public team page.
-                </p>
-              </div>
-              <Button
-                className="bg-white text-black hover:bg-gray-100 border-0 shrink-0"
-                onClick={openCreate}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Member
-              </Button>
-            </div>
-          </FadeUp>
-        </div>
-      </section>
-
-      <div className="max-w-[1200px] mx-auto px-5 md:px-10 py-10">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
         {/* Member grid */}
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-gray-300" />
           </div>
         ) : members.length === 0 ? (
-<<<<<<< HEAD
           <div className="text-center py-20 bg-[#f8f9fa] rounded-[24px] border border-black/[0.04]">
             <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <h3 className="font-semibold text-lg mb-1 text-black">No Team Members</h3>
             <p className="text-gray-500 text-sm mb-0">
-=======
-          <div className="text-center py-20 bg-[var(--c-surface)] rounded-2xl border border-[var(--c-border)]">
-            <h3 className="font-semibold text-lg mb-1">No Team Members</h3>
-            <p className="text-[var(--c-muted-text)] text-sm mb-0">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
               Add your first team member to display on the public team page.
             </p>
             <button
               onClick={openCreate}
-<<<<<<< HEAD
               className="mt-5 inline-block"
             >
               <Button size="sm" className="bg-black text-white px-6 hover:bg-gray-800">
-=======
-              className="mt-4 inline-block"
-            >
-              <Button size="sm">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                 <Plus className="w-4 h-4 mr-2" />
                 Add Member
               </Button>
@@ -406,17 +300,10 @@ export default function AdminTeamPage() {
                 <StaggerItem key={member.id}>
                   <motion.div
                     whileHover={{ y: -4 }}
-<<<<<<< HEAD
                     className={`flex flex-col items-center text-center group relative p-6 bg-white border border-black/[0.04] rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] transition-all ${!member.is_active ? "opacity-50 grayscale-[50%]" : ""}`}
                   >
                   {/* Photo */}
                   <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[#f8f9fa] border-2 border-black/[0.04] mb-4 overflow-hidden transition-all duration-300 group-hover:border-black/10 group-hover:shadow-sm shrink-0">
-=======
-                    className={`flex flex-col items-center text-center group relative ${!member.is_active ? "opacity-50" : ""}`}
-                  >
-                  {/* Photo */}
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[var(--c-surface)] border-2 border-[var(--c-border)] mb-4 overflow-hidden transition-all duration-300 group-hover:border-black/20 group-hover:shadow-md">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                     {member.photo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -502,7 +389,6 @@ export default function AdminTeamPage() {
             onClick={(e) => e.target === e.currentTarget && setModalOpen(false)}
           >
             <motion.div
-<<<<<<< HEAD
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -512,37 +398,16 @@ export default function AdminTeamPage() {
               {/* Modal Header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-black/[0.04] bg-[#f8f9fa]">
                 <h3 className="text-lg font-semibold tracking-tight text-black">
-=======
-              initial={{ scale: 0.95, opacity: 0, y: 16 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 8 }}
-              transition={{ type: "spring", damping: 25, stiffness: 260 }}
-              role="dialog"
-              aria-modal="true"
-              tabIndex={-1}
-              ref={(node) => {
-                if (node) node.focus();
-              }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md focus:outline-none"
-            >
-              <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--c-border)]">
-                <h3 className="font-bold text-lg">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                   {editingMember ? "Edit Member" : "Add Team Member"}
                 </h3>
                 <button
                   onClick={() => setModalOpen(false)}
-<<<<<<< HEAD
                   className="p-2 -mr-2 text-gray-400 hover:bg-black/5 hover:text-black rounded-full transition-colors"
-=======
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-<<<<<<< HEAD
               <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden">
                 <div className="p-6 space-y-4 overflow-y-auto">
                   {formError && (
@@ -748,48 +613,6 @@ export default function AdminTeamPage() {
                     Cancel
                   </Button>
                   <Button type="submit" disabled={submitting} className="bg-black text-white hover:bg-gray-800">
-=======
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                {[
-                  { id: "m-name", label: "Full Name", name: "full_name", placeholder: "e.g. Karan Sharma", required: true },
-                  { id: "m-role", label: "Designation / Role", name: "designation", placeholder: "e.g. President", required: true },
-                  { id: "m-photo", label: "Photo URL", name: "photo_url", placeholder: "https://...", required: false },
-                  { id: "m-order", label: "Display Order", name: "display_order", placeholder: "0 = first", required: false },
-                ].map((field) => (
-                  <div key={field.id}>
-                    <label htmlFor={field.id} className="block text-sm font-medium mb-1.5">
-                      {field.label}
-                      {field.required && <span className="text-red-400 ml-1">*</span>}
-                    </label>
-                    <input
-                      id={field.id}
-                      type="text"
-                      required={field.required}
-                      placeholder={field.placeholder}
-                      value={(form as Record<string, string>)[field.name]}
-                      onChange={(e) => setForm((prev) => ({ ...prev, [field.name]: e.target.value }))}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black transition-all"
-                    />
-                  </div>
-                ))}
-
-                {formError && (
-                  <p className="text-sm text-red-500 bg-red-50 border border-red-100 px-4 py-3 rounded-xl">
-                    {formError}
-                  </p>
-                )}
-
-                <div className="flex gap-3 pt-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex-1 text-[var(--c-muted-text)]"
-                    onClick={() => setModalOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={submitting} className="flex-1">
->>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                     {submitting ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
