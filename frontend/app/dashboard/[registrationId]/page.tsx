@@ -211,12 +211,23 @@ export default function RegistrationQRPage() {
           </div>
 
           {/* Footer */}
+<<<<<<< HEAD
+          <div className="px-8 py-5 border-t border-black/[0.04] bg-[#f8f9fa] flex items-center justify-between">
+            <span className="text-xs text-gray-500">
+              Registered{" "}
+              <span className="font-medium text-black">
+                {registration.registered_at
+                ? formatDate(registration.registered_at)
+                : "Unknown date"}
+              </span>
+=======
           <div className="px-8 py-5 border-t border-[var(--c-border)] bg-gray-50 flex items-center justify-between">
             <span className="text-xs text-[var(--c-muted-text)]">
               Registered{" "}
               {registration.registered_at
                 ? new Date(registration.registered_at).toLocaleDateString()
                 : "—"}
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             </span>
             <Button
               variant="ghost"

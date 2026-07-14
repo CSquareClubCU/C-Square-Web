@@ -12,6 +12,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
+<<<<<<< HEAD
+=======
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === "development"
@@ -36,6 +38,7 @@ function matchesProtected(
   );
 }
 
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 export async function proxy(request: NextRequest) {
   // Authentication and role verification are entirely handled client-side via useRequireAuth,
   // providing a better user experience without double round-trips.
@@ -50,6 +53,10 @@ export const config = {
    */
   matcher: [
     "/dashboard/:path*",
+<<<<<<< HEAD
+    "/onboarding/:path*",
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     "/admin/:path*",
     "/checkin/:path*",
   ],

@@ -1,3 +1,1 @@
-# C-Square-Web
-
-# Initial Setup
+## C Square Club

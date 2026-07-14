@@ -231,3 +231,37 @@ class UserRoleView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class AwardBonusPointsView(APIView):
+    """
+    POST /api/users/{id}/bonus-points/
+    Award or deduct bonus points to a user. Admin only.
+    Payload: { "points": 100 }
+    """
+    permission_classes = [IsAdmin]
+
+    def post(self, request, pk):
+        from users.models import User
+        try:
+            target_user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise AppError('NOT_FOUND', 'User not found.', 404)
+
+        points = request.data.get('points')
+        if points is None:
+            raise AppError('VALIDATION_ERROR', 'Points field is required.', 400)
+            
+        try:
+            points = int(points)
+        except (ValueError, TypeError):
+            raise AppError('VALIDATION_ERROR', 'Points must be an integer.', 400)
+
+        target_user.club_points += points
+        target_user.save(update_fields=['club_points', 'updated_at'])
+
+        return Response(
+            {'club_points': target_user.club_points},
+            status=status.HTTP_200_OK,
+        )
+

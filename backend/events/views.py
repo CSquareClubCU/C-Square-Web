@@ -40,6 +40,7 @@ from events.serializers import (
     EventDetailSerializer,
     EventListSerializer,
     VolunteerAssignmentSerializer,
+    PastEventSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -92,6 +93,13 @@ class EventListView(APIView):
         if request.query_params.get('upcoming') == 'true':
             from django.utils import timezone
             qs = qs.filter(start_datetime__gte=timezone.now())
+
+        # Assigned only filter (for volunteers checking their events)
+        if request.query_params.get('assigned_only') == 'true' and request.user.is_authenticated:
+            assigned_event_ids = VolunteerAssignment.objects.filter(
+                volunteer=request.user
+            ).values_list('event_id', flat=True)
+            qs = qs.filter(id__in=assigned_event_ids)
 
         paginator = StandardPagination()
         page = paginator.paginate_queryset(qs, request)
@@ -278,3 +286,86 @@ class EventCheckinStatsView(APIView):
         event = services.get_event_by_uuid(pk)
         stats = services.get_checkin_stats(event, request.user)
         return Response(stats)
+
+
+# ---------------------------------------------------------------------------
+# Past Events Gallery
+# ---------------------------------------------------------------------------
+
+class PastEventListView(APIView):
+    """
+    GET /api/events/past/ — List all past events (public).
+    POST /api/events/past/ — Create a new past event (Admin only).
+    """
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAdmin()]
+
+    def get(self, request):
+        from events.models import PastEvent
+        events = PastEvent.objects.all()
+        serializer = PastEventSerializer(events, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PastEventSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise AppError('VALIDATION_ERROR', 'Invalid data', fields=serializer.errors)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class PastEventDetailView(APIView):
+    """
+    PUT /api/events/past/{id}/ — Update past event (Admin only).
+    DELETE /api/events/past/{id}/ — Delete past event (Admin only).
+    """
+    permission_classes = [IsAdmin]
+
+    def put(self, request, pk):
+        from events.models import PastEvent
+        try:
+            event = PastEvent.objects.get(id=pk)
+        except PastEvent.DoesNotExist:
+            raise AppError('NOT_FOUND', 'Past Event not found', status=404)
+            
+        serializer = PastEventSerializer(event, data=request.data, partial=True)
+        if not serializer.is_valid():
+            raise AppError('VALIDATION_ERROR', 'Invalid data', fields=serializer.errors)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        from events.models import PastEvent
+        try:
+            event = PastEvent.objects.get(id=pk)
+        except PastEvent.DoesNotExist:
+            raise AppError('NOT_FOUND', 'Past Event not found', status=404)
+        event.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PastEventLogoUploadView(APIView):
+    """
+    POST /api/events/past/{id}/logo/ — Upload a logo for a past event (Admin only).
+    """
+    permission_classes = [IsAdmin]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, pk):
+        from events.models import PastEvent
+        from core.utils.storage import upload_to_blob
+        try:
+            event = PastEvent.objects.get(id=pk)
+        except PastEvent.DoesNotExist:
+            raise AppError('NOT_FOUND', 'Past Event not found', status=404)
+
+        if 'logo' not in request.FILES:
+            raise AppError('VALIDATION_ERROR', 'No logo file provided.')
+
+        file_obj = request.FILES['logo']
+        file_url = upload_to_blob(f'past-events/{event.id}/{file_obj.name}', file_obj.read(), file_obj.content_type)
+        event.logo_url = file_url
+        event.save()
+        return Response({'logo_url': file_url}, status=status.HTTP_200_OK)

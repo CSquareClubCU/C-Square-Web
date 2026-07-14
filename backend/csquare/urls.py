@@ -5,7 +5,11 @@ All app URLs are namespaced under /api/.
 
 from django.contrib import admin
 from django.urls import path, include
+<<<<<<< HEAD
+from core.views import PublicStatsView, SettingsView, SettingsAdminView
+=======
 from core.views import PublicStatsView
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
@@ -16,6 +20,11 @@ urlpatterns = [
     path('api/attendance/', include('attendance.urls', namespace='attendance')),
     path('api/team/', include('team.urls', namespace='team')),
     path('api/stats/', PublicStatsView.as_view(), name='public-stats'),
+<<<<<<< HEAD
+    path('api/settings/', SettingsView.as_view(), name='public-settings'),
+    path('api/admin/settings/', SettingsAdminView.as_view(), name='admin-settings'),
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 ]
 
 from django.conf import settings

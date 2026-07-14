@@ -99,7 +99,21 @@ class ConfirmTeamMemberView(APIView):
                 status=400,
             )
 
+<<<<<<< HEAD
+        import uuid
+        try:
+            parsed_token = uuid.UUID(token)
+        except ValueError:
+            raise AppError(
+                code='INVALID_TOKEN',
+                message='Invalid token format.',
+                status=400,
+            )
+
+        member = services.confirm_teammate(token=parsed_token, user=request.user)
+=======
         member = services.confirm_teammate(token=token, user=request.user)
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
         team = member.team
         return Response(
@@ -158,7 +172,7 @@ class RegistrationDetailView(APIView):
                 'event', 'user'
             ).get(pk=pk)
         except Registration.DoesNotExist:
-            raise AppError('NOT_FOUND', 'Registration not found.', 404)
+            raise AppError('NOT_FOUND', 'Registration not found.', status=404) from None
 
         user = request.user
         is_owner = registration.user == user
@@ -196,7 +210,11 @@ class CancelRegistrationView(APIView):
             try:
                 registration = Registration.objects.get(pk=pk)
             except Registration.DoesNotExist:
+<<<<<<< HEAD
+                raise AppError('NOT_FOUND', 'Registration not found.', status=404) from None
+=======
                 raise AppError('NOT_FOUND', 'Registration not found.', 404)
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             services.cancel_registration(registration_id=pk, user=registration.user)
         else:
             services.cancel_registration(registration_id=pk, user=request.user)
@@ -317,3 +335,42 @@ class MoveFromWaitlistView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+<<<<<<< HEAD
+
+
+class AdminDeleteRegistrationView(APIView):
+    """
+    DELETE /api/registrations/{id}/admin-delete/
+    Completely remove a registration and its attendance data. Admin only.
+    """
+    permission_classes = [IsAdmin]
+
+    def delete(self, request, pk):
+        from registrations.models import Registration
+        from django.db import transaction
+        try:
+            with transaction.atomic():
+                registration = Registration.objects.get(id=pk)
+                
+                try:
+                    record = registration.attendance_record
+                    if record.is_checked_in:
+                        user = record.user
+                        user.club_points = max(0, user.club_points - record.event.points)
+                        user.save(update_fields=['club_points', 'updated_at'])
+                except Exception as e:
+                    # Narrow exception: usually RelatedObjectDoesNotExist or AttributeError if null
+                    if type(e).__name__ not in ('RelatedObjectDoesNotExist', 'AttendanceRecordDoesNotExist'):
+                        pass
+
+                if registration.status in ['approved', 'pending', 'waitlisted']:
+                    from registrations import services as reg_services
+                    reg_services.cancel_registration(registration_id=pk, user=registration.user)
+
+                registration.delete()
+
+            return Response({'success': True, 'message': 'Registration completely removed.'}, status=status.HTTP_200_OK)
+        except Registration.DoesNotExist:
+            return Response({'error': 'Registration not found'}, status=status.HTTP_404_NOT_FOUND)
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f

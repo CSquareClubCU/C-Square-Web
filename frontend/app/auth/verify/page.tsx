@@ -26,17 +26,42 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { verifyMagicLink } from "@/lib/api";
+<<<<<<< HEAD
+import { useAuth } from "@/contexts/AuthContext";
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 import type { User } from "@/types";
 
 type VerifyState = "loading" | "success" | "error";
 
 function getRoleRedirect(user: User): string {
+<<<<<<< HEAD
+  // Check if profile is incomplete
+  const isCuIncomplete = user.is_cu_student && (!user.full_name || !user.student_uid);
+  const isExtIncomplete = !user.is_cu_student && (!user.full_name || !user.institution || !user.degree_type || !user.graduation_year);
+  
+  if (isCuIncomplete || isExtIncomplete) {
+    return "/onboarding";
+  }
+
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   // Check if the user was redirected from a specific page before login
   const rawNext = typeof window !== "undefined" ? sessionStorage.getItem("auth_next") : null;
   if (rawNext) {
     sessionStorage.removeItem("auth_next");
+<<<<<<< HEAD
+    if (rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.startsWith("/\\")) {
+      try {
+        const parsed = new URL(rawNext, "http://localhost");
+        return parsed.pathname + parsed.search + parsed.hash;
+      } catch {
+        // ignore invalid URL
+      }
+=======
     if (rawNext.startsWith("/") && !rawNext.startsWith("//")) {
       return rawNext;
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     }
   }
   switch (user.role) {
@@ -57,6 +82,10 @@ function VerifyContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
+<<<<<<< HEAD
+  const { setUser: setGlobalUser } = useAuth();
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
   const [state, setState] = useState<VerifyState>("loading");
   const [error, setError] = useState<string>("");
@@ -77,7 +106,14 @@ function VerifyContent() {
       try {
         const verifiedUser = await verifyMagicLink(token as string);
         if (cancelled) return;
+<<<<<<< HEAD
+        
+        // Update both local and global auth state
         setUser(verifiedUser);
+        setGlobalUser(verifiedUser);
+=======
+        setUser(verifiedUser);
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
         setState("success");
 
         // Brief delay so user sees the success state

@@ -22,6 +22,11 @@ import {
   Edit3,
   Loader2,
   CheckCircle2,
+<<<<<<< HEAD
+  ArrowLeft,
+  QrCode,
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FadeUp } from "@/components/animations/MotionElements";
@@ -98,6 +103,38 @@ export default function AdminEventsPage() {
   }
 
   return (
+<<<<<<< HEAD
+    <div className="w-full min-h-screen bg-white">
+      <div className="max-w-[1200px] mx-auto px-5 md:px-10 pt-12 pb-24">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div>
+            <Link href="/admin" className="text-sm font-medium text-gray-500 hover:text-black transition-colors mb-3 inline-flex items-center">
+              <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+            </Link>
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tighter text-black mb-2">
+              All Events
+            </h1>
+            <p className="text-gray-600 text-[15px]">
+              Manage, publish, and track all your events.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Link href="/admin/events/new">
+              <Button className="px-6 bg-black text-white hover:bg-gray-800">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Event
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Unified Filter Bar */}
+        <div className="mb-8 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar">
+=======
     <div className="w-full">
       {/* Header */}
       <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-10 relative overflow-hidden">
@@ -128,14 +165,22 @@ export default function AdminEventsPage() {
         <div className="flex flex-wrap items-center gap-3">
           <Filter className="w-4 h-4 text-[var(--c-muted-text)]" />
           <div className="flex flex-wrap gap-2">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             {statusOptions.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setStatusFilter(opt.value as EventStatus | "")}
+<<<<<<< HEAD
+                className={`px-5 py-2 rounded-[12px] text-[13px] font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
+                  statusFilter === opt.value
+                    ? "bg-black text-white shadow-md"
+                    : "text-gray-500 hover:text-black hover:bg-gray-50"
+=======
                 className={`text-sm font-medium px-4 py-1.5 rounded-full border transition-all duration-200 ${
                   statusFilter === opt.value
                     ? "bg-black text-white border-black"
                     : "bg-white text-[var(--c-secondary-text)] border-[var(--c-border)] hover:border-[var(--c-accent)]"
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                 }`}
               >
                 {opt.label}
@@ -146,6 +191,21 @@ export default function AdminEventsPage() {
 
         {/* Event List */}
         {loading ? (
+<<<<<<< HEAD
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-28 rounded-[24px] bg-[#f8f9fa] animate-pulse border border-black/[0.04]" />
+            ))}
+          </div>
+        ) : events.length === 0 ? (
+          <div className="text-center py-16 bg-[#f8f9fa] rounded-[24px] border border-black/[0.04]">
+            <CalendarDays className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 mb-4 font-medium">
+              {statusFilter ? `No ${statusFilter} events found.` : "No events yet"}
+            </p>
+            <Link href="/admin/events/new">
+              <Button className="bg-black text-white hover:bg-gray-800 px-6">
+=======
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-24 rounded-2xl bg-gray-100 animate-pulse" />
@@ -160,13 +220,18 @@ export default function AdminEventsPage() {
             </p>
             <Link href="/admin/events/new" className="mt-5 inline-block">
               <Button size="sm">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                 <Plus className="w-4 h-4 mr-2" />
                 Create Event
               </Button>
             </Link>
           </div>
         ) : (
+<<<<<<< HEAD
+          <div className="space-y-4">
+=======
           <div className="space-y-3">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             <AnimatePresence>
               {events.map((event) => (
                 <motion.div
@@ -175,6 +240,47 @@ export default function AdminEventsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97 }}
+<<<<<<< HEAD
+                  className="w-full bg-white border border-black/[0.04] rounded-[24px] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group"
+                >
+                  <div className="flex items-center gap-5 min-w-0">
+                    <div className="w-12 h-12 rounded-[12px] bg-[#f8f9fa] border border-black/[0.04] flex items-center justify-center shrink-0">
+                      <CalendarDays className="w-5 h-5 text-gray-500" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-widest ${
+                            statusColors[event.status] || "bg-gray-50 text-gray-500 border-gray-200"
+                          }`}
+                        >
+                          {event.status}
+                        </span>
+                        <span className="text-[12px] text-gray-400 font-medium capitalize">
+                          {event.event_type}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-semibold tracking-tight group-hover:text-black/70 transition-colors mb-1.5 truncate">
+                        {event.title}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-3 text-[13px] text-gray-500 font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-gray-400" />
+                          {formatDate(event.start_datetime)}
+                        </span>
+                        <span className="flex items-center gap-1.5 border-l border-gray-300 pl-3">
+                          <Users className="w-3.5 h-3.5 text-gray-400" />
+                          {event.registered_count}/{event.capacity}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Link href={`/checkin/${event.slug}`}>
+                      <Button variant="outline" size="sm" className="text-gray-600">
+                        <QrCode className="w-4 h-4 mr-1.5" />
+=======
                   className="bg-white border border-[var(--c-border)] rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4"
                 >
                   {/* Info */}
@@ -209,11 +315,16 @@ export default function AdminEventsPage() {
                     <Link href={`/admin/events/${event.slug}/attendance`}>
                       <Button variant="ghost" size="sm" className="text-[var(--c-muted-text)]">
                         <Search className="w-4 h-4 mr-1.5" />
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                         Attendance
                       </Button>
                     </Link>
                     <Link href={`/admin/events/${event.slug}`}>
+<<<<<<< HEAD
+                      <Button variant="outline" size="sm" className="text-gray-600 bg-[#f8f9fa] border-transparent hover:bg-gray-100 hover:border-gray-200">
+=======
                       <Button variant="secondary" size="sm">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                         <Edit3 className="w-4 h-4 mr-1.5" />
                         Manage
                       </Button>
@@ -222,10 +333,17 @@ export default function AdminEventsPage() {
                       <button
                         onClick={() => handleDelete(event.slug)}
                         disabled={deletingId === event.slug}
+<<<<<<< HEAD
+                        className={`p-2 rounded-[8px] transition-all duration-200 ${
+                          deleteConfirm === event.slug
+                            ? "bg-red-50 text-red-600 border border-red-100"
+                            : "text-gray-400 hover:text-red-500 hover:bg-red-50 border border-transparent"
+=======
                         className={`p-2 rounded-lg transition-all duration-200 ${
                           deleteConfirm === event.slug
                             ? "bg-red-100 text-red-600 hover:bg-red-200"
                             : "text-gray-400 hover:text-red-500 hover:bg-red-50"
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
                         }`}
                         title={deleteConfirm === event.slug ? "Click again to confirm" : "Delete draft"}
                       >

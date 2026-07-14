@@ -29,14 +29,13 @@ def update_team_member(member: TeamMember, validated_data: dict) -> TeamMember:
     return member
 
 
-def deactivate_team_member(member: TeamMember) -> None:
+def delete_team_member(member: TeamMember) -> None:
     """
-    Soft delete — sets is_active=False.
-    The record is retained in the database for audit purposes.
+    Hard delete — completely removes the record.
     """
-    member.is_active = False
-    member.save(update_fields=['is_active', 'updated_at'])
-    logger.info('Team member deactivated: %s', member.full_name)
+    member_name = member.full_name
+    member.delete()
+    logger.info('Team member deleted: %s', member_name)
 
 
 def upload_team_photo(member: TeamMember, file) -> TeamMember:

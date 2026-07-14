@@ -29,6 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
     Full user profile — returned by /auth/me/ and /auth/verify/.
     Used for the currently authenticated user.
     """
+    club_rank = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -39,13 +40,21 @@ class UserSerializer(serializers.ModelSerializer):
             'role',
             'is_cu_student',
             'student_uid',
-            'branch',
-            'year',
-            'semester',
             'batch',
             'phone',
+            'institution',
+            'degree_type',
+            'graduation_year',
+            'club_points',
+            'club_rank',
         ]
-        read_only_fields = ['id', 'email', 'role', 'is_cu_student']
+        read_only_fields = ['id', 'email', 'role', 'is_cu_student', 'club_points', 'club_rank']
+
+    def get_club_rank(self, obj):
+        # Rank is 1 + the number of users who have strictly more points than this user
+        if getattr(obj, 'club_points', None) is None:
+            return None
+        return User.objects.filter(club_points__gt=obj.club_points).count() + 1
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -59,21 +68,16 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'full_name',
             'student_uid',
-            'branch',
-            'year',
-            'semester',
             'batch',
             'phone',
+            'institution',
+            'degree_type',
+            'graduation_year',
         ]
 
-    def validate_year(self, value):
-        if value is not None and not (1 <= value <= 5):
-            raise serializers.ValidationError('Year must be between 1 and 5.')
-        return value
-
-    def validate_semester(self, value):
-        if value is not None and not (1 <= value <= 10):
-            raise serializers.ValidationError('Semester must be between 1 and 10.')
+    def validate_graduation_year(self, value):
+        if value is not None and not (2020 <= value <= 2040):
+            raise serializers.ValidationError('Graduation year must be between 2020 and 2040.')
         return value
 
     def validate_phone(self, value):

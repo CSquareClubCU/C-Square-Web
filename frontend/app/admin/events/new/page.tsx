@@ -42,10 +42,17 @@ function FieldGroup({
 }
 
 const inputClass =
+<<<<<<< HEAD
+  "w-full px-4 py-3 rounded-[8px] border border-black/[0.08] bg-white text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-all duration-200 text-[15px]";
+
+const selectClass =
+  "w-full px-4 py-3 rounded-[8px] border border-black/[0.08] bg-white text-black focus:outline-none focus:border-black transition-all duration-200 text-[15px]";
+=======
   "w-full px-4 py-3 rounded-xl border border-[var(--c-border)] bg-white text-[var(--c-primary-text)] placeholder:text-[var(--c-muted-text)] focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all duration-200 text-sm";
 
 const selectClass =
   "w-full px-4 py-3 rounded-xl border border-[var(--c-border)] bg-white text-[var(--c-primary-text)] focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black transition-all duration-200 text-sm";
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
 export default function NewEventPage() {
   useRequireAuth({ role: "admin" });
@@ -69,10 +76,22 @@ export default function NewEventPage() {
     max_team_size: null,
     status: "draft",
     prizes: [],
+<<<<<<< HEAD
+    faqs: [
+      { question: "Who can attend?", answer: "This event is open to all university students." },
+      { question: "Is there a registration fee?", answer: "No, the event is completely free!" },
+    ],
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
     rules: "",
     contact_name: "",
     contact_email: "",
     is_registration_open: true,
+<<<<<<< HEAD
+    is_flagship: false,
+    points: 100,
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   });
 
   const handlePrizeChange = (index: number, field: string, value: string) => {
@@ -98,6 +117,32 @@ export default function NewEventPage() {
     });
   };
 
+<<<<<<< HEAD
+  const handleFaqChange = (index: number, field: string, value: string) => {
+    setForm((prev) => {
+      const newFaqs = [...(prev.faqs || [])];
+      newFaqs[index] = { ...newFaqs[index], [field]: value };
+      return { ...prev, faqs: newFaqs };
+    });
+  };
+
+  const addFaq = () => {
+    setForm((prev) => ({
+      ...prev,
+      faqs: [...(prev.faqs || []), { question: "", answer: "" }],
+    }));
+  };
+
+  const removeFaq = (index: number) => {
+    setForm((prev) => {
+      const newFaqs = [...(prev.faqs || [])];
+      newFaqs.splice(index, 1);
+      return { ...prev, faqs: newFaqs };
+    });
+  };
+
+=======
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
   function handleChange(
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -134,6 +179,23 @@ export default function NewEventPage() {
   }
 
   return (
+<<<<<<< HEAD
+    <div className="w-full min-h-screen bg-white">
+      {/* Header */}
+      <section className="w-full pt-12 pb-8">
+        <div className="max-w-[800px] mx-auto px-5 md:px-10">
+          <Link
+            href="/admin/events"
+            className="text-sm font-medium text-gray-500 hover:text-black transition-colors mb-3 inline-flex items-center"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back to Events
+          </Link>
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tighter text-black mb-2">
+            Create New Event
+          </h1>
+          <p className="text-gray-600 text-[15px]">
+            Draft your event details. You can publish it whenever you're ready.
+=======
     <div className="w-full">
       {/* Header */}
       <section className="w-full bg-black text-white noise-overlay border-b border-white/[0.04] py-10 relative overflow-hidden">
@@ -150,11 +212,16 @@ export default function NewEventPage() {
           </h1>
           <p className="text-white/40 mt-1">
             Saved as draft until you publish it.
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
           </p>
         </div>
       </section>
 
+<<<<<<< HEAD
+      <div className="max-w-[800px] mx-auto px-5 md:px-10 pb-24">
+=======
       <div className="max-w-[800px] mx-auto px-5 md:px-10 py-10">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
         <motion.form
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -163,7 +230,11 @@ export default function NewEventPage() {
           className="space-y-8"
         >
           {/* Basic Info */}
+<<<<<<< HEAD
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+=======
           <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             <h2 className="font-semibold text-lg">Basic Information</h2>
 
             <FieldGroup label="Event Title" htmlFor="title" required>
@@ -241,7 +312,11 @@ export default function NewEventPage() {
           </div>
 
           {/* Dates & Capacity */}
+<<<<<<< HEAD
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+=======
           <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             <h2 className="font-semibold text-lg">
               <CalendarDays className="w-5 h-5 inline-block mr-2 text-[var(--c-muted-text)]" />
               Dates &amp; Capacity
@@ -302,7 +377,11 @@ export default function NewEventPage() {
           </div>
 
           {/* Enhancements: Contact & Rules */}
+<<<<<<< HEAD
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+=======
           <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             <h2 className="font-semibold text-lg">Contact & Rules</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -344,7 +423,11 @@ export default function NewEventPage() {
           </div>
 
           {/* Enhancements: Prizes */}
+<<<<<<< HEAD
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+=======
           <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-lg">Prizes</h2>
               <Button type="button" variant="outline" size="sm" onClick={addPrize}>
@@ -396,9 +479,93 @@ export default function NewEventPage() {
             )}
           </div>
 
+<<<<<<< HEAD
+          {/* Enhancements: FAQs */}
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-lg">Frequently Asked Questions</h2>
+              <Button type="button" variant="outline" size="sm" onClick={addFaq}>
+                <Plus className="w-4 h-4 mr-1" /> Add FAQ
+              </Button>
+            </div>
+
+            {(!form.faqs || form.faqs.length === 0) ? (
+              <p className="text-sm text-[var(--c-muted-text)]">No FAQs added yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {form.faqs.map((faq, idx) => (
+                  <div key={idx} className="flex gap-3 items-start border border-[var(--c-border)] p-4 rounded-xl relative">
+                    <div className="flex-1 space-y-3">
+                      <input
+                        type="text"
+                        placeholder="Question (e.g. Who can attend?)"
+                        value={faq.question}
+                        onChange={(e) => handleFaqChange(idx, "question", e.target.value)}
+                        className={inputClass + " py-2"}
+                      />
+                      <textarea
+                        placeholder="Answer (e.g. Everyone!)"
+                        value={faq.answer}
+                        rows={2}
+                        onChange={(e) => handleFaqChange(idx, "answer", e.target.value)}
+                        className={inputClass + " py-2 resize-none"}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFaq(idx)}
+                      className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors mt-0.5"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Event Settings */}
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] mt-8">
+            <h2 className="font-semibold text-lg mb-4">Event Features</h2>
+            
+            <div className="flex flex-col gap-4">
+              <label className="flex items-center gap-3 p-4 rounded-xl border border-black/[0.08] bg-white cursor-pointer hover:bg-black/[0.02] transition-colors">
+                <input
+                  type="checkbox"
+                  checked={form.is_flagship}
+                  onChange={(e) => setForm({ ...form, is_flagship: e.target.checked })}
+                  className="w-5 h-5 rounded border-gray-300 text-black focus:ring-black"
+                />
+                <div>
+                  <div className="font-medium text-[15px]">Flagship Event</div>
+                  <div className="text-sm text-gray-500">Mark this as the primary flagship event to be featured on the homepage.</div>
+                </div>
+              </label>
+            </div>
+
+            <FieldGroup label="Club Points" htmlFor="points" required>
+              <input
+                id="points"
+                name="points"
+                type="number"
+                required
+                min="0"
+                value={form.points}
+                onChange={(e) => setForm({ ...form, points: parseInt(e.target.value, 10) || 0 })}
+                className={inputClass}
+              />
+              <p className="text-sm text-gray-500 mt-2">Points awarded to users upon check-in.</p>
+            </FieldGroup>
+          </div>
+
+          {/* Attendance Settings */}
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] mt-8">
+            <h2 className="font-semibold text-lg mb-4">Attendance Settings</h2>
+=======
           {/* Options */}
           <div className="bg-white border border-[var(--c-border)] rounded-2xl p-6 md:p-8 space-y-5">
             <h2 className="font-semibold text-lg">Registration Options</h2>
+>>>>>>> 924843c4bd9c8afe7286d6f65a6f03f12023d59f
 
             <div className="space-y-3">
               <label className="flex items-start gap-3 cursor-pointer group">
