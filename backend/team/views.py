@@ -46,7 +46,7 @@ class TeamMemberListView(APIView):
             and getattr(request.user, 'role', None) == 'admin'
         )
         if is_admin:
-            members = TeamMember.objects.all()
+            members = TeamMember.objects.select_related('user').all()
             serializer = TeamMemberAdminSerializer(members, many=True)
         else:
             members = TeamMember.objects.filter(is_active=True)

@@ -231,7 +231,7 @@ export async function logout(): Promise<{ message: string }> {
  * Update the current user's mutable profile fields.
  */
 export async function updateUserProfile(
-  data: Partial<Pick<User, "full_name" | "student_uid" | "batch" | "phone" | "institution" | "degree_type" | "graduation_year">>
+  data: Partial<Pick<User, "full_name" | "student_uid" | "batch" | "phone" | "institution" | "degree_type" | "graduation_year" | "github_url" | "linkedin_url">>
 ): Promise<User> {
   return patch<User>("/users/me/", data);
 }

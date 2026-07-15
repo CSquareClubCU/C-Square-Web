@@ -70,7 +70,7 @@ export default function OnboardingPage() {
       return;
     }
 
-    const payload: any = { full_name: fullName.trim() };
+    const payload: Parameters<typeof updateUserProfile>[0] = { full_name: fullName.trim() };
 
     if (isCuStudent) {
       if (!studentUid.trim()) {
@@ -93,8 +93,8 @@ export default function OnboardingPage() {
       payload.graduation_year = year;
     }
 
-    if (githubUrl.trim()) payload.github_url = githubUrl.trim();
-    if (linkedinUrl.trim()) payload.linkedin_url = linkedinUrl.trim();
+    payload.github_url = githubUrl.trim() || null;
+    payload.linkedin_url = linkedinUrl.trim() || null;
 
     setLoading(true);
     try {
