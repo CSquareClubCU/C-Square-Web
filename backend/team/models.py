@@ -38,3 +38,18 @@ class TeamMember(BaseModel):
 
     def __str__(self):
         return f'{self.full_name} — {self.designation}'
+
+    def save(self, *args, **kwargs):
+        # Auto-fetch socials from the linked user profile if they aren't set
+        if self.user:
+            new_fields = []
+            if not self.github_url and self.user.github_url:
+                self.github_url = self.user.github_url
+                new_fields.append('github_url')
+            if not self.linkedin_url and self.user.linkedin_url:
+                self.linkedin_url = self.user.linkedin_url
+                new_fields.append('linkedin_url')
+            
+            if new_fields and 'update_fields' in kwargs:
+                kwargs['update_fields'] = list(set(kwargs['update_fields']) | set(new_fields))
+        super().save(*args, **kwargs)

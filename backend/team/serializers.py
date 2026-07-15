@@ -14,6 +14,16 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class TeamMemberAdminSerializer(serializers.ModelSerializer):
+    """Admin representation of a team member, including user linkage."""
+    user_email = serializers.CharField(source='user.email', read_only=True)
+
+    class Meta:
+        model = TeamMember
+        fields = ['id', 'full_name', 'designation', 'photo_url', 'display_order', 'is_active', 'github_url', 'linkedin_url', 'twitter_url', 'user', 'user_email']
+        read_only_fields = fields
+
+
 class TeamMemberCreateUpdateSerializer(serializers.ModelSerializer):
     """Validates create/update requests for team members."""
     user_id = serializers.UUIDField(required=False, allow_null=True)

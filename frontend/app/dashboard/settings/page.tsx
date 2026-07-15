@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchSettings, updateUserProfile, ApiError } from "@/lib/api";
+import { updateUserProfile, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
-import { Loader2, User as UserIcon, CheckCircle2, AlertCircle } from "lucide-react";
-import { FadeUp, StaggerContainer, StaggerItem } from "@/components/animations/MotionElements";
-import { QRCodeSVG } from "qrcode.react";
+import { Loader2, Settings as SettingsIcon, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
+import { FadeUp } from "@/components/animations/MotionElements";
 
-export default function OnboardingPage() {
+export default function SettingsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useRequireAuth();
   const { refresh } = useAuth();
@@ -30,11 +30,7 @@ export default function OnboardingPage() {
   const [isCuStudent, setIsCuStudent] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [whatsappLink, setWhatsappLink] = useState("");
-
-  useEffect(() => {
-    fetchSettings().then(s => setWhatsappLink(s.whatsapp_group_link || "")).catch(() => {});
-  }, []);
+  const [success, setSuccess] = useState(false);
 
   // Initialize form fields once user is loaded
   useEffect(() => {
@@ -64,6 +60,7 @@ export default function OnboardingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess(false);
 
     if (!fullName.trim()) {
       setError("Please enter your full name.");
@@ -102,9 +99,8 @@ export default function OnboardingPage() {
 
       // Refresh context so useRequireAuth doesn't bounce us back!
       await refresh();
-
-      sessionStorage.removeItem("auth_next");
-      router.replace("/dashboard");
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
     } catch (err: unknown) {
       if (err instanceof ApiError && err.fields) {
         const fields = err.fields;
@@ -129,29 +125,37 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center py-12 px-5 sm:px-6 lg:px-8">
-      <div className="max-w-4xl w-full">
-        <FadeUp>
-          <div className="text-center mb-10">
-            <div className="mx-auto w-16 h-16 bg-black rounded-[16px] flex items-center justify-center mb-6 shadow-xl">
-              <UserIcon className="w-8 h-8 text-white" />
+      <div className="max-w-2xl w-full flex flex-col items-start">
+        <Link href="/dashboard" className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-black transition-colors mb-8">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
+        </Link>
+        
+        <FadeUp className="w-full">
+          <div className="text-center md:text-left mb-10">
+            <div className="mx-auto md:mx-0 w-16 h-16 bg-black rounded-[16px] flex items-center justify-center mb-6 shadow-xl">
+              <SettingsIcon className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">
-              Complete Your Profile
+              Profile Settings
             </h2>
             <p className="text-[15px] text-gray-500">
-              Just a few quick details before we get started.
+              Update your personal details and social links.
             </p>
           </div>
-        </FadeUp>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-          <FadeUp delay={0.1}>
-            <div className="bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-black/[0.04] p-8">
+          <div className="bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-black/[0.04] p-8 w-full">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="p-4 bg-red-50 rounded-[12px] flex items-start gap-3 text-red-600">
                   <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                   <p className="text-sm font-medium">{error}</p>
+                </div>
+              )}
+              {success && (
+                <div className="p-4 bg-emerald-50 rounded-[12px] flex items-start gap-3 text-emerald-600">
+                  <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+                  <p className="text-sm font-medium">Profile updated successfully.</p>
                 </div>
               )}
 
@@ -284,36 +288,13 @@ export default function OnboardingPage() {
                   {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    "Continue to Dashboard"
+                    "Save Changes"
                   )}
                 </Button>
               </div>
             </form>
           </div>
         </FadeUp>
-
-        {whatsappLink && (
-          <FadeUp delay={0.2}>
-            <div className="bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-black/[0.04] p-8 text-center flex flex-col items-center justify-center h-full min-h-[300px]">
-              <h3 className="text-xl font-bold mb-2">Join our WhatsApp Community</h3>
-              <p className="text-sm text-gray-500 mb-6">Stay updated with the latest events and announcements.</p>
-              
-              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-6 inline-block">
-                <QRCodeSVG value={whatsappLink} size={160} level="M" />
-              </div>
-              
-              <a 
-                href={whatsappLink} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-black font-medium hover:underline inline-flex items-center"
-              >
-                Click here to join
-              </a>
-            </div>
-          </FadeUp>
-        )}
-        </div>
       </div>
     </div>
   );

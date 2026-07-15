@@ -47,6 +47,8 @@ class UserSerializer(serializers.ModelSerializer):
             'graduation_year',
             'club_points',
             'club_rank',
+            'github_url',
+            'linkedin_url',
         ]
         read_only_fields = ['id', 'email', 'role', 'is_cu_student', 'club_points', 'club_rank']
 
@@ -72,6 +74,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'institution',
             'degree_type',
             'graduation_year',
+            'github_url',
+            'linkedin_url',
         ]
 
     def validate_graduation_year(self, value):

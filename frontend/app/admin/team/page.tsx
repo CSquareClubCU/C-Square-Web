@@ -150,7 +150,7 @@ export default function AdminTeamPage() {
         full_name: form.full_name.trim(),
         designation: form.designation.trim(),
         display_order: parseInt(form.display_order, 10) || 0,
-        user: form.user_id || null,
+        user_id: form.user_id || null,
         github_url: form.github_url.trim() || null,
         linkedin_url: form.linkedin_url.trim() || null,
         twitter_url: form.twitter_url.trim() || null,
@@ -327,7 +327,15 @@ export default function AdminTeamPage() {
                   </div>
 
                   <p className="font-semibold text-sm mb-0.5 leading-tight">{member.full_name}</p>
-                  <p className="text-xs text-[var(--c-muted-text)] mb-2">{member.designation}</p>
+                  <p className="text-xs text-[var(--c-muted-text)] mb-0.5">{member.designation}</p>
+                  {member.user_email && (
+                    <p className="text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 mb-2 truncate max-w-[150px]" title={member.user_email}>
+                      {member.user_email}
+                    </p>
+                  )}
+                  {!member.user_email && (
+                    <div className="mb-2 h-5"></div>
+                  )}
 
                   {/* Inactive badge */}
                   {!member.is_active && (
@@ -500,7 +508,10 @@ export default function AdminTeamPage() {
                         value={userSearchQuery}
                         onChange={(e) => {
                           setUserSearchQuery(e.target.value);
-                          if (!e.target.value) {
+                          if (selectedUser && e.target.value !== selectedUser.email) {
+                            setSelectedUser(null);
+                            setForm({ ...form, user_id: "" });
+                          } else if (!e.target.value) {
                             setSelectedUser(null);
                             setForm({ ...form, user_id: "" });
                           }

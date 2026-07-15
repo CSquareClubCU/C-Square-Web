@@ -595,9 +595,24 @@ export default function AdminEventDetailPage() {
                         )}
                       </div>
                       <p className="text-[13px] text-[#6b7280] truncate mt-0.5 ml-4">{reg.user_email}</p>
-                      {reg.user_student_uid && (
+                      {(reg.user_student_uid || reg.user_github_url || reg.user_linkedin_url) && (
                         <div className="flex flex-wrap gap-2 mt-1 ml-4 text-[12px] text-[#9ca3af] font-medium">
-                          <span>{reg.user_student_uid}</span>
+                          {reg.user_student_uid && (
+                            <>
+                              <span>UID: {reg.user_student_uid}</span>
+                              {(reg.user_github_url || reg.user_linkedin_url) && <span>&middot;</span>}
+                            </>
+                          )}
+                          {reg.user_github_url && (
+                            <a href={reg.user_github_url} target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors hover:underline">
+                              GitHub
+                            </a>
+                          )}
+                          {reg.user_linkedin_url && (
+                            <a href={reg.user_linkedin_url} target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors hover:underline">
+                              LinkedIn
+                            </a>
+                          )}
                         </div>
                       )}
                     </div>
