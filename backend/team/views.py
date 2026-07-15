@@ -23,6 +23,7 @@ from team.models import TeamMember
 from team.serializers import (
     TeamMemberCreateUpdateSerializer,
     TeamMemberSerializer,
+    TeamMemberAdminSerializer,
     TeamPhotoSerializer,
 )
 
@@ -46,16 +47,18 @@ class TeamMemberListView(APIView):
         )
         if is_admin:
             members = TeamMember.objects.all()
+            serializer = TeamMemberAdminSerializer(members, many=True)
         else:
             members = TeamMember.objects.filter(is_active=True)
-        return Response(TeamMemberSerializer(members, many=True).data)
+            serializer = TeamMemberSerializer(members, many=True)
+        return Response(serializer.data)
 
     def post(self, request):
         serializer = TeamMemberCreateUpdateSerializer(data=request.data)
         if not serializer.is_valid():
             raise AppError('VALIDATION_ERROR', 'Invalid input.', fields=serializer.errors)
         member = services.create_team_member(serializer.validated_data)
-        return Response(TeamMemberSerializer(member).data, status=status.HTTP_201_CREATED)
+        return Response(TeamMemberAdminSerializer(member).data, status=status.HTTP_201_CREATED)
 
 
 class TeamMemberDetailView(APIView):
@@ -71,7 +74,7 @@ class TeamMemberDetailView(APIView):
         if not serializer.is_valid():
             raise AppError('VALIDATION_ERROR', 'Invalid input.', fields=serializer.errors)
         updated = services.update_team_member(member, serializer.validated_data)
-        return Response(TeamMemberSerializer(updated).data)
+        return Response(TeamMemberAdminSerializer(updated).data)
 
     def delete(self, request, pk):
         member = services.get_team_member_or_404(pk)

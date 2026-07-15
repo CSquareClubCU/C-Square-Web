@@ -65,6 +65,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     degree_type = models.CharField(max_length=100, null=True, blank=True)
     graduation_year = models.IntegerField(null=True, blank=True)
 
+    # Socials
+    github_url = models.URLField(max_length=500, null=True, blank=True)
+    linkedin_url = models.URLField(max_length=500, null=True, blank=True)
+
     # Engagement
     club_points = models.IntegerField(default=0)
 

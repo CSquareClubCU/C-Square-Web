@@ -386,9 +386,11 @@ export default function DashboardPage() {
                 </div>
               </div>
               
-              <Button variant="outline" className="w-full h-11 border-black/[0.08]">
-                Edit profile
-              </Button>
+              <Link href="/dashboard/settings" className="block w-full">
+                <Button variant="outline" className="w-full h-11 border-black/[0.08]">
+                  Edit profile
+                </Button>
+              </Link>
             </div>
           </div>
           

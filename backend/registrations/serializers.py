@@ -92,6 +92,8 @@ class RegistrationAdminListSerializer(serializers.ModelSerializer):
     user_email = serializers.CharField(source='user.email', read_only=True)
     user_full_name = serializers.CharField(source='user.full_name', read_only=True)
     user_student_uid = serializers.CharField(source='user.student_uid', read_only=True)
+    user_github_url = serializers.CharField(source='user.github_url', read_only=True)
+    user_linkedin_url = serializers.CharField(source='user.linkedin_url', read_only=True)
 
     user_phone = serializers.CharField(source='user.phone', read_only=True)
 
@@ -106,6 +108,8 @@ class RegistrationAdminListSerializer(serializers.ModelSerializer):
             'user_email',
             'user_full_name',
             'user_student_uid',
+            'user_github_url',
+            'user_linkedin_url',
 
             'user_phone',
             'status',

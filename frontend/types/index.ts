@@ -42,6 +42,8 @@ export interface User {
   graduation_year: number | null;
   club_points: number;
   club_rank: number | null;
+  github_url?: string | null;
+  linkedin_url?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -150,6 +152,8 @@ export interface RegistrationAdmin {
   user_email: string;
   user_full_name: string;
   user_student_uid: string | null;
+  user_github_url?: string | null;
+  user_linkedin_url?: string | null;
 
   user_phone: string | null;
   status: RegistrationStatus;
