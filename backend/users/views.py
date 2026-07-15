@@ -85,7 +85,7 @@ class MagicLinkVerifyView(APIView):
         login(request, user, backend='sesame.backends.ModelBackend')
         
         # Re-fetch with annotations for serialization
-        annotated_user = services.get_users().get(pk=user.pk)
+        annotated_user = services.get_user_list().get(pk=user.pk)
 
         return Response(
             {'user': UserSerializer(annotated_user).data},
@@ -133,7 +133,7 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = services.get_users().get(pk=request.user.pk)
+        user = services.get_user_list().get(pk=request.user.pk)
         return Response(
             UserSerializer(user).data,
             status=status.HTTP_200_OK,
