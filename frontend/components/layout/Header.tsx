@@ -23,6 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const publicNavLinks = [
   { href: "/events", label: "Events" },
   { href: "/team",   label: "Team"   },
+  { href: "/cusoc",  label: "CUSOC"  },
 ];
 
 const roleNav: Record<string, { href: string; label: string; icon: React.ReactNode }> = {
