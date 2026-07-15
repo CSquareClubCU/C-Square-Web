@@ -70,7 +70,9 @@ export default function TeamPage() {
     <div className="w-full">
       {/* Page Header */}
       <section className="relative w-full h-[calc(100vh-240px)] min-h-[400px] bg-white flex items-center justify-center overflow-hidden">
-        <TeamHeroBackground />
+        <TeamHeroBackground 
+          photos={team.map(m => m.photo_url).filter((url): url is string => !!url)} 
+        />
         <div className="relative z-20 text-center px-5 flex flex-col items-center gap-4 mt-8">
           <FadeUp>
             <h1 className="text-4xl md:text-6xl font-semibold tracking-tighter text-[#111] drop-shadow-sm max-w-4xl mx-auto">

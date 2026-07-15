@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.blob.core.windows.net",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8000",
+      },
     ],
   },
   async redirects() {
