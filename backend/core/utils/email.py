@@ -23,20 +23,21 @@ def send_email(
     raise_on_error: bool = False,
 ) -> None:
     """
-    Send an HTML email via Django's configured Email Backend.
+    Send an HTML email via Azure Communication Services SDK.
 
     Args:
         to: Recipient email address
         subject: Email subject line
         html_body: Rendered HTML string
 
-    In local development without SMTP credentials, logs the email instead of sending.
+    In local development without Azure credentials, logs the email instead of sending.
     """
     to = to or to_email
     html_body = html_body or html_content
-    sender = settings.DEFAULT_FROM_EMAIL
+    sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'DoNotReply@csquare.in')
+    connection_string = getattr(settings, 'AZURE_COMMUNICATION_CONNECTION_STRING', None)
 
-    if settings.DEBUG and not settings.EMAIL_HOST_USER and settings.EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
+    if not connection_string:
         print('\n' + '='*50)
         print(f'[EMAIL STUB] To: {to} | Subject: {subject}')
         print('='*50)
@@ -45,16 +46,25 @@ def send_email(
         return
 
     try:
-        from django.core.mail import send_mail
-        send_mail(
-            subject=subject,
-            message="Please view this email in an HTML-compatible client.",
-            from_email=sender,
-            recipient_list=[to],
-            html_message=html_body,
-            fail_silently=not raise_on_error,
-        )
+        from azure.communication.email import EmailClient
+        client = EmailClient.from_connection_string(connection_string)
 
+        message = {
+            "senderAddress": sender,
+            "recipients":  {
+                "to": [{"address": to}],
+            },
+            "content": {
+                "subject": subject,
+                "plainText": "Please view this email in an HTML-compatible client.",
+                "html": html_body
+            }
+        }
+
+        # Fire-and-forget submission
+        poller = client.begin_send(message)
+        # We deliberately do not call poller.result() here to keep the API blazing fast.
+        
     except Exception as exc:
         logger.exception('Failed to send email to %s: %s', to, exc)
         if raise_on_error:
