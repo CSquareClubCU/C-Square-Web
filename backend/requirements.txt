@@ -24,6 +24,8 @@ Pillow==12.2.0
 # Azure Services
 azure-storage-blob==12.25.1
 azure-communication-email==1.0.0
+# Pinned to avoid GLIBC_2.33 requirement on Azure App Service (Ubuntu 20.04 / GLIBC_2.32)
+cryptography==43.0.3
 
 # Testing
 pytest==9.0.3
