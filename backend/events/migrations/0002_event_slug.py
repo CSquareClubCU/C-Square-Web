@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='event',
             name='slug',
-            field=models.SlugField(max_length=280, blank=True, default=''),
+            field=models.SlugField(max_length=280, blank=True, default='', db_index=False),
             preserve_default=False,
         ),
         # Step 2: Backfill slugs for existing events
