@@ -11,7 +11,7 @@ import os
 
 DEBUG = False
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else ['api.csquare.in', 'csquare.in']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
 
 # ---------------------------------------------------------------------------
 # Database — Azure PostgreSQL Flexible Server via DATABASE_URL
@@ -27,10 +27,7 @@ DATABASES = {
 # ---------------------------------------------------------------------------
 # CORS — only the live frontend domain
 # ---------------------------------------------------------------------------
-CORS_ALLOWED_ORIGINS = [
-    'https://csquare.in',
-    'https://www.csquare.in',
-]
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if os.environ.get('CORS_ALLOWED_ORIGINS') else []
 
 # ---------------------------------------------------------------------------
 # Security hardening
@@ -41,7 +38,4 @@ SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = [
-    'https://api.csquare.in',
-    'https://csquare.in',
-]
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else []
