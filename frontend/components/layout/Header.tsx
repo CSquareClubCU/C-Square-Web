@@ -20,10 +20,10 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 
 // ─── Nav config ────────────────────────────────────────────────────────────
-const publicNavLinks = [
+const publicNavLinks: { href: string; label: string; external?: boolean }[] = [
   { href: "/events", label: "Events" },
   { href: "/team",   label: "Team"   },
-  { href: "/cusoc",  label: "CUSOC"  },
+  { href: "/cusoc",  label: "CUSoC", external: true },
 ];
 
 const roleNav: Record<string, { href: string; label: string; icon: React.ReactNode }> = {
@@ -115,11 +115,23 @@ export function Header() {
 
             {/* ── Desktop nav ── */}
             <nav className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
-              {publicNavLinks.map((link) => (
-                <NavLink key={link.href} href={link.href} active={pathname === link.href}>
-                  {link.label}
-                </NavLink>
-              ))}
+              {publicNavLinks.map((link) =>
+                link.external ? (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[14px] font-medium px-4 py-2 rounded-full transition-all duration-150 flex items-center gap-1 text-[#292929] hover:bg-gray-100/50"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <NavLink key={link.href} href={link.href} active={pathname === link.href}>
+                    {link.label}
+                  </NavLink>
+                )
+              )}
               {roleLink && (
                 <NavLink href={roleLink.href} active={pathname.startsWith(roleLink.href)}>
                   <span className="flex items-center gap-1.5">
@@ -263,20 +275,33 @@ export function Header() {
             >
               {/* Nav links */}
               <nav className="px-2 py-3 border-b border-[#f0f0f0]">
-                {publicNavLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-colors ${
-                      pathname === link.href
-                        ? "bg-gray-100 text-black"
-                        : "text-[#444] hover:bg-gray-50 hover:text-black"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                {publicNavLinks.map((link) =>
+                  link.external ? (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-colors text-[#444] hover:bg-gray-50 hover:text-black"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-colors ${
+                        pathname === link.href
+                          ? "bg-gray-100 text-black"
+                          : "text-[#444] hover:bg-gray-50 hover:text-black"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                )}
                 {roleLink && (
                   <Link
                     href={roleLink.href}
