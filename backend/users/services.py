@@ -69,6 +69,7 @@ def send_magic_link(email: str) -> None:
             status=429
         )
 
+
     from urllib.parse import urlencode
 
     signer = TimestampSigner()
@@ -92,6 +93,7 @@ def verify_magic_link(token: str) -> User:
 
     Args:
         token: The signed token from the query string.
+
 
     Returns:
         The authenticated User instance.
@@ -126,6 +128,7 @@ def verify_magic_link(token: str) -> User:
             is_cu_student=_is_cu_student(email),
             role=UserRole.STUDENT,
         )
+
         logger.info('New user created via magic link verification: User ID %s', user.id)
 
     # Sync is_staff and is_superuser with role — admin users need is_staff=True and is_superuser=True for Django Admin
