@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Globe, Code2, ExternalLink } from "lucide-react";
+import { ArrowUpRight, Globe, ExternalLink, Instagram } from "lucide-react";
 
 const footerLinks = [
   {
@@ -20,9 +20,9 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-  { icon: <Code2 className="w-4 h-4" />, href: "https://github.com/CSquareClubCU", label: "GitHub" },
-  { icon: <Globe className="w-4 h-4" />, href: "https://csquareclub.com", label: "Website" },
   { icon: <ExternalLink className="w-4 h-4" />, href: "https://www.linkedin.com/company/csquare-club", label: "LinkedIn" },
+  { icon: <Globe className="w-4 h-4" />, href: "https://www.csquareclub.co.in", label: "Website" },
+  { icon: <Instagram className="w-4 h-4" />, href: "https://www.instagram.com/csquare_club/", label: "Instagram" },
 ];
 
 export function Footer() {

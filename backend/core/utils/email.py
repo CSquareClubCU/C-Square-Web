@@ -34,7 +34,7 @@ def send_email(
     """
     to = to or to_email
     html_body = html_body or html_content
-    sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'DoNotReply@csquare.in')
+    sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'DoNotReply@csquareclub.co.in')
     connection_string = getattr(settings, 'AZURE_COMMUNICATION_CONNECTION_STRING', None)
 
     if not connection_string:
