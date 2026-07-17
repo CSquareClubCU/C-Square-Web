@@ -175,6 +175,8 @@ class TeamMemberSerializer(serializers.ModelSerializer):
     """
     Representation of a team member.
     """
+    user_full_name = serializers.CharField(source='user.full_name', read_only=True)
+
     class Meta:
         model = TeamMember
         fields = [
@@ -183,6 +185,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
             'has_confirmed',
             'confirmed_at',
             'user',
+            'user_full_name',
         ]
         read_only_fields = fields
 

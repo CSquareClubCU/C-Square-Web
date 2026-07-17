@@ -178,6 +178,7 @@ export interface TeamMemberRecord {
   has_confirmed: boolean;
   confirmed_at: string | null;
   user: string | null; // UUID
+  user_full_name?: string | null;
 }
 
 export interface Team {
