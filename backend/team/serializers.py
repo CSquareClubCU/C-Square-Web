@@ -10,7 +10,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
     """Public representation of a team member."""
     class Meta:
         model = TeamMember
-        fields = ['id', 'full_name', 'designation', 'photo_url', 'display_order', 'is_active', 'github_url', 'linkedin_url', 'twitter_url']
+        fields = ['id', 'full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'github_url', 'linkedin_url']
         read_only_fields = fields
 
 
@@ -20,7 +20,7 @@ class TeamMemberAdminSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeamMember
-        fields = ['id', 'full_name', 'designation', 'photo_url', 'display_order', 'is_active', 'github_url', 'linkedin_url', 'twitter_url', 'user', 'user_email']
+        fields = ['id', 'full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'github_url', 'linkedin_url', 'user', 'user_email']
         read_only_fields = fields
 
 
@@ -30,7 +30,7 @@ class TeamMemberCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeamMember
-        fields = ['full_name', 'designation', 'photo_url', 'display_order', 'is_active', 'user_id', 'github_url', 'linkedin_url', 'twitter_url']
+        fields = ['full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'user_id', 'github_url', 'linkedin_url']
 
     def validate_user_id(self, value):
         if value:

@@ -11,6 +11,21 @@ const imagePositions = [
   [3, 5, 8, 11, 14, 17, 22, 26, 29, 32, 35, 37],
 ];
 
+function FadeInImage({ src }: { src: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt="Team member"
+      onLoad={() => setLoaded(true)}
+      className={`w-full h-full object-cover transition-opacity duration-700 ease-out ${
+        loaded ? "opacity-100" : "opacity-0"
+      }`}
+    />
+  );
+}
+
 export function TeamHeroBackground({ photos }: { photos: string[] }) {
 
   // Build a map of "rowIndex-colIndex" -> photo url
@@ -105,12 +120,7 @@ export function TeamHeroBackground({ photos }: { photos: string[] }) {
                   }`}
                 >
                   {square.photo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={square.photo}
-                      alt="Team member"
-                      className="w-full h-full object-cover"
-                    />
+                    <FadeInImage src={square.photo} />
                   ) : square.hasMember ? (
                     <svg className="w-8 h-8 text-black/10" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />

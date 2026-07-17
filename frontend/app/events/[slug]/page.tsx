@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import DOMPurify from "isomorphic-dompurify";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { fetchEventById, fetchCurrentUser, registerForEvent, cancelRegistration, fetchMyRegistrations } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/utils";
 import {
@@ -30,7 +31,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FadeUp, SlideIn } from "@/components/animations/MotionElements";
-import type { Event, User, Registration } from "@/types";
+import TeamStatusWidget from "@/components/events/TeamStatusWidget";
+import type { Event, User, Registration, Team } from "@/types";
 
 // Countdown hook
 function useCountdown(targetDate: string | undefined) {
@@ -115,7 +117,10 @@ export default function EventDetailPage() {
     try {
       const reg = await registerForEvent(event.id);
       setMyRegistration(reg);
-      setEvent((prev) => prev ? { ...prev, registered_count: prev.registered_count + 1 } : prev);
+      // registered_count only counts approved registrations — only increment if auto-approved
+      if (reg.status === 'approved') {
+        setEvent((prev) => prev ? { ...prev, registered_count: prev.registered_count + 1 } : prev);
+      }
     } catch (err: unknown) {
       setRegError(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
@@ -166,6 +171,7 @@ export default function EventDetailPage() {
   const isLoggedIn = !!user;
   const hasRegistration = !!myRegistration;
   const regStatus = myRegistration?.status;
+  const showTeamSection = event.is_team_event && myRegistration && (regStatus === "approved" || regStatus === "pending");
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-[#111] font-['Inter',sans-serif] pb-32">
@@ -192,11 +198,24 @@ export default function EventDetailPage() {
 
               {/* Overview White Card */}
               <div id="overview" className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] p-8 md:p-10 mb-12 shadow-sm">
-                <div 
-                  className="text-[#374151] leading-[1.6] text-[15px] md:text-[16px] prose prose-p:mb-5 max-w-none prose-a:text-[#3b82f6]"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description || "<p>Join us for an exciting journey of creativity and innovation.</p>") }}
-                />
+                <div className="prose prose-sm md:prose-base max-w-none prose-a:text-[#3b82f6] text-[#374151]">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {event.description || "Join us for an exciting journey of creativity and innovation."}
+                  </ReactMarkdown>
+                </div>
               </div>
+
+              {/* Rules */}
+              {event.rules && (
+                <div id="rules" className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] p-8 md:p-10 mb-12 shadow-sm">
+                  <h2 className="text-[28px] font-semibold tracking-tight text-[#111111] mb-6">Rules & Guidelines</h2>
+                  <div className="prose prose-sm md:prose-base max-w-none prose-a:text-[#3b82f6] text-[#374151]">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {event.rules}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              )}
 
               {/* Prizes */}
               {event.prizes && event.prizes.length > 0 && (
@@ -292,7 +311,7 @@ export default function EventDetailPage() {
           </div>
 
           {/* Right Column - Sticky Sidebar */}
-          <div className="w-full lg:w-[340px] xl:w-[380px] shrink-0 sticky top-[120px] h-fit self-start">
+          <div className={`w-full lg:w-[340px] xl:w-[380px] shrink-0 h-fit self-start ${showTeamSection ? '' : 'sticky top-[120px]'}`}>
             <div className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] shadow-sm p-6 md:p-8">
                   
                   <h1 className="text-[24px] font-semibold tracking-tight text-[#111111] mb-8">
@@ -325,6 +344,7 @@ export default function EventDetailPage() {
 
                   {/* Action Button & Status */}
                   {hasRegistration ? (
+                    <>
                     <div className="flex flex-col gap-3">
                       <div className={`w-full rounded-[12px] p-4 flex items-center justify-center gap-2 border ${
                         regStatus === 'approved' ? 'bg-[#10b981]/10 border-[#10b981]/20 text-[#10b981]' : 
@@ -362,6 +382,16 @@ export default function EventDetailPage() {
                         </Button>
                       )}
                     </div>
+                    
+                    {showTeamSection && (
+                      <TeamStatusWidget 
+                        registration={myRegistration}
+                        onTeamUpdated={(team: Team | null) => {
+                          setMyRegistration(prev => prev ? { ...prev, team } : null);
+                        }}
+                      />
+                    )}
+                  </>
                   ) : (
                     <div className="flex flex-col gap-2">
                       {isLoggedIn ? (

@@ -31,11 +31,11 @@ def update_team_member(member: TeamMember, validated_data: dict) -> TeamMember:
 
 def delete_team_member(member: TeamMember) -> None:
     """
-    Soft delete — sets is_active to False.
+    Permanently delete the team member profile.
+    This does not delete the linked user account.
     """
     member_name = member.full_name
-    member.is_active = False
-    member.save(update_fields=['is_active', 'updated_at'])
+    member.delete()
     logger.info('Team member deleted: %s', member_name)
 
 

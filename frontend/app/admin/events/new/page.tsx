@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/Button";
 import { createEvent } from "@/lib/api";
 import type { EventCreateData } from "@/lib/api";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const EVENT_TYPES = ["hackathon", "competition", "workshop", "seminar"];
 const EVENT_STATUSES = ["draft", "published"];
@@ -53,6 +55,8 @@ export default function NewEventPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [descMode, setDescMode] = useState<"write" | "preview">("write");
+  const [rulesMode, setRulesMode] = useState<"write" | "preview">("write");
 
   const [form, setForm] = useState<EventCreateData>({
     title: "",
@@ -77,6 +81,7 @@ export default function NewEventPage() {
     contact_name: "",
     contact_email: "",
     is_registration_open: true,
+    requires_approval: true,
     is_flagship: false,
     points: 100,
   });
@@ -242,16 +247,28 @@ export default function NewEventPage() {
             </div>
 
             <FieldGroup label="Description" htmlFor="description" required>
-              <textarea
-                id="description"
-                name="description"
-                required
-                rows={5}
-                placeholder="Describe the event — supports basic HTML"
-                value={form.description}
-                onChange={handleChange}
-                className={inputClass + " resize-none"}
-              />
+              <div className="flex items-center gap-4 mb-2">
+                <button type="button" onClick={() => setDescMode('write')} className={`text-[13px] font-medium transition-colors ${descMode === 'write' ? 'text-black border-b border-black' : 'text-gray-500 hover:text-black'}`}>Write</button>
+                <button type="button" onClick={() => setDescMode('preview')} className={`text-[13px] font-medium transition-colors ${descMode === 'preview' ? 'text-black border-b border-black' : 'text-gray-500 hover:text-black'}`}>Preview</button>
+              </div>
+              {descMode === 'write' ? (
+                <textarea
+                  id="description"
+                  name="description"
+                  required
+                  rows={5}
+                  placeholder="Describe the event — supports Markdown"
+                  value={form.description}
+                  onChange={handleChange}
+                  className={inputClass + " resize-none"}
+                />
+              ) : (
+                <div className="p-4 border border-black/[0.08] rounded-[8px] bg-white min-h-[140px] prose prose-sm max-w-none text-black">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {form.description || "*No description provided.*"}
+                  </ReactMarkdown>
+                </div>
+              )}
             </FieldGroup>
 
             <FieldGroup label="Venue" htmlFor="venue" required>
@@ -359,15 +376,27 @@ export default function NewEventPage() {
             </div>
 
             <FieldGroup label="Rules & Guidelines" htmlFor="rules">
-              <textarea
-                id="rules"
-                name="rules"
-                rows={4}
-                placeholder="Rules for the event (supports basic HTML)"
-                value={form.rules || ""}
-                onChange={handleChange}
-                className={inputClass + " resize-none"}
-              />
+              <div className="flex items-center gap-4 mb-2">
+                <button type="button" onClick={() => setRulesMode('write')} className={`text-[13px] font-medium transition-colors ${rulesMode === 'write' ? 'text-black border-b border-black' : 'text-gray-500 hover:text-black'}`}>Write</button>
+                <button type="button" onClick={() => setRulesMode('preview')} className={`text-[13px] font-medium transition-colors ${rulesMode === 'preview' ? 'text-black border-b border-black' : 'text-gray-500 hover:text-black'}`}>Preview</button>
+              </div>
+              {rulesMode === 'write' ? (
+                <textarea
+                  id="rules"
+                  name="rules"
+                  rows={4}
+                  placeholder="e.g. No plagiarism, team sizes are strictly enforced..."
+                  value={form.rules || ""}
+                  onChange={handleChange}
+                  className={inputClass + " resize-none"}
+                />
+              ) : (
+                <div className="p-4 border border-black/[0.08] rounded-[8px] bg-white min-h-[120px] prose prose-sm max-w-none text-black">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {form.rules || "*No rules provided.*"}
+                  </ReactMarkdown>
+                </div>
+              )}
             </FieldGroup>
           </div>
 
@@ -519,6 +548,22 @@ export default function NewEventPage() {
                   <p className="font-medium text-sm">Registrations Open</p>
                   <p className="text-xs text-[var(--c-muted-text)]">
                     If unchecked, users cannot register for this event
+                  </p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  name="requires_approval"
+                  checked={form.requires_approval}
+                  onChange={handleChange}
+                  className="mt-0.5 w-4 h-4 rounded border-[var(--c-border)] accent-black"
+                />
+                <div>
+                  <p className="font-medium text-sm">Requires Approval (Waitlist)</p>
+                  <p className="text-xs text-[var(--c-muted-text)]">
+                    If unchecked, users will be automatically approved unless capacity is full
                   </p>
                 </div>
               </label>

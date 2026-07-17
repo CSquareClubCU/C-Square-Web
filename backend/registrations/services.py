@@ -56,8 +56,7 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
     except Event.DoesNotExist:
         raise AppError('NOT_FOUND', 'Event not found.', 404)
 
-    if event.is_team_event:
-        raise AppError('TEAM_EVENT', 'This is a team event. Please use team registration.', 400)
+
 
     _check_event_open_for_registration(event, user)
 
@@ -97,156 +96,213 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
 
     logger.info('User %s registered for event "%s" (Status: %s)', user.email, event.title, status)
     
-    # Send email (fire and forget for MVP, synchronously)
-    try:
-        if status == RegistrationStatus.WAITLISTED:
-            # Waitlist email
-            html_content = f"<p>You are on the waitlist for {event.title}. Your position is {waitlist_position}.</p>"
-            send_email(
-                to_email=user.email,
-                subject=f"Waitlisted: {event.title}",
-                html_content=html_content
-            )
-        else:
-            # Pending approval email
-            html_content = f"<p>Your registration for {event.title} is pending approval.</p>"
-            send_email(
-                to_email=user.email,
-                subject=f"Registration Pending: {event.title}",
-                html_content=html_content
-            )
-    except Exception as e:
-        logger.error("Failed to send registration email: %s", str(e))
+    # Auto-approve if waitlist is off and not waitlisted
+    if status == RegistrationStatus.PENDING and not getattr(event, 'requires_approval', True):
+        # We don't have an admin user here, but approve_registration doesn't use it anyway.
+        try:
+            approve_registration(registration.id, admin_user=None)
+            registration.refresh_from_db()
+        except AppError as e:
+            logger.error("Failed to auto-approve registration %s: %s", registration.id, str(e))
+            # Fallback to sending pending email if auto-approve failed
+            _send_pending_email(user, event)
+    else:
+        # Send email (fire and forget for MVP, synchronously)
+        try:
+            if status == RegistrationStatus.WAITLISTED:
+                # Waitlist email
+                from django.utils.html import escape
+                html_content = f"<p>You are on the waitlist for {escape(event.title)}. Your position is {waitlist_position}.</p>"
+                send_email(
+                    to_email=user.email,
+                    subject=f"Waitlisted: {escape(event.title)}",
+                    html_content=html_content
+                )
+            else:
+                _send_pending_email(user, event)
+        except Exception as e:
+            logger.error("Failed to send registration email: %s", str(e))
 
     return registration
 
+def _send_pending_email(user, event):
+    from django.utils.html import escape
+    html_content = f"<p>Your registration for {escape(event.title)} is pending approval.</p>"
+    send_email(
+        to_email=user.email,
+        subject=f"Registration Pending: {event.title}",
+        html_content=html_content
+    )
 
-def register_team(event_id: uuid.UUID, team_name: str, leader, members_data: list) -> Team:
+
+from django.utils.crypto import get_random_string
+
+def create_team_from_registration(registration_id: uuid.UUID, team_name: str, user) -> Team:
     """
-    Submit a team registration.
-    Creates the team and sends invites to members.
+    Creates a new team for a user who already has a registration for a team event.
     """
     try:
-        event = Event.objects.get(id=event_id)
-    except Event.DoesNotExist:
-        raise AppError('NOT_FOUND', 'Event not found.', 404)
+        registration = Registration.objects.select_related('event').get(id=registration_id, user=user)
+    except Registration.DoesNotExist:
+        raise AppError('NOT_FOUND', 'Registration not found.', 404)
 
+    event = registration.event
     if not event.is_team_event:
         raise AppError('NOT_TEAM_EVENT', 'This is not a team event.', 400)
 
-    _check_event_open_for_registration(event, leader)
+    if registration.status not in [RegistrationStatus.APPROVED, RegistrationStatus.PENDING]:
+        raise AppError('INVALID_STATUS', 'You must have an active registration to create a team.', 400)
 
-    # Validate team size
-    total_members = len(members_data) + 1  # include leader
-    if total_members < event.min_team_size:
-        raise AppError('TEAM_TOO_SMALL', f'Team must have at least {event.min_team_size} members.', 400)
-    if total_members > event.max_team_size:
-        raise AppError('TEAM_TOO_LARGE', f'Team can have at most {event.max_team_size} members.', 400)
+    if registration.team:
+        raise AppError('ALREADY_IN_TEAM', 'You are already in a team for this event.', 409)
 
-    # Check if leader is already in a team for this event
-    if TeamMember.objects.filter(team__event=event, email=leader.email.lower()).exists() or \
-       Team.objects.filter(event=event, leader=leader).exists():
-        raise AppError('ALREADY_IN_TEAM', 'You are already part of a team for this event.', 409)
-
-    emails = [m['email'].lower() for m in members_data]
-    if leader.email.lower() in emails:
-        raise AppError('INVALID_MEMBERS', 'Leader should not be in the members list.', 400)
-
-    # Check if any member is already in a team
-    existing = TeamMember.objects.filter(team__event=event, email__in=emails)
-    if existing.exists():
-        raise AppError('MEMBER_ALREADY_IN_TEAM', 'One or more members are already in a team for this event.', 409)
-
-    invites_to_send = []
     with transaction.atomic():
-        team = Team.objects.create(
-            event=event,
-            name=team_name,
-            leader=leader,
-            status=TeamStatus.PENDING_CONFIRMATION,
-        )
+        while True:
+            join_code = get_random_string(length=6, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            if not Team.objects.filter(join_code=join_code).exists():
+                break
 
-        # Auto-confirm leader
+        from django.db import IntegrityError
+        try:
+            team = Team.objects.create(
+                event=event,
+                name=team_name,
+                leader=user,
+                status=TeamStatus.APPROVED, # The team itself is immediately active
+                join_code=join_code
+            )
+        except IntegrityError:
+            # Very rare collision at DB level — retry with a new code
+            join_code = get_random_string(length=8, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            team = Team.objects.create(
+                event=event,
+                name=team_name,
+                leader=user,
+                status=TeamStatus.APPROVED,
+                join_code=join_code
+            )
+
         TeamMember.objects.create(
             team=team,
-            user=leader,
-            email=leader.email.lower(),
+            user=user,
+            email=user.email.lower(),
             has_confirmed=True,
             confirmed_at=timezone.now(),
         )
 
-        # Create unconfirmed members
-        for m in members_data:
-            token = uuid.uuid4()
-            TeamMember.objects.create(
-                team=team,
-                email=m['email'].lower(),
-                confirmation_token=token,
-            )
-            invites_to_send.append((m['email'].lower(), token))
+        # Update the registration to point to this team
+        registration.is_team_registration = True
+        registration.team = team
+        registration.save(update_fields=['is_team_registration', 'team'])
 
-    # Trigger emails after transaction block has successfully completed
-    from django.utils.html import escape
-    for email_addr, token in invites_to_send:
-        try:
-            escaped_team_name = escape(team_name)
-            escaped_event_title = escape(event.title)
-            invite_url = f"{settings.FRONTEND_URL}/teams/confirm?token={token}&team_id={team.id}"
-            html_content = f"<p>You've been invited to team {escaped_team_name} for {escaped_event_title}. <a href='{invite_url}'>Confirm here</a>.</p>"
-            send_email(
-                to_email=email_addr,
-                subject=f"Team Invite: {team_name}",
-                html_content=html_content
-            )
-        except Exception as e:
-            logger.error("Failed to send team invite email: %s", str(e))
-
-    logger.info('Team "%s" registered by %s for event "%s"', team_name, leader.email, event.title)
+    logger.info('Team "%s" created by %s for event "%s" with code %s', team_name, user.email, event.title, join_code)
     return team
 
 
-def confirm_teammate(token: uuid.UUID, user) -> TeamMember:
+def join_team_with_code(registration_id: uuid.UUID, join_code: str, user) -> Team:
     """
-    Confirm a teammate's invite.
-    If all confirmed, transitions Team to PENDING_APPROVAL and creates Registrations.
+    Joins an existing team using a join code for a user with a registration.
     """
     try:
-        member = TeamMember.objects.select_related('team', 'team__event').get(
-            confirmation_token=token, has_confirmed=False
-        )
-    except TeamMember.DoesNotExist:
-        raise AppError('INVALID_TOKEN', 'Invalid or expired confirmation token.', 400)
+        registration = Registration.objects.select_related('event').get(id=registration_id, user=user)
+    except Registration.DoesNotExist:
+        raise AppError('NOT_FOUND', 'Registration not found.', 404)
 
-    if member.email != user.email:
-        raise AppError('EMAIL_MISMATCH', 'Please login with the email that received the invite.', 403)
+    event = registration.event
+    if not event.is_team_event:
+        raise AppError('NOT_TEAM_EVENT', 'This is not a team event.', 400)
+
+    if registration.status not in [RegistrationStatus.APPROVED, RegistrationStatus.PENDING]:
+        raise AppError('INVALID_STATUS', 'You must have an active registration to join a team.', 400)
+
+    if registration.team:
+        raise AppError('ALREADY_IN_TEAM', 'You are already in a team for this event.', 409)
+
+    try:
+        team = Team.objects.get(join_code=join_code.upper(), event=event)
+    except Team.DoesNotExist:
+        raise AppError('INVALID_CODE', 'Invalid join code for this event.', 404)
 
     with transaction.atomic():
-        member.has_confirmed = True
-        member.confirmation_token = None
-        member.confirmed_at = timezone.now()
-        member.user = user
-        member.save(update_fields=['has_confirmed', 'confirmation_token', 'confirmed_at', 'user'])
+        # Check team size
+        current_members = team.members.count()
+        if event.max_team_size and current_members >= event.max_team_size:
+            raise AppError('TEAM_FULL', f'This team has reached the maximum size of {event.max_team_size}.', 400)
 
-        # Check if all members confirmed
-        team = member.team
-        unconfirmed_count = team.members.filter(has_confirmed=False).count()
+        TeamMember.objects.create(
+            team=team,
+            user=user,
+            email=user.email.lower(),
+            has_confirmed=True,
+            confirmed_at=timezone.now(),
+        )
 
-        if unconfirmed_count == 0:
-            team.status = TeamStatus.PENDING_APPROVAL
-            team.save(update_fields=['status', 'updated_at'])
+        registration.is_team_registration = True
+        registration.team = team
+        registration.save(update_fields=['is_team_registration', 'team'])
 
-            # Create pending individual registrations for each confirmed member
-            for m in team.members.all():
-                Registration.objects.create(
-                    event=team.event,
-                    user=m.user,
-                    status=RegistrationStatus.PENDING,
-                    is_team_registration=True,
-                    team=team,
-                )
-            logger.info('Team "%s" fully confirmed and ready for approval.', team.name)
+    logger.info('User %s joined team "%s" via code', user.email, team.name)
+    return team
 
-    return member
+
+def leave_team(registration_id: uuid.UUID, user) -> None:
+    """
+    Leaves a team. Detaches the registration from the team and deletes the TeamMember.
+    If the user is the leader, they can only leave if they are the only member (deletes team).
+    If there are other members, the leader cannot leave.
+    """
+    try:
+        registration = Registration.objects.select_related('team', 'event').get(id=registration_id, user=user)
+    except Registration.DoesNotExist:
+        raise AppError('NOT_FOUND', 'Registration not found.', 404)
+
+    if not registration.is_team_registration or not registration.team:
+        raise AppError('NOT_IN_TEAM', 'You are not in a team.', 400)
+
+    team = registration.team
+    
+    with transaction.atomic():
+        # Lock the team row to avoid concurrent leave race conditions
+        team = Team.objects.select_for_update().get(id=team.id)
+        
+        if team.leader == user:
+            if team.members.count() > 1:
+                raise AppError('TEAM_LEADER', 'Team leaders cannot leave while there are other members.', 400)
+            else:
+                # Leader is the only member, delete the team (cascades TeamMember)
+                team.delete()
+        else:
+            # Remove from TeamMember
+            TeamMember.objects.filter(team=team, user=user).delete()
+        
+        # Clean up the QR blob if the user was approved
+        if registration.status == RegistrationStatus.APPROVED and registration.qr_image_url:
+            from core.utils.storage import delete_blob_from_url
+            try:
+                delete_blob_from_url(registration.qr_image_url)
+            except Exception as exc:
+                logger.warning('Failed to delete QR blob for registration %s: %s', registration.id, exc)
+
+        # Clean up the AttendanceRecord if user was approved
+        if registration.status == RegistrationStatus.APPROVED:
+            try:
+                from attendance.models import AttendanceRecord
+                AttendanceRecord.objects.filter(registration=registration).delete()
+            except Exception as exc:
+                logger.warning('Failed to delete AttendanceRecord for registration %s: %s', registration.id, exc)
+
+        # Detach registration from team
+        registration.is_team_registration = False
+        registration.team = None
+        # Reset status if it was approved as part of a team
+        if registration.status == RegistrationStatus.APPROVED:
+            registration.status = RegistrationStatus.PENDING
+            registration.qr_token = None
+            registration.qr_image_url = None
+        registration.save(update_fields=['is_team_registration', 'team', 'status', 'qr_token', 'qr_image_url', 'updated_at'])
+
+    logger.info('User %s left team "%s"', user.email, team.name)
+
 
 
 def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration:
@@ -268,15 +324,8 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
     if registration.status != RegistrationStatus.PENDING:
         raise AppError('INVALID_STATUS', 'Only pending registrations can be approved.', 400)
 
-    # Determine all registrations to approve (just one if individual, all if team)
-    if registration.is_team_registration and registration.team:
-        team = registration.team
-        if team.status != TeamStatus.PENDING_APPROVAL:
-             raise AppError('INVALID_TEAM_STATUS', 'Team is not ready for approval.', 400)
-        regs_to_approve = list(team.registrations.all())
-    else:
-        team = None
-        regs_to_approve = [registration]
+    team = None
+    regs_to_approve = [registration]
 
     with transaction.atomic():
         # Lock the Event row to prevent race conditions on capacity calculation
@@ -292,28 +341,13 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
             raise AppError('INVALID_STATUS', 'Only pending registrations can be approved.', 400)
 
         # Determine all fresh locked registrations to approve
-        if db_reg.is_team_registration and db_reg.team:
-            db_team = Team.objects.select_for_update().get(id=db_reg.team.id)
-            if db_team.status != TeamStatus.PENDING_APPROVAL:
-                 raise AppError('INVALID_TEAM_STATUS', 'Team is not ready for approval.', 400)
-            regs_to_approve = list(db_team.registrations.select_for_update().all())
-            # Ensure all registrations to approve are indeed pending
-            for r in regs_to_approve:
-                if r.status != RegistrationStatus.PENDING:
-                    raise AppError('INVALID_STATUS', 'One or more registrations are not pending.', 400)
-            team = db_team
-        else:
-            team = None
-            regs_to_approve = [db_reg]
+        team = None
+        regs_to_approve = [db_reg]
 
         # Check capacity against event limit using locked values
         approved_count = Registration.objects.filter(event=event, status=RegistrationStatus.APPROVED).count()
         if approved_count + len(regs_to_approve) > event.capacity:
             raise AppError('CAPACITY_EXCEEDED', 'Approving this would exceed event capacity.', 400)
-
-        if team:
-            team.status = TeamStatus.APPROVED
-            team.save(update_fields=['status', 'updated_at'])
 
         for reg in regs_to_approve:
             qr_token = uuid.uuid4()
@@ -378,6 +412,132 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
     return registration
 
 
+def approve_team(team_id: uuid.UUID, admin_user) -> Team:
+    """
+    Approve all pending members of a team.
+    """
+    try:
+        from attendance.models import AttendanceRecord
+    except ImportError:
+        AttendanceRecord = None
+
+    try:
+        team = Team.objects.select_related('event').get(id=team_id)
+    except Team.DoesNotExist:
+        raise AppError('NOT_FOUND', 'Team not found.', 404)
+
+    with transaction.atomic():
+        # Lock the Event row to prevent race conditions on capacity calculation
+        event = Event.objects.select_for_update().get(id=team.event.id)
+
+        # Lock pending registrations for this team
+        regs_to_approve = list(team.registrations.select_for_update().filter(status=RegistrationStatus.PENDING))
+
+        if not regs_to_approve:
+            raise AppError('INVALID_STATUS', 'No pending members found in this team to approve.', 400)
+
+        # Check capacity against event limit using locked values
+        approved_count = Registration.objects.filter(event=event, status=RegistrationStatus.APPROVED).count()
+        if approved_count + len(regs_to_approve) > event.capacity:
+            raise AppError('CAPACITY_EXCEEDED', 'Approving this team would exceed event capacity.', 400)
+
+        for reg in regs_to_approve:
+            qr_token = uuid.uuid4()
+            
+            # Update registration
+            reg.status = RegistrationStatus.APPROVED
+            reg.qr_token = qr_token
+            reg.approved_at = timezone.now()
+            reg.save(update_fields=['status', 'qr_token', 'approved_at', 'updated_at'])
+            
+            # Create AttendanceRecord
+            if AttendanceRecord:
+                from django.db import IntegrityError
+                try:
+                    AttendanceRecord.objects.create(
+                        registration=reg,
+                        event=reg.event,
+                        user=reg.user,
+                    )
+                except IntegrityError:
+                    pass
+
+    # Outside transaction: generate QR, upload, and email
+    for reg in regs_to_approve:
+        try:
+            qr = qrcode.QRCode(version=1, box_size=10, border=4)
+            qr.add_data(str(reg.qr_token))
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+            
+            img_byte_arr = io.BytesIO()
+            img.save(img_byte_arr, format='PNG')
+            img_byte_arr.seek(0)
+            
+            blob_path = f'qr-codes/{reg.id}/qr.png'
+            qr_url = upload_to_blob(blob_path, img_byte_arr.read(), 'image/png')
+            
+            reg.qr_image_url = qr_url
+            reg.save(update_fields=['qr_image_url', 'updated_at'])
+
+            html_content = f"""
+            <p>Your team registration for {reg.event.title} is approved!</p>
+            <p>Your QR code is below. Present this at the event for check-in.</p>
+            <img src="{qr_url}" alt="QR Code" />
+            """
+            send_email(
+                to_email=reg.user.email,
+                subject=f"Team Approved: {reg.event.title}",
+                html_content=html_content
+            )
+        except Exception as e:
+            logger.error("Failed post-approval tasks for team member %s: %s", reg.id, str(e))
+
+    logger.info('%d member(s) approved for team "%s"', len(regs_to_approve), team.name)
+    return team
+
+
+def reject_team(team_id: uuid.UUID, reason: str, admin_user) -> Team:
+    """
+    Reject all pending members of a team.
+    """
+    try:
+        team = Team.objects.select_related('event').get(id=team_id)
+    except Team.DoesNotExist:
+        raise AppError('NOT_FOUND', 'Team not found.', 404)
+
+    with transaction.atomic():
+        regs_to_reject = list(team.registrations.select_for_update().filter(status=RegistrationStatus.PENDING))
+
+        if not regs_to_reject:
+            raise AppError('INVALID_STATUS', 'No pending members found in this team to reject.', 400)
+
+        for reg in regs_to_reject:
+            reg.status = RegistrationStatus.REJECTED
+            reg.rejection_reason = reason
+            reg.save(update_fields=['status', 'rejection_reason', 'updated_at'])
+            
+            # Note: We do NOT deduct capacity here because pending registrations don't consume capacity.
+
+    # Outside transaction: send email
+    for reg in regs_to_reject:
+        try:
+            html_content = f"""
+            <p>We're sorry, but your team registration for {reg.event.title} was not approved.</p>
+            <p>Reason provided: {reason}</p>
+            """
+            send_email(
+                to_email=reg.user.email,
+                subject=f"Update on your registration for {reg.event.title}",
+                html_content=html_content
+            )
+        except Exception as e:
+            logger.error("Failed to send rejection email to team member %s: %s", reg.id, str(e))
+
+    logger.info('%d member(s) rejected for team "%s"', len(regs_to_reject), team.name)
+    return team
+
+
 def reject_registration(registration_id: uuid.UUID, reason: str, admin_user) -> Registration:
     """
     Reject a pending registration.
@@ -391,36 +551,42 @@ def reject_registration(registration_id: uuid.UUID, reason: str, admin_user) -> 
     if registration.status != RegistrationStatus.PENDING:
         raise AppError('INVALID_STATUS', 'Only pending registrations can be rejected.', 400)
 
-    if registration.is_team_registration and registration.team:
-        team = registration.team
-        regs_to_reject = list(team.registrations.all())
-    else:
-        team = None
-        regs_to_reject = [registration]
-
     with transaction.atomic():
-        if team:
+        if registration.is_team_registration and registration.team:
+            team = registration.team
             team.status = TeamStatus.REJECTED
             team.save(update_fields=['status', 'updated_at'])
+            regs_to_reject = list(team.registrations.select_for_update().filter(
+                status=RegistrationStatus.PENDING
+            ))
+        else:
+            team = None
+            regs_to_reject = list(
+                Registration.objects.select_for_update().filter(
+                    id=registration_id, status=RegistrationStatus.PENDING
+                )
+            )
 
         for reg in regs_to_reject:
             reg.status = RegistrationStatus.REJECTED
             reg.rejection_reason = reason
             reg.save(update_fields=['status', 'rejection_reason', 'updated_at'])
-            
-            # Send Email
-            try:
-                html_content = f"""
-                <p>Your registration for {reg.event.title} has been rejected.</p>
-                <p>Reason: {reason}</p>
-                """
-                send_email(
-                    to_email=reg.user.email,
-                    subject=f"Registration Rejected: {reg.event.title}",
-                    html_content=html_content
-                )
-            except Exception as e:
-                logger.error("Failed to send rejection email: %s", str(e))
+
+    # Outside transaction: send email
+    for reg in regs_to_reject:
+        try:
+            from django.utils.html import escape
+            html_content = f"""
+            <p>Your registration for {escape(reg.event.title)} has been rejected.</p>
+            <p>Reason: {escape(reason)}</p>
+            """
+            send_email(
+                to_email=reg.user.email,
+                subject=f"Registration Rejected: {reg.event.title}",
+                html_content=html_content
+            )
+        except Exception as e:
+            logger.error("Failed to send rejection email: %s", str(e))
 
     logger.info('%d registration(s) rejected for event "%s"', len(regs_to_reject), registration.event.title)
     return registration
@@ -477,9 +643,19 @@ def cancel_registration(registration_id: uuid.UUID, user) -> None:
     was_approved = (registration.status == RegistrationStatus.APPROVED)
 
     with transaction.atomic():
+        # Delete QR blob if registration was approved
+        if was_approved and registration.qr_image_url:
+            from core.utils.storage import delete_blob_from_url
+            try:
+                delete_blob_from_url(registration.qr_image_url)
+            except Exception as exc:
+                logger.warning('Failed to delete QR blob for registration %s: %s', registration.id, exc)
+            registration.qr_image_url = None
+            registration.qr_token = None
+
         registration.status = RegistrationStatus.CANCELLED
         registration.waitlist_position = None
-        registration.save(update_fields=['status', 'waitlist_position', 'updated_at'])
+        registration.save(update_fields=['status', 'waitlist_position', 'qr_image_url', 'qr_token', 'updated_at'])
 
         # Soft-delete AttendanceRecord if it exists
         if was_approved:

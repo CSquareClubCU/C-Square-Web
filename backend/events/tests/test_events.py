@@ -215,11 +215,11 @@ class TestDeleteEvent:
             services.delete_event(published_event)
         assert exc_info.value.code == 'CANNOT_DELETE'
 
-    def test_cannot_delete_cancelled_event(self, admin_user):
+    def test_deletes_cancelled_event(self, admin_user):
         event = make_event(admin_user, status=EventStatus.CANCELLED)
-        with pytest.raises(AppError) as exc_info:
-            services.delete_event(event)
-        assert exc_info.value.code == 'CANNOT_DELETE'
+        event_id = event.id
+        services.delete_event(event)
+        assert not Event.objects.filter(pk=event_id).exists()
 
 
 # ---------------------------------------------------------------------------

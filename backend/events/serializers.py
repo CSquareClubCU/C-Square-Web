@@ -93,6 +93,7 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'contact_name',
             'contact_email',
             'is_registration_open',
+            'requires_approval',
             'created_at',
         ]
         read_only_fields = fields
@@ -134,6 +135,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'contact_name',
             'contact_email',
             'is_registration_open',
+            'requires_approval',
         ]
 
     def validate(self, data):

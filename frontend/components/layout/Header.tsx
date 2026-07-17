@@ -195,14 +195,16 @@ export function Header() {
                               {roleLink.label}
                             </Link>
                           )}
-                          <Link
-                            href="/dashboard"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-[#333] hover:bg-gray-50 transition-colors"
-                          >
-                            <LayoutDashboard className="w-3.5 h-3.5" />
-                            My Registrations
-                          </Link>
+                          {user.role === "admin" && (
+                            <Link
+                              href="/dashboard"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-[#333] hover:bg-gray-50 transition-colors"
+                            >
+                              <LayoutDashboard className="w-3.5 h-3.5" />
+                              My Registrations
+                            </Link>
+                          )}
                         </div>
                         <div className="border-t border-[#f0f0f0] py-1">
                           <button

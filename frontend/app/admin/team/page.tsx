@@ -32,23 +32,23 @@ import type { CoreTeamMemberPublic, User } from "@/types";
 type MemberForm = {
   full_name: string;
   designation: string;
+  category: string;
   photo_url: string;
   display_order: string;
   user_id: string;
   github_url: string;
   linkedin_url: string;
-  twitter_url: string;
 };
 
 const emptyForm: MemberForm = {
   full_name: "",
   designation: "",
+  category: "Volunteers",
   photo_url: "",
   display_order: "0",
   user_id: "",
   github_url: "",
   linkedin_url: "",
-  twitter_url: "",
 };
 
 export default function AdminTeamPage() {
@@ -115,12 +115,12 @@ export default function AdminTeamPage() {
     setForm({
       full_name: member.full_name,
       designation: member.designation,
+      category: member.category || "Volunteers",
       photo_url: member.photo_url || "",
       display_order: String(member.display_order),
       user_id: member.user || "",
       github_url: member.github_url || "",
       linkedin_url: member.linkedin_url || "",
-      twitter_url: member.twitter_url || "",
     });
     setPhotoFile(null);
     setFormError(null);
@@ -149,11 +149,11 @@ export default function AdminTeamPage() {
       const payload = {
         full_name: form.full_name.trim(),
         designation: form.designation.trim(),
+        category: form.category,
         display_order: parseInt(form.display_order, 10) || 0,
         user_id: form.user_id || null,
         github_url: form.github_url.trim() || null,
         linkedin_url: form.linkedin_url.trim() || null,
-        twitter_url: form.twitter_url.trim() || null,
       };
       
       let memberId = editingMember?.id;
@@ -286,15 +286,12 @@ export default function AdminTeamPage() {
             <p className="text-gray-500 text-sm mb-0">
               Add your first team member to display on the public team page.
             </p>
-            <button
-              onClick={openCreate}
-              className="mt-5 inline-block"
-            >
-              <Button size="sm" className="bg-black text-white px-6 hover:bg-gray-800">
+            <div className="mt-5 inline-block">
+              <Button size="sm" className="bg-black text-white px-6 hover:bg-gray-800" onClick={openCreate}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Member
               </Button>
-            </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -462,6 +459,26 @@ export default function AdminTeamPage() {
 
                   <div>
                     <label className="block text-sm font-medium mb-1.5 text-black">
+                      Category *
+                    </label>
+                    <select
+                      required
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[15px]"
+                    >
+                      <option value="Leadership">Leadership</option>
+                      <option value="Technical">Technical</option>
+                      <option value="Design">Design</option>
+                      <option value="Media">Media</option>
+                      <option value="Marketing">Marketing</option>
+                      <option value="Volunteers">Volunteers</option>
+                      <option value="Faculty">Faculty</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5 text-black">
                       Photo
                     </label>
                     <input
@@ -603,18 +620,6 @@ export default function AdminTeamPage() {
                           onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })}
                           className="w-full px-3 py-2 rounded-[6px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[14px]"
                           placeholder="https://linkedin.com/in/..."
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1 text-gray-500">
-                          Twitter URL
-                        </label>
-                        <input
-                          type="url"
-                          value={form.twitter_url}
-                          onChange={(e) => setForm({ ...form, twitter_url: e.target.value })}
-                          className="w-full px-3 py-2 rounded-[6px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[14px]"
-                          placeholder="https://twitter.com/..."
                         />
                       </div>
                     </div>

@@ -4,6 +4,7 @@ Delegates all business logic to services.py.
 """
 
 import logging
+import uuid
 
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -15,7 +16,7 @@ from core.pagination import StandardPagination
 from core.permissions import IsAdmin
 from events.models import Event
 from registrations import services
-from registrations.models import Registration, Team
+from registrations.models import Registration, Team, RegistrationStatus
 from users.models import UserRole
 from registrations.serializers import (
     RegistrationAdminListSerializer,
@@ -56,23 +57,29 @@ class RegisterIndividualView(APIView):
         )
 
 
-class RegisterTeamView(APIView):
+class CreateTeamView(APIView):
     """
     POST /api/registrations/team/
-    Submit a team registration.
+    Create a team for an existing registration.
     """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = TeamCreateSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise AppError('VALIDATION_ERROR', 'Invalid input.', fields=serializer.errors)
+        registration_id = request.data.get('registration_id')
+        team_name = request.data.get('team_name')
 
-        team = services.register_team(
-            event_id=serializer.validated_data['event_id'],
-            team_name=serializer.validated_data['team_name'],
-            leader=request.user,
-            members_data=serializer.validated_data['members'],
+        if not registration_id or not team_name:
+            raise AppError('VALIDATION_ERROR', 'registration_id and team_name are required.', 400)
+
+        try:
+            reg_id = uuid.UUID(registration_id)
+        except ValueError:
+            raise AppError('VALIDATION_ERROR', 'Invalid registration_id.', 400)
+
+        team = services.create_team_from_registration(
+            registration_id=reg_id,
+            team_name=team_name,
+            user=request.user
         )
         return Response(
             TeamSerializer(team).data,
@@ -80,48 +87,56 @@ class RegisterTeamView(APIView):
         )
 
 
-class ConfirmTeamMemberView(APIView):
+class JoinTeamView(APIView):
     """
-    POST /api/registrations/team/confirm/
-    Confirm a team invitation using a token from the invite email link.
-    Auth required: Yes (teammate must be logged in)
+    POST /api/registrations/team/join/
+    Join a team using a join code.
     """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        raw_token = request.data.get('token')
-        token = raw_token.strip() if isinstance(raw_token, str) else ''
-        
-        if not token:
-            raise AppError(
-                code='INVALID_TOKEN',
-                message='Confirmation token is required.',
-                status=400,
-            )
+        registration_id = request.data.get('registration_id')
+        join_code = request.data.get('join_code')
 
-        import uuid
+        if not registration_id or not join_code:
+            raise AppError('VALIDATION_ERROR', 'registration_id and join_code are required.', 400)
+
         try:
-            parsed_token = uuid.UUID(token)
+            reg_id = uuid.UUID(registration_id)
         except ValueError:
-            raise AppError(
-                code='INVALID_TOKEN',
-                message='Invalid token format.',
-                status=400,
-            )
+            raise AppError('VALIDATION_ERROR', 'Invalid registration_id.', 400)
 
-        member = services.confirm_teammate(token=parsed_token, user=request.user)
-
-        team = member.team
+        team = services.join_team_with_code(
+            registration_id=reg_id,
+            join_code=join_code,
+            user=request.user
+        )
         return Response(
-            {
-                'message': f'You have confirmed your participation in {team.name}.',
-                'team_id': str(team.id),
-                'team_name': team.name,
-                'event': {
-                    'id': str(team.event.id),
-                    'title': team.event.title,
-                },
-            },
+            TeamSerializer(team).data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class LeaveTeamView(APIView):
+    """
+    POST /api/registrations/team/leave/
+    Leaves a team.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        registration_id = request.data.get('registration_id')
+        if not registration_id:
+            raise AppError('VALIDATION_ERROR', 'registration_id is required.', 400)
+
+        try:
+            reg_id = uuid.UUID(registration_id)
+        except ValueError:
+            raise AppError('VALIDATION_ERROR', 'Invalid registration_id.', 400)
+
+        services.leave_team(registration_id=reg_id, user=request.user)
+        return Response(
+            {'success': True, 'message': 'Successfully left the team.'},
             status=status.HTTP_200_OK,
         )
 
@@ -259,6 +274,75 @@ class AdminEventRegistrationsView(APIView):
         return paginator.get_paginated_response(serializer.data)
 
 
+class AdminEventTeamsView(APIView):
+    """
+    GET /api/registrations/event/{event_id}/teams/
+    List all teams for a specific event. Admin only. Paginated.
+    Supports ?search= query param.
+    """
+    permission_classes = [IsAdmin]
+
+    def get(self, request, event_id):
+        from django.db.models import Q
+        from registrations.serializers import TeamSerializer
+        from registrations.models import Team
+
+        search = request.query_params.get('search')
+        qs = Team.objects.filter(event_id=event_id).select_related('event', 'leader').prefetch_related('registrations', 'registrations__user')
+
+        if search:
+            qs = qs.filter(
+                Q(name__icontains=search)
+                | Q(leader__full_name__icontains=search)
+                | Q(leader__email__icontains=search)
+            )
+
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(qs, request)
+        serializer = TeamSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+
+class ApproveTeamView(APIView):
+    """
+    POST /api/registrations/team/{id}/approve/
+    Approve all pending members of a team. Admin only.
+    """
+    permission_classes = [IsAdmin]
+
+    def post(self, request, pk):
+        team = services.approve_team(team_id=pk, admin_user=request.user)
+        return Response(
+            {
+                'id': str(team.id),
+                'message': 'Team approved successfully.',
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class RejectTeamView(APIView):
+    """
+    POST /api/registrations/team/{id}/reject/
+    Reject all pending members of a team. Admin only.
+    """
+    permission_classes = [IsAdmin]
+
+    def post(self, request, pk):
+        reason = request.data.get('reason')
+        if not reason:
+            raise AppError('VALIDATION_ERROR', 'A reason is required for rejection.', 400)
+            
+        team = services.reject_team(team_id=pk, reason=reason, admin_user=request.user)
+        return Response(
+            {
+                'id': str(team.id),
+                'message': 'Team rejected successfully.',
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class ApproveRegistrationView(APIView):
     """
     POST /api/registrations/{id}/approve/
@@ -334,6 +418,7 @@ class AdminDeleteRegistrationView(APIView):
     """
     DELETE /api/registrations/{id}/admin-delete/
     Completely remove a registration and its attendance data. Admin only.
+    Works for both individual and team registrations.
     """
     permission_classes = [IsAdmin]
 
@@ -342,26 +427,88 @@ class AdminDeleteRegistrationView(APIView):
         from django.db import transaction
         try:
             with transaction.atomic():
-                registration = Registration.objects.get(id=pk)
-                
-                try:
-                    record = registration.attendance_record
-                    if record.is_checked_in:
-                        user = record.user
-                        user.club_points = max(0, user.club_points - record.event.points)
-                        user.save(update_fields=['club_points', 'updated_at'])
-                except Exception as e:
-                    # Narrow exception: usually RelatedObjectDoesNotExist or AttendanceRecordDoesNotExist
-                    if type(e).__name__ not in ('RelatedObjectDoesNotExist', 'AttendanceRecordDoesNotExist'):
-                        raise e
+                registration = Registration.objects.select_related('team', 'event').get(id=pk)
 
-                if registration.status in ['approved', 'pending', 'waitlisted']:
-                    from registrations import services as reg_services
-                    reg_services.cancel_registration(registration_id=pk, user=registration.user)
+                # Deduct club points if the user was checked in
+                try:
+                    if hasattr(registration, 'attendance_record'):
+                        record = registration.attendance_record
+                        if record.is_checked_in:
+                            from django.db.models import F, Value
+                            from django.db.models.functions import Greatest
+                            from django.contrib.auth import get_user_model
+                            get_user_model().objects.filter(pk=record.user.pk).update(
+                                club_points=Greatest(F('club_points') - record.event.points, Value(0))
+                            )
+                except Exception as e:
+                    logger.warning('Failed to deduct points for registration %s: %s', pk, e)
+
+                # If the registration was approved, free up capacity by promoting waitlist
+                was_approved = registration.status == RegistrationStatus.APPROVED
+                event = registration.event
+
+                # Delete the registration (this also cleans up attendance records via CASCADE or explicit delete)
+                try:
+                    from attendance.models import AttendanceRecord
+                    AttendanceRecord.objects.filter(registration=registration).delete()
+                except ImportError:
+                    pass
 
                 registration.delete()
+
+            # Outside transaction: promote waitlist if spot opened
+            if was_approved:
+                from registrations import services as reg_services
+                reg_services.promote_waitlist(event)
 
             return Response({'success': True, 'message': 'Registration completely removed.'}, status=status.HTTP_200_OK)
         except Registration.DoesNotExist:
             return Response({'error': 'Registration not found'}, status=status.HTTP_404_NOT_FOUND)
 
+
+class AdminDeleteTeamView(APIView):
+    """
+    DELETE /api/registrations/team/{id}/admin-delete/
+    Completely remove a team and all its member registrations. Admin only.
+    """
+    permission_classes = [IsAdmin]
+
+    def delete(self, request, pk):
+        from registrations.models import Team, Registration
+        from django.db import transaction
+        try:
+            with transaction.atomic():
+                team = Team.objects.select_related('event').prefetch_related('registrations').get(id=pk)
+                event = team.event
+
+                # Track if any approved registration existed (to promote waitlist after)
+                any_approved = team.registrations.filter(status=RegistrationStatus.APPROVED).exists()
+
+                # Clean up attendance records and deduct points for any checked-in members
+                for reg in team.registrations.all():
+                    try:
+                        from attendance.models import AttendanceRecord
+                        if hasattr(reg, 'attendance_record'):
+                            record = reg.attendance_record
+                            if record.is_checked_in:
+                                from django.db.models import F, Value
+                                from django.db.models.functions import Greatest
+                                from django.contrib.auth import get_user_model
+                                get_user_model().objects.filter(pk=record.user.pk).update(
+                                    club_points=Greatest(F('club_points') - event.points, Value(0))
+                                )
+                            AttendanceRecord.objects.filter(registration=reg).delete()
+                    except Exception as e:
+                        logger.warning('Failed to clean up attendance for registration %s: %s', reg.id, e)
+
+                # Delete the team (cascades to registrations via FK if set, otherwise explicit)
+                team.registrations.all().delete()
+                team.delete()
+
+            if any_approved:
+                from registrations import services as reg_services
+                reg_services.promote_waitlist(event)
+
+            return Response({'success': True, 'message': 'Team and all member registrations removed.'}, status=status.HTTP_200_OK)
+        except Team.DoesNotExist:
+            return Response({'error': 'Team not found'}, status=status.HTTP_404_NOT_FOUND)

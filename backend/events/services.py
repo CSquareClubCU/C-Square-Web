@@ -69,10 +69,10 @@ def delete_event(event: Event) -> None:
     Raises:
         AppError(CANNOT_DELETE, 400): If the event is not a draft.
     """
-    if event.status != EventStatus.DRAFT:
+    if event.status not in [EventStatus.DRAFT, EventStatus.CANCELLED]:
         raise AppError(
             code='CANNOT_DELETE',
-            message='Only draft events can be deleted. Cancel the event instead.',
+            message='Only draft or cancelled events can be deleted. Cancel the event first.',
             status=400,
         )
     event_title = event.title

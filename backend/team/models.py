@@ -12,12 +12,23 @@ from core.models import BaseModel
 
 
 class TeamMember(BaseModel):
+    CATEGORY_CHOICES = [
+        ('Leadership', 'Leadership'),
+        ('Technical', 'Technical'),
+        ('Design', 'Design'),
+        ('Media', 'Media'),
+        ('Marketing', 'Marketing'),
+        ('Volunteers', 'Volunteers'),
+        ('Faculty', 'Faculty'),
+    ]
+
     """
     A club team member shown on the public /team page.
     Soft-deleted by setting is_active=False.
     """
     full_name = models.CharField(max_length=255)
     designation = models.CharField(max_length=100)  # Free text: President, Technical Lead, etc.
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Volunteers')
     photo_url = models.CharField(max_length=500, null=True, blank=True)
     display_order = models.IntegerField(default=0, db_index=True)
     is_active = models.BooleanField(default=True, db_index=True)
@@ -28,7 +39,6 @@ class TeamMember(BaseModel):
     # Social links
     github_url = models.URLField(max_length=500, null=True, blank=True)
     linkedin_url = models.URLField(max_length=500, null=True, blank=True)
-    twitter_url = models.URLField(max_length=500, null=True, blank=True)
 
     class Meta:
         db_table = 'team_teammember'
@@ -53,3 +63,49 @@ class TeamMember(BaseModel):
             if new_fields and 'update_fields' in kwargs:
                 kwargs['update_fields'] = list(set(kwargs['update_fields']) | set(new_fields))
         super().save(*args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Storage cleanup signals
+# ---------------------------------------------------------------------------
+
+from django.db.models.signals import pre_delete, pre_save
+from django.dispatch import receiver
+
+
+@receiver(pre_delete, sender=TeamMember)
+def cleanup_team_member_photo(sender, instance, **kwargs):
+    """Delete the team member photo from Azure Blob Storage when a member is deleted."""
+    if instance.photo_url:
+        from core.utils.storage import delete_blob_from_url
+        try:
+            delete_blob_from_url(instance.photo_url)
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning(
+                'Failed to delete photo for team member %s: %s', instance.id, exc
+            )
+
+
+@receiver(pre_save, sender=TeamMember)
+def cleanup_old_team_member_photo_on_replace(sender, instance, **kwargs):
+    """
+    When a team member's photo is replaced, delete the old blob.
+    Handles extension changes (jpg -> webp etc.) since upload_to_blob
+    uses overwrite=True only for the exact same path.
+    """
+    if not instance.pk:
+        return
+    try:
+        old = TeamMember.objects.only('photo_url').get(pk=instance.pk)
+    except TeamMember.DoesNotExist:
+        return
+    if old.photo_url and old.photo_url != instance.photo_url:
+        from core.utils.storage import delete_blob_from_url
+        try:
+            delete_blob_from_url(old.photo_url)
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning(
+                'Failed to delete old photo for team member %s: %s', instance.id, exc
+            )
