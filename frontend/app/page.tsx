@@ -635,15 +635,15 @@ export default function Home() {
                 </StaggerItem>
               ))}
 
-              {/* 5th Card: View All */}
               <StaggerItem key="view-all" className="w-full sm:w-[calc(50%-10px)] md:w-[calc(20%-16px)] max-w-[220px]">
                 <Link href="/team" className="block h-full outline-none">
-                  <TiltCard className="flex flex-col items-center justify-center text-center group cursor-pointer bg-[#050505] rounded-[24px] shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-6 border border-black/10 h-full transition-all duration-300 hover:shadow-2xl">
-                    <div className="w-16 h-16 rounded-full bg-white/10 mb-4 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-blue-600 transition-all duration-500">
-                      <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
+                  <TiltCard className="flex flex-col items-center text-center group cursor-pointer bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-6 border border-black/[0.04] h-full hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-500">
+                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[#F5F5F5] text-black mb-4 flex items-center justify-center group-hover:scale-110 group-hover:bg-[#111] group-hover:text-white transition-all duration-500">
+                      <ArrowRight className="w-6 h-6 md:w-8 md:h-8 transition-transform duration-300" />
                     </div>
-                    <h3 className="font-semibold tracking-tight text-white text-lg mb-1">View All</h3>
-                    <p className="text-xs text-white/50 font-medium">Meet everyone</p>
+                    <h3 className="font-semibold tracking-tight text-[#111] text-base mb-1">View All</h3>
+                    <p className="text-xs text-[#777] font-medium mb-4">Meet everyone</p>
+                    <div className="mt-auto"></div>
                   </TiltCard>
                 </Link>
               </StaggerItem>
