@@ -438,7 +438,7 @@ export default function AdminTeamPage() {
                       required
                       value={form.full_name}
                       onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[15px]"
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[15px]"
                       placeholder="e.g. Jane Doe"
                     />
                   </div>
@@ -452,7 +452,7 @@ export default function AdminTeamPage() {
                       required
                       value={form.designation}
                       onChange={(e) => setForm({ ...form, designation: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[15px]"
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[15px]"
                       placeholder="e.g. President"
                     />
                   </div>
@@ -465,7 +465,7 @@ export default function AdminTeamPage() {
                       required
                       value={form.category}
                       onChange={(e) => setForm({ ...form, category: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[15px]"
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[15px]"
                     >
                       <option value="Leadership">Leadership</option>
                       <option value="Technical">Technical</option>
@@ -495,7 +495,7 @@ export default function AdminTeamPage() {
                           setPhotoFile(file);
                         }
                       }}
-                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[15px] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-black hover:file:bg-gray-100"
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[15px] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-black hover:file:bg-gray-100"
                     />
                     {form.photo_url && !photoFile && (
                       <p className="text-xs text-gray-500 mt-1">Leave empty to keep current photo.</p>
@@ -510,7 +510,7 @@ export default function AdminTeamPage() {
                       type="number"
                       value={form.display_order}
                       onChange={(e) => setForm({ ...form, display_order: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[15px]"
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[15px]"
                       placeholder="0"
                     />
                     <p className="text-xs text-gray-500 mt-1">Lower numbers appear first.</p>
@@ -533,7 +533,7 @@ export default function AdminTeamPage() {
                             setForm({ ...form, user_id: "" });
                           }
                         }}
-                        className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[15px]"
+                        className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[15px]"
                       />
                       {isSearchingUsers && (
                         <div className="absolute right-3 top-3">
@@ -606,7 +606,7 @@ export default function AdminTeamPage() {
                           type="url"
                           value={form.github_url}
                           onChange={(e) => setForm({ ...form, github_url: e.target.value })}
-                          className="w-full px-3 py-2 rounded-[6px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[14px]"
+                          className="w-full px-3 py-2 rounded-[6px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[14px]"
                           placeholder="https://github.com/..."
                         />
                       </div>
@@ -618,7 +618,7 @@ export default function AdminTeamPage() {
                           type="url"
                           value={form.linkedin_url}
                           onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })}
-                          className="w-full px-3 py-2 rounded-[6px] border border-black/[0.08] bg-white focus:outline-none focus:border-black transition-colors text-[14px]"
+                          className="w-full px-3 py-2 rounded-[6px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[14px]"
                           placeholder="https://linkedin.com/in/..."
                         />
                       </div>

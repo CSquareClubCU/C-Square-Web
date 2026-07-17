@@ -104,39 +104,45 @@ export default function TeamStatusWidget({ registration, onTeamUpdated }: TeamSt
             </span>
           </div>
           
-          <div className="flex items-center gap-2 mt-4 p-2 bg-[#ffffff] border border-[#e5e7eb] rounded-[8px]">
-            <Key className="w-4 h-4 text-[#6b7280] shrink-0 ml-1" />
-            <span className="text-[14px] text-[#6b7280] flex-1 font-mono">{team.join_code}</span>
-            <button 
-              onClick={copyCode}
-              className="p-1.5 hover:bg-[#f3f4f6] rounded-[6px] transition-colors"
-              title="Copy Join Code"
-            >
-              {copied ? <CheckCircle2 className="w-4 h-4 text-[#10b981]" /> : <Copy className="w-4 h-4 text-[#6b7280]" />}
-            </button>
-          </div>
-          <p className="text-[12px] text-[#6b7280] mt-2">Share this code with your teammates to let them join.</p>
+          {team.join_code && (
+            <>
+              <div className="flex items-center gap-2 mt-4 p-2 bg-[#ffffff] border border-[#e5e7eb] rounded-[8px]">
+                <Key className="w-4 h-4 text-[#6b7280] shrink-0 ml-1" />
+                <span className="text-[14px] text-[#6b7280] flex-1 font-mono">{team.join_code}</span>
+                <button 
+                  onClick={copyCode}
+                  className="p-1.5 hover:bg-[#f3f4f6] rounded-[6px] transition-colors"
+                  title="Copy Join Code"
+                >
+                  {copied ? <CheckCircle2 className="w-4 h-4 text-[#10b981]" /> : <Copy className="w-4 h-4 text-[#6b7280]" />}
+                </button>
+              </div>
+              <p className="text-[12px] text-[#6b7280] mt-2">Share this code with your teammates to let them join.</p>
+            </>
+          )}
         </div>
 
-        <div className="space-y-2">
-          {team.members.map(member => (
-            <div key={member.id} className="flex items-center justify-between p-3 bg-[#ffffff] border border-[#e5e7eb] rounded-[8px]">
-              <div className="flex items-center gap-3 overflow-hidden">
-                <div className="w-6 h-6 rounded-full bg-[#e5e7eb] flex items-center justify-center shrink-0">
-                  <span className="text-[10px] font-medium text-[#6b7280] uppercase">
-                    {member.email.charAt(0)}
-                  </span>
+        {team.members && team.members.length > 0 && (
+          <div className="space-y-2">
+            {team.members.map(member => (
+              <div key={member.id} className="flex items-center justify-between p-3 bg-[#ffffff] border border-[#e5e7eb] rounded-[8px]">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="w-6 h-6 rounded-full bg-[#e5e7eb] flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-medium text-[#6b7280] uppercase">
+                      {(member.user_full_name || member.email || "?").charAt(0)}
+                    </span>
+                  </div>
+                  <span className="text-[14px] text-[#374151] truncate">{member.user_full_name || member.email || "Team Member"}</span>
                 </div>
-                <span className="text-[14px] text-[#374151] truncate">{member.email}</span>
+                {(member.email === team.leader_email || member.user_full_name === team.leader_full_name) && (
+                  <span className="text-[10px] font-semibold text-[#3b82f6] bg-[#3b82f6]/10 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                    Leader
+                  </span>
+                )}
               </div>
-              {member.email === team.leader_email && (
-                <span className="text-[10px] font-semibold text-[#3b82f6] bg-[#3b82f6]/10 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
-                  Leader
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="mt-4 pt-4 border-t border-[#e5e7eb]">
           <Button

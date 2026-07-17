@@ -44,6 +44,8 @@ import type { Event, RegistrationAdmin, RegistrationStatus, CoreTeamMemberPublic
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+const remarkPlugins = [remarkGfm];
+
 const STATUS_TABS: Array<{ value: RegistrationStatus | ""; label: string; icon: React.ReactNode }> = [
   { value: "", label: "All", icon: <Users className="w-3.5 h-3.5" /> },
   { value: "pending", label: "Pending", icon: <Clock className="w-3.5 h-3.5" /> },
@@ -603,13 +605,13 @@ export default function AdminEventDetailPage() {
         {event.is_team_event && (
           <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
             <button
-              onClick={() => setViewMode("teams")}
+              onClick={() => { setViewMode("teams"); setPage(1); }}
               className={`px-4 py-2 text-[14px] font-medium border-b-2 transition-colors ${viewMode === "teams" ? "border-black text-black" : "border-transparent text-gray-500 hover:text-black"}`}
             >
               Teams
             </button>
             <button
-              onClick={() => setViewMode("individuals")}
+              onClick={() => { setViewMode("individuals"); setPage(1); }}
               className={`px-4 py-2 text-[14px] font-medium border-b-2 transition-colors ${viewMode === "individuals" ? "border-black text-black" : "border-transparent text-gray-500 hover:text-black"}`}
             >
               Individuals
@@ -689,18 +691,8 @@ export default function AdminEventDetailPage() {
                   const approvedCount = team.registrations.filter(r => r.status === "approved").length;
                   
                   // Overall team status logic
-                  let teamStatusDisplay = "Pending";
-                  let teamStatusColor = "bg-[#d1d5db]";
-                  if (approvedCount === totalMembers && totalMembers > 0) {
-                    teamStatusDisplay = "Approved";
-                    teamStatusColor = "bg-[#10b981]";
-                  } else if (pendingCount > 0 && approvedCount > 0) {
-                    teamStatusDisplay = "Partially Approved";
-                    teamStatusColor = "bg-[#f59e0b]";
-                  } else if (pendingCount === totalMembers && totalMembers > 0) {
-                    teamStatusDisplay = "Pending";
-                    teamStatusColor = "bg-[#f59e0b]";
-                  }
+                  let teamStatusDisplay = team.status.charAt(0).toUpperCase() + team.status.replace("_", " ").slice(1);
+                  let teamStatusColor = team.status === "approved" ? "bg-[#10b981]" : team.status === "rejected" ? "bg-[#ef4444]" : "bg-[#f59e0b]";
 
                   return (
                     <motion.div
@@ -1125,7 +1117,7 @@ export default function AdminEventDetailPage() {
                       />
                     ) : (
                       <div className="p-4 border border-black/[0.08] rounded-[8px] bg-white min-h-[140px] prose prose-sm max-w-none text-black">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown remarkPlugins={remarkPlugins}>
                           {editForm.description || "*No description provided.*"}
                         </ReactMarkdown>
                       </div>
@@ -1288,7 +1280,7 @@ export default function AdminEventDetailPage() {
                     />
                   ) : (
                     <div className="p-4 border border-black/[0.08] rounded-[8px] bg-white min-h-[120px] prose prose-sm max-w-none text-black">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <ReactMarkdown remarkPlugins={remarkPlugins}>
                         {editForm.rules || "*No rules provided.*"}
                       </ReactMarkdown>
                     </div>
@@ -1423,10 +1415,12 @@ export default function AdminEventDetailPage() {
 
                 <div className="px-6 py-5 border-t border-black/[0.04] bg-[#f8f9fa] flex items-center justify-between gap-3 shrink-0">
                   <div className="flex items-center gap-2">
-                    <Button type="button" variant="ghost" className="text-red-600 hover:bg-red-50 hover:text-red-700 px-3" onClick={() => setDeleteAlertOpen(true)}>
-                      <Trash2 className="w-4 h-4 mr-1.5" />
-                      Delete
-                    </Button>
+                    {event?.status !== "published" && (
+                      <Button type="button" variant="ghost" className="text-red-600 hover:bg-red-50 hover:text-red-700 px-3" onClick={() => setDeleteAlertOpen(true)}>
+                        <Trash2 className="w-4 h-4 mr-1.5" />
+                        Delete
+                      </Button>
+                    )}
                     {event?.status !== "cancelled" && (
                       <Button type="button" variant="ghost" className="text-orange-600 hover:bg-orange-50 hover:text-orange-700 px-3" onClick={() => setCancelAlertOpen(true)}>
                         <XCircle className="w-4 h-4 mr-1.5" />

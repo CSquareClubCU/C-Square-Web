@@ -134,9 +134,9 @@ class LeaveTeamView(APIView):
         except ValueError:
             raise AppError('VALIDATION_ERROR', 'Invalid registration_id.', 400)
 
-        services.leave_team(registration_id=reg_id, user=request.user)
+        registration = services.leave_team(registration_id=reg_id, user=request.user)
         return Response(
-            {'success': True, 'message': 'Successfully left the team.'},
+            RegistrationDetailSerializer(registration).data,
             status=status.HTTP_200_OK,
         )
 
@@ -288,7 +288,7 @@ class AdminEventTeamsView(APIView):
         from registrations.models import Team
 
         search = request.query_params.get('search')
-        qs = Team.objects.filter(event_id=event_id).select_related('event', 'leader').prefetch_related('registrations', 'registrations__user')
+        qs = Team.objects.filter(event_id=event_id).select_related('event', 'leader').prefetch_related('registrations', 'registrations__user', 'members', 'members__user')
 
         if search:
             qs = qs.filter(
@@ -427,10 +427,17 @@ class AdminDeleteRegistrationView(APIView):
         from django.db import transaction
         try:
             with transaction.atomic():
-                registration = Registration.objects.select_related('team', 'event').get(id=pk)
+                registration = Registration.objects.select_for_update().get(id=pk)
+                was_approved = registration.status == RegistrationStatus.APPROVED
+                event = registration.event
+                
+                # Safely detach/cleanup team logic first
+                if registration.team:
+                    services.leave_team(registration_id=registration.id, user=registration.user)
+                    registration.refresh_from_db()
 
-                # Deduct club points if the user was checked in
-                try:
+                if registration.status == RegistrationStatus.APPROVED:
+                    from attendance.models import AttendanceRecord
                     if hasattr(registration, 'attendance_record'):
                         record = registration.attendance_record
                         if record.is_checked_in:
@@ -438,21 +445,16 @@ class AdminDeleteRegistrationView(APIView):
                             from django.db.models.functions import Greatest
                             from django.contrib.auth import get_user_model
                             get_user_model().objects.filter(pk=record.user.pk).update(
-                                club_points=Greatest(F('club_points') - record.event.points, Value(0))
+                                club_points=Greatest(F('club_points') - event.points, Value(0))
                             )
-                except Exception as e:
-                    logger.warning('Failed to deduct points for registration %s: %s', pk, e)
-
-                # If the registration was approved, free up capacity by promoting waitlist
-                was_approved = registration.status == RegistrationStatus.APPROVED
-                event = registration.event
-
-                # Delete the registration (this also cleans up attendance records via CASCADE or explicit delete)
-                try:
-                    from attendance.models import AttendanceRecord
-                    AttendanceRecord.objects.filter(registration=registration).delete()
-                except ImportError:
-                    pass
+                        AttendanceRecord.objects.filter(registration=registration).delete()
+                        
+                if registration.qr_image_url:
+                    from core.utils.storage import delete_blob_from_url
+                    try:
+                        delete_blob_from_url(registration.qr_image_url)
+                    except Exception as exc:
+                        logger.warning('Failed to delete QR blob for registration %s: %s', registration.id, exc)
 
                 registration.delete()
 
@@ -481,12 +483,12 @@ class AdminDeleteTeamView(APIView):
                 team = Team.objects.select_related('event').prefetch_related('registrations').get(id=pk)
                 event = team.event
 
-                # Track if any approved registration existed (to promote waitlist after)
-                any_approved = team.registrations.filter(status=RegistrationStatus.APPROVED).exists()
+                # Track how many approved registrations are being removed
+                approved_count = team.registrations.filter(status=RegistrationStatus.APPROVED).count()
 
                 # Clean up attendance records and deduct points for any checked-in members
                 for reg in team.registrations.all():
-                    try:
+                    if reg.status == RegistrationStatus.APPROVED:
                         from attendance.models import AttendanceRecord
                         if hasattr(reg, 'attendance_record'):
                             record = reg.attendance_record
@@ -498,16 +500,22 @@ class AdminDeleteTeamView(APIView):
                                     club_points=Greatest(F('club_points') - event.points, Value(0))
                                 )
                             AttendanceRecord.objects.filter(registration=reg).delete()
-                    except Exception as e:
-                        logger.warning('Failed to clean up attendance for registration %s: %s', reg.id, e)
+                            
+                    if reg.qr_image_url:
+                        from core.utils.storage import delete_blob_from_url
+                        try:
+                            delete_blob_from_url(reg.qr_image_url)
+                        except Exception as exc:
+                            logger.warning('Failed to delete QR blob for registration %s: %s', reg.id, exc)
 
                 # Delete the team (cascades to registrations via FK if set, otherwise explicit)
                 team.registrations.all().delete()
                 team.delete()
 
-            if any_approved:
+            if approved_count > 0:
                 from registrations import services as reg_services
-                reg_services.promote_waitlist(event)
+                for _ in range(approved_count):
+                    reg_services.promote_waitlist(event)
 
             return Response({'success': True, 'message': 'Team and all member registrations removed.'}, status=status.HTTP_200_OK)
         except Team.DoesNotExist:

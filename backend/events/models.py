@@ -206,22 +206,26 @@ class PastEvent(BaseModel):
 # Storage cleanup signals
 # ---------------------------------------------------------------------------
 
-from django.db.models.signals import pre_delete, pre_save
+from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
+from django.db import transaction
 
 
-@receiver(pre_delete, sender=Event)
+@receiver(post_delete, sender=Event)
 def cleanup_event_banner(sender, instance, **kwargs):
     """Delete the event banner from Azure Blob Storage when an Event is deleted."""
     if instance.banner_image_url:
+        url = instance.banner_image_url
         from core.utils.storage import delete_blob_from_url
-        try:
-            delete_blob_from_url(instance.banner_image_url)
-        except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning(
-                'Failed to delete banner for event %s: %s', instance.id, exc
-            )
+        def _delete():
+            try:
+                delete_blob_from_url(url)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    'Failed to delete banner for event %s: %s', instance.id, exc
+                )
+        transaction.on_commit(_delete)
 
 
 @receiver(pre_save, sender=Event)
@@ -238,25 +242,31 @@ def cleanup_old_event_banner_on_replace(sender, instance, **kwargs):
     except Event.DoesNotExist:
         return
     if old.banner_image_url and old.banner_image_url != instance.banner_image_url:
+        url = old.banner_image_url
         from core.utils.storage import delete_blob_from_url
-        try:
-            delete_blob_from_url(old.banner_image_url)
-        except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning(
-                'Failed to delete old banner for event %s: %s', instance.id, exc
-            )
+        def _delete():
+            try:
+                delete_blob_from_url(url)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    'Failed to delete old banner for event %s: %s', instance.id, exc
+                )
+        transaction.on_commit(_delete)
 
 
-@receiver(pre_delete, sender=PastEvent)
+@receiver(post_delete, sender=PastEvent)
 def cleanup_past_event_logo(sender, instance, **kwargs):
     """Delete the past event logo from Azure Blob Storage when a PastEvent is deleted."""
     if instance.logo_url:
+        url = instance.logo_url
         from core.utils.storage import delete_blob_from_url
-        try:
-            delete_blob_from_url(instance.logo_url)
-        except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning(
-                'Failed to delete logo for past event %s: %s', instance.id, exc
-            )
+        def _delete():
+            try:
+                delete_blob_from_url(url)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    'Failed to delete logo for past event %s: %s', instance.id, exc
+                )
+        transaction.on_commit(_delete)

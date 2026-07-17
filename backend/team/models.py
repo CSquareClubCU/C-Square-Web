@@ -65,26 +65,31 @@ class TeamMember(BaseModel):
         super().save(*args, **kwargs)
 
 
+
 # ---------------------------------------------------------------------------
 # Storage cleanup signals
 # ---------------------------------------------------------------------------
 
-from django.db.models.signals import pre_delete, pre_save
+from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
+from django.db import transaction
 
 
-@receiver(pre_delete, sender=TeamMember)
+@receiver(post_delete, sender=TeamMember)
 def cleanup_team_member_photo(sender, instance, **kwargs):
     """Delete the team member photo from Azure Blob Storage when a member is deleted."""
     if instance.photo_url:
+        url = instance.photo_url
         from core.utils.storage import delete_blob_from_url
-        try:
-            delete_blob_from_url(instance.photo_url)
-        except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning(
-                'Failed to delete photo for team member %s: %s', instance.id, exc
-            )
+        def _delete():
+            try:
+                delete_blob_from_url(url)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    'Failed to delete photo for team member %s: %s', instance.id, exc
+                )
+        transaction.on_commit(_delete)
 
 
 @receiver(pre_save, sender=TeamMember)
@@ -101,11 +106,14 @@ def cleanup_old_team_member_photo_on_replace(sender, instance, **kwargs):
     except TeamMember.DoesNotExist:
         return
     if old.photo_url and old.photo_url != instance.photo_url:
+        url = old.photo_url
         from core.utils.storage import delete_blob_from_url
-        try:
-            delete_blob_from_url(old.photo_url)
-        except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning(
-                'Failed to delete old photo for team member %s: %s', instance.id, exc
-            )
+        def _delete():
+            try:
+                delete_blob_from_url(url)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    'Failed to delete old photo for team member %s: %s', instance.id, exc
+                )
+        transaction.on_commit(_delete)

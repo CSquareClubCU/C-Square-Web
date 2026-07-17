@@ -150,8 +150,12 @@ def delete_blob_from_url(url: str) -> None:
         # Strip leading slash and split off container name
         path_parts = parsed.path.lstrip('/').split('/', 1)
         if len(path_parts) == 2:
-            blob_path = path_parts[1]  # everything after the container name
-            delete_blob(blob_path)
+            container = path_parts[0]
+            if container == getattr(settings, 'AZURE_STORAGE_CONTAINER_NAME', None):
+                blob_path = path_parts[1]  # everything after the container name
+                delete_blob(blob_path)
+            else:
+                logger.warning('delete_blob_from_url: container mismatch for %s', url)
         return
 
     logger.debug('delete_blob_from_url: unrecognised URL scheme, skipping: %s', url)

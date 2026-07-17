@@ -20,6 +20,7 @@ import remarkGfm from "remark-gfm";
 
 const EVENT_TYPES = ["hackathon", "competition", "workshop", "seminar"];
 const EVENT_STATUSES = ["draft", "published"];
+const remarkPlugins = [remarkGfm];
 
 function FieldGroup({
   label,
@@ -264,7 +265,7 @@ export default function NewEventPage() {
                 />
               ) : (
                 <div className="p-4 border border-black/[0.08] rounded-[8px] bg-white min-h-[140px] prose prose-sm max-w-none text-black">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown remarkPlugins={remarkPlugins}>
                     {form.description || "*No description provided.*"}
                   </ReactMarkdown>
                 </div>
@@ -392,7 +393,7 @@ export default function NewEventPage() {
                 />
               ) : (
                 <div className="p-4 border border-black/[0.08] rounded-[8px] bg-white min-h-[120px] prose prose-sm max-w-none text-black">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown remarkPlugins={remarkPlugins}>
                     {form.rules || "*No rules provided.*"}
                   </ReactMarkdown>
                 </div>

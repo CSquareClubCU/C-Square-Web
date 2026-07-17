@@ -34,6 +34,8 @@ import { FadeUp, SlideIn } from "@/components/animations/MotionElements";
 import TeamStatusWidget from "@/components/events/TeamStatusWidget";
 import type { Event, User, Registration, Team } from "@/types";
 
+const remarkPlugins = [remarkGfm];
+
 // Countdown hook
 function useCountdown(targetDate: string | undefined) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
@@ -134,9 +136,12 @@ export default function EventDetailPage() {
     setRegLoading(true);
     try {
       await cancelRegistration(myRegistration.id);
-      setMyRegistration(null);
+      const wasApproved = myRegistration.status === 'approved';
+      setMyRegistration(prev => prev ? { ...prev, status: 'cancelled' } : null);
       setCancelConfirm(false);
-      setEvent((prev) => prev ? { ...prev, registered_count: Math.max(0, prev.registered_count - 1) } : prev);
+      if (wasApproved) {
+        setEvent((prev) => prev ? { ...prev, registered_count: Math.max(0, prev.registered_count - 1) } : prev);
+      }
     } catch (err: unknown) {
       setRegError(err instanceof Error ? err.message : "Failed to cancel registration.");
     } finally {
@@ -199,7 +204,7 @@ export default function EventDetailPage() {
               {/* Overview White Card */}
               <div id="overview" className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] p-8 md:p-10 mb-12 shadow-sm">
                 <div className="prose prose-sm md:prose-base max-w-none prose-a:text-[#3b82f6] text-[#374151]">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown remarkPlugins={remarkPlugins}>
                     {event.description || "Join us for an exciting journey of creativity and innovation."}
                   </ReactMarkdown>
                 </div>
@@ -210,7 +215,7 @@ export default function EventDetailPage() {
                 <div id="rules" className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] p-8 md:p-10 mb-12 shadow-sm">
                   <h2 className="text-[28px] font-semibold tracking-tight text-[#111111] mb-6">Rules & Guidelines</h2>
                   <div className="prose prose-sm md:prose-base max-w-none prose-a:text-[#3b82f6] text-[#374151]">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    <ReactMarkdown remarkPlugins={remarkPlugins}>
                       {event.rules}
                     </ReactMarkdown>
                   </div>

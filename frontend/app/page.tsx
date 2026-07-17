@@ -138,8 +138,8 @@ export default function Home() {
         const flagship = publishedEvents.find((e: Event) => e.is_flagship) || publishedEvents[0] || null;
         setFlagshipEvent(flagship);
         
-        // Show at most 6 events on the homepage (including flagship)
-        setHomeEvents(publishedEvents.slice(0, 6));
+        // Store all published events so filtering works correctly
+        setHomeEvents(publishedEvents);
       }
       if (teamRes.status === "fulfilled") {
         // Show at most 6 team members
@@ -473,7 +473,7 @@ export default function Home() {
 
           <StaggerContainer key={eventFilter} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {(() => {
-              const filteredEvents = homeEvents.filter(e => eventFilter === "All" || e.event_type === eventFilter.toLowerCase());
+              const filteredEvents = homeEvents.filter(e => eventFilter === "All" || e.event_type === eventFilter.toLowerCase()).slice(0, 6);
               if (filteredEvents.length > 0) {
                 return filteredEvents.map((event) => {
                   const gradient = getGradientForType(event.event_type);

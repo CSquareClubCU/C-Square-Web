@@ -37,7 +37,7 @@ class RegistrationMyListSerializer(serializers.ModelSerializer):
 
     def get_team(self, obj):
         if obj.team:
-            return TeamSerializer(obj.team).data
+            return TeamPublicSerializer(obj.team).data
         return None
 
     class Meta:
@@ -188,13 +188,31 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
 
 class TeamRegistrationSerializer(serializers.ModelSerializer):
-    user_email = serializers.CharField(source='user.email', read_only=True)
     user_full_name = serializers.CharField(source='user.full_name', read_only=True)
-    user_student_uid = serializers.CharField(source='user.student_uid', read_only=True)
 
     class Meta:
         model = Registration
-        fields = ['id', 'user_email', 'user_full_name', 'user_student_uid', 'status', 'registered_at']
+        fields = ['id', 'user_full_name', 'status', 'registered_at']
+
+class TeamPublicSerializer(serializers.ModelSerializer):
+    """
+    Public representation of a team. Omits join_code and member PII.
+    """
+    event_title = serializers.CharField(source='event.title', read_only=True)
+    leader_full_name = serializers.CharField(source='leader.full_name', read_only=True)
+
+    class Meta:
+        model = Team
+        fields = [
+            'id',
+            'event',
+            'event_title',
+            'name',
+            'leader_full_name',
+            'status',
+            'created_at',
+        ]
+        read_only_fields = fields
 
 class TeamSerializer(serializers.ModelSerializer):
     """

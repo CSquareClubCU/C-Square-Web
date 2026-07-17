@@ -168,18 +168,22 @@ class Registration(BaseModel):
     def __str__(self):
         return f'{self.user.email} -> {self.event.title}'
 
-from django.db.models.signals import pre_delete
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.db import transaction
 
-@receiver(pre_delete, sender=Registration)
+@receiver(post_delete, sender=Registration)
 def cleanup_registration_qr(sender, instance, **kwargs):
     """Delete the QR code image from Azure Blob Storage when a Registration is deleted."""
     if instance.qr_image_url:
+        url = instance.qr_image_url
         from core.utils.storage import delete_blob_from_url
-        try:
-            delete_blob_from_url(instance.qr_image_url)
-        except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning(
-                'Failed to delete QR code for registration %s: %s', instance.id, exc
-            )
+        def _delete():
+            try:
+                delete_blob_from_url(url)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    'Failed to delete QR code for registration %s: %s', instance.id, exc
+                )
+        transaction.on_commit(_delete)

@@ -195,7 +195,7 @@ export function Header() {
                               {roleLink.label}
                             </Link>
                           )}
-                          {user.role === "admin" && (
+                          {user.role !== "student" && (
                             <Link
                               href="/dashboard"
                               onClick={() => setUserMenuOpen(false)}

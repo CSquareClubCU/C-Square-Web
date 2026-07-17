@@ -180,6 +180,14 @@ export default function AdminEventsPage() {
                   exit={{ opacity: 0, scale: 0.97 }}
                   className="w-full bg-white border border-black/[0.04] rounded-[24px] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group cursor-pointer"
                   onClick={() => router.push(`/admin/events/${event.slug}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      router.push(`/admin/events/${event.slug}`);
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-5 min-w-0">
                     <div className="w-12 h-12 rounded-[12px] bg-[#f8f9fa] border border-black/[0.04] flex items-center justify-center shrink-0">
