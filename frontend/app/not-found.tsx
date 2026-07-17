@@ -1,11 +1,12 @@
 "use client";
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { ArrowLeft, Compass } from 'lucide-react';
 
 export default function NotFound() {
+  const router = useRouter();
   return (
     <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden noise-overlay min-h-[calc(100vh-200px)]">
       {/* Massive subtle background text */}
@@ -23,22 +24,18 @@ export default function NotFound() {
             Page not found
           </h2>
           <p className="text-[var(--c-secondary-text)] max-w-md mx-auto mb-10 text-lg leading-relaxed">
-            The page you are looking for doesn't exist, has been moved, or is temporarily unavailable.
+            The page you are looking for doesn&apos;t exist, has been moved, or is temporarily unavailable.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/">
-              <Button size="lg" className="min-w-[180px] group">
-                <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                Back to Home
-              </Button>
-            </Link>
-            <Link href="/events">
-              <Button size="lg" variant="secondary" className="min-w-[180px] group bg-white">
-                <Compass className="w-4 h-4 mr-2 text-[var(--c-muted-text)] group-hover:text-[var(--c-accent)] transition-colors" />
-                Browse Events
-              </Button>
-            </Link>
+            <Button size="lg" className="min-w-[180px] group" onClick={() => router.push('/')}>
+              <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+              Back to Home
+            </Button>
+            <Button size="lg" variant="secondary" className="min-w-[180px] group bg-white" onClick={() => router.push('/events')}>
+              <Compass className="w-4 h-4 mr-2 text-[var(--c-muted-text)] group-hover:text-[var(--c-accent)] transition-colors" />
+              Browse Events
+            </Button>
           </div>
         </motion.div>
       </div>

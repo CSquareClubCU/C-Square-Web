@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { ArrowLeft, RotateCcw, AlertTriangle } from 'lucide-react';
@@ -13,6 +13,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const router = useRouter();
+
   useEffect(() => {
     // Log the error to an error reporting service if needed
     console.error(error);
@@ -42,12 +44,10 @@ export default function Error({
               <RotateCcw className="w-4 h-4 mr-2 group-hover:-rotate-90 transition-transform duration-300" />
               Try again
             </Button>
-            <Link href="/">
-              <Button size="lg" variant="secondary" className="min-w-[160px] group bg-white">
-                <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                Back to Home
-              </Button>
-            </Link>
+            <Button size="lg" variant="secondary" className="min-w-[160px] group bg-white" onClick={() => router.push('/')}>
+              <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+              Back to Home
+            </Button>
           </div>
         </motion.div>
       </div>

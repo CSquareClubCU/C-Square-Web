@@ -69,11 +69,14 @@ def send_magic_link(email: str) -> None:
         )
     cache.set(cache_key, req_count + 1, timeout=900)
 
+    from urllib.parse import urlencode
+
     signer = TimestampSigner()
     token = signer.sign(email)
 
     # Build the verification URL pointing to the frontend application.
-    verify_url = f'{settings.FRONTEND_URL}/auth/verify?token={token}'
+    query_string = urlencode({'token': token})
+    verify_url = f'{settings.FRONTEND_URL}/auth/verify?{query_string}'
 
     # Send the email — stubs if Azure not configured locally
     send_magic_link_email(to=email, magic_link_url=verify_url)
@@ -84,7 +87,7 @@ def verify_magic_link(token: str, request) -> User:
     Verify a magic link token and return the authenticated user.
 
     - Uses TimestampSigner to validate the token.
-    - The token is single-use and expires after 15 minutes.
+    - The token expires after 15 minutes.
     - On success, Django session is established by the calling view.
 
     Args:
@@ -124,7 +127,7 @@ def verify_magic_link(token: str, request) -> User:
             is_cu_student=_is_cu_student(email),
             role=UserRole.STUDENT,
         )
-        logger.info('New user created via magic link verification: %s', email)
+        logger.info('New user created via magic link verification: User ID %s', user.id)
 
     # Sync is_staff and is_superuser with role — admin users need is_staff=True and is_superuser=True for Django Admin
     if user.role == UserRole.ADMIN and (not user.is_staff or not user.is_superuser):
@@ -132,7 +135,7 @@ def verify_magic_link(token: str, request) -> User:
         user.is_staff = True
         user.is_superuser = True
 
-    logger.info('User logged in via magic link: %s', user.email)
+    logger.info('User logged in via magic link: User ID %s', user.id)
     return user
 
 

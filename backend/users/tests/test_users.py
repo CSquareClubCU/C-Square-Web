@@ -330,6 +330,21 @@ class TestMagicLinkVerifyView:
         assert response.status_code == 400
         assert response.data['error']['code'] == 'INVALID_TOKEN'
 
+    def test_valid_token_with_plus_address(self, api_client):
+        from django.core.signing import TimestampSigner
+        from urllib.parse import urlencode
+
+        signer = TimestampSigner()
+        email = 'student+test@cuchd.in'
+        token = signer.sign(email)
+        query_string = urlencode({'token': token})
+        
+        with patch('users.views.login'):
+            response = api_client.get(f'/api/auth/verify/?{query_string}')
+            
+        assert response.status_code == 200
+        assert response.data['user']['email'] == 'student+test@cuchd.in'
+
 
 @pytest.mark.django_db
 class TestLogoutView:

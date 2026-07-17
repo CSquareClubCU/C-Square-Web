@@ -45,15 +45,18 @@ def send_email(
         print('='*50 + '\n')
         return
 
+    import html
     import re
     from django.utils.html import strip_tags
 
     # Generate plain text version to avoid Outlook/Exchange spam filters
-    plain_text = strip_tags(html_body).strip()
+    safe_body = html_body or ""
+    plain_text = html.unescape(strip_tags(safe_body).strip())
     # Extract URLs and append them to plain text so they are accessible
-    urls = re.findall(r'href=[\'"]?([^\'" >]+)', html_body)
+    urls = re.findall(r'href=[\'"]?([^\'" >]+)', safe_body)
     if urls:
-        plain_text += "\n\nLinks:\n" + "\n".join(urls)
+        unique_urls = list(dict.fromkeys(html.unescape(u) for u in urls))
+        plain_text += "\n\nLinks:\n" + "\n".join(unique_urls)
 
     try:
         from azure.communication.email import EmailClient
