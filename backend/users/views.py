@@ -82,7 +82,7 @@ class MagicLinkVerifyView(APIView):
         user = services.verify_magic_link(token, request)
 
         # Establish Django session
-        login(request, user, backend='sesame.backends.ModelBackend')
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         
         # Re-fetch with annotations for serialization
         annotated_user = services.get_user_list().get(pk=user.pk)

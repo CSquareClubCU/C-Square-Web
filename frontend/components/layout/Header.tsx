@@ -224,15 +224,9 @@ export function Header() {
                 <>
                   <Link
                     href="/login"
-                    className="text-[14px] font-medium text-black hover:text-[#555] px-3 py-1.5 rounded-full transition-colors"
-                  >
-                    Sign in
-                  </Link>
-                  <Link
-                    href="/login"
                     className="inline-flex items-center justify-between pl-4 pr-3 py-1.5 gap-2 text-[14px] font-medium text-white bg-black border border-[#141414] rounded-[12px] shadow-[inset_0_2px_0_0_rgba(255,255,255,0.15)] hover:bg-[#222] transition-colors group"
                   >
-                    <span>Get started</span>
+                    <span>Sign in</span>
                     <ChevronRight className="w-4 h-4 text-[#898989] group-hover:text-white transition-colors" />
                   </Link>
                 </>
@@ -348,15 +342,8 @@ export function Header() {
                       onClick={() => setMobileOpen(false)}
                       className="flex items-center justify-center gap-1.5 w-full py-2.5 bg-black text-white text-[13.5px] font-semibold rounded-xl hover:bg-[#222] transition-colors"
                     >
-                      Get started
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                    <Link
-                      href="/login"
-                      onClick={() => setMobileOpen(false)}
-                      className="flex items-center justify-center w-full py-2.5 border border-[#e5e7eb] text-[#444] text-[13.5px] font-medium rounded-xl hover:bg-gray-50 transition-colors"
-                    >
                       Sign in
+                      <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
                 )}

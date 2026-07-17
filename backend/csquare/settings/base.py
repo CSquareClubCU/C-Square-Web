@@ -40,7 +40,6 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'rest_framework',
     'corsheaders',
-    'sesame',
 ]
 
 LOCAL_APPS = [
@@ -93,12 +92,7 @@ AUTH_USER_MODEL = 'users.User'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'sesame.backends.ModelBackend',
 ]
-
-# django-sesame — magic link tokens expire after 15 minutes
-SESAME_MAX_AGE = 900
-SESAME_ONE_TIME = True
 
 # ---------------------------------------------------------------------------
 # Password validation (kept for Django Admin compatibility)

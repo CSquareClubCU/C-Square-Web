@@ -124,46 +124,38 @@ class TestUserModel:
 @pytest.mark.django_db
 class TestSendMagicLink:
     @patch('users.services.send_magic_link_email')
-    def test_creates_new_user_if_not_exists(self, mock_email, db):
-        # sesame.utils.get_token is imported inline inside the service
-        with patch('sesame.utils.get_token', return_value='test-token'):
+    def test_does_not_create_new_user_in_db(self, mock_email, db):
+        with patch('django.core.signing.TimestampSigner.sign', return_value='test-token'):
             services.send_magic_link('newstudent@cuchd.in')
 
-        assert User.objects.filter(email='newstudent@cuchd.in').exists()
-
-    @patch('users.services.send_magic_link_email')
-    def test_sets_is_cu_student_for_cu_email(self, mock_email, db):
-        with patch('sesame.utils.get_token', return_value='token'):
-            services.send_magic_link('student@cuchd.in')
-        user = User.objects.get(email='student@cuchd.in')
-        assert user.is_cu_student is True
-
-    @patch('users.services.send_magic_link_email')
-    def test_sets_is_cu_student_false_for_external(self, mock_email, db):
-        with patch('sesame.utils.get_token', return_value='token'):
-            services.send_magic_link('user@gmail.com')
-        user = User.objects.get(email='user@gmail.com')
-        assert user.is_cu_student is False
-
-    @patch('users.services.send_magic_link_email')
-    def test_does_not_create_duplicate_user(self, mock_email, student_user):
-        initial_count = User.objects.count()
-        with patch('sesame.utils.get_token', return_value='token'):
-            services.send_magic_link('student@cuchd.in')
-        assert User.objects.count() == initial_count
-
-    @patch('users.services.send_magic_link_email')
-    def test_new_user_gets_student_role(self, mock_email, db):
-        with patch('sesame.utils.get_token', return_value='token'):
-            services.send_magic_link('brand_new@cuchd.in')
-        user = User.objects.get(email='brand_new@cuchd.in')
-        assert user.role == UserRole.STUDENT
+        # We no longer create the user in send_magic_link
+        assert not User.objects.filter(email='newstudent@cuchd.in').exists()
+        mock_email.assert_called_once()
 
     @patch('users.services.send_magic_link_email')
     def test_email_is_normalised_to_lowercase(self, mock_email, db):
-        with patch('sesame.utils.get_token', return_value='token'):
+        with patch('django.core.signing.TimestampSigner.sign', return_value='token') as mock_sign:
             services.send_magic_link('  UPPER@CUCHD.IN  ')
-        assert User.objects.filter(email='upper@cuchd.in').exists()
+        # Ensure it signs and sends the lowercase version
+        mock_sign.assert_called_once_with('upper@cuchd.in')
+        assert mock_email.call_args[1]['to'] == 'upper@cuchd.in'
+
+    @patch('users.services.send_magic_link_email')
+    def test_rate_limiting_prevents_spam(self, mock_email, db):
+        from django.core.cache import cache
+        cache.clear()
+        
+        with patch('django.core.signing.TimestampSigner.sign', return_value='token'):
+            services.send_magic_link('spam@cuchd.in')
+            services.send_magic_link('spam@cuchd.in')
+            services.send_magic_link('spam@cuchd.in')
+            
+            with pytest.raises(AppError) as exc_info:
+                services.send_magic_link('spam@cuchd.in')
+                
+        assert exc_info.value.code == 'RATE_LIMIT_EXCEEDED'
+        assert mock_email.call_count == 3
+
 
 
 # ---------------------------------------------------------------------------
@@ -174,23 +166,45 @@ class TestSendMagicLink:
 class TestVerifyMagicLink:
     def test_invalid_token_raises_app_error(self, db):
         request = RequestFactory().get('/')
-        with patch('sesame.utils.get_user', return_value=None):
+        from django.core.signing import BadSignature
+        with patch('django.core.signing.TimestampSigner.unsign', side_effect=BadSignature('Bad')):
             with pytest.raises(AppError) as exc_info:
                 services.verify_magic_link('bad-token', request)
         assert exc_info.value.code == 'INVALID_TOKEN'
         assert exc_info.value.status == 400
 
-    def test_valid_token_returns_user(self, student_user):
+    def test_expired_token_raises_app_error(self, db):
         request = RequestFactory().get('/')
-        with patch('sesame.utils.get_user', return_value=student_user):
+        from django.core.signing import SignatureExpired
+        with patch('django.core.signing.TimestampSigner.unsign', side_effect=SignatureExpired('Expired')):
+            with pytest.raises(AppError) as exc_info:
+                services.verify_magic_link('expired-token', request)
+        assert exc_info.value.code == 'INVALID_TOKEN'
+        assert exc_info.value.status == 400
+
+    def test_valid_token_returns_existing_user(self, student_user):
+        request = RequestFactory().get('/')
+        with patch('django.core.signing.TimestampSigner.unsign', return_value='student@cuchd.in'):
             result = services.verify_magic_link('valid-token', request)
         assert result == student_user
+
+    def test_valid_token_creates_new_user_if_not_exists(self, db):
+        request = RequestFactory().get('/')
+        assert not User.objects.filter(email='new@cuchd.in').exists()
+        with patch('django.core.signing.TimestampSigner.unsign', return_value='new@cuchd.in'):
+            result = services.verify_magic_link('valid-token', request)
+        
+        # User is created on verification
+        assert result.email == 'new@cuchd.in'
+        assert result.is_cu_student is True
+        assert result.role == UserRole.STUDENT
+        assert User.objects.filter(email='new@cuchd.in').exists()
 
     def test_admin_user_gets_is_staff_set(self, admin_user):
         admin_user.is_staff = False
         admin_user.save()
         request = RequestFactory().get('/')
-        with patch('sesame.utils.get_user', return_value=admin_user):
+        with patch('django.core.signing.TimestampSigner.unsign', return_value='admin@cuchd.in'):
             result = services.verify_magic_link('valid-token', request)
         # Refresh from DB
         admin_user.refresh_from_db()
@@ -315,6 +329,21 @@ class TestMagicLinkVerifyView:
             response = api_client.get('/api/auth/verify/?token=bad')
         assert response.status_code == 400
         assert response.data['error']['code'] == 'INVALID_TOKEN'
+
+    def test_valid_token_with_plus_address(self, api_client):
+        from django.core.signing import TimestampSigner
+        from urllib.parse import urlencode
+
+        signer = TimestampSigner()
+        email = 'student+test@cuchd.in'
+        token = signer.sign(email)
+        query_string = urlencode({'token': token})
+        
+        with patch('users.views.login'):
+            response = api_client.get(f'/api/auth/verify/?{query_string}')
+            
+        assert response.status_code == 200
+        assert response.data['user']['email'] == 'student+test@cuchd.in'
 
 
 @pytest.mark.django_db

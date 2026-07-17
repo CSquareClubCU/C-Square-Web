@@ -1,20 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>You're in!</title></head>
-<body style="font-family: Arial, sans-serif; background: #f4f4f4; padding: 40px;">
-  <div style="max-width: 500px; margin: 0 auto; background: #fff; padding: 32px; border-radius: 8px;">
-    <h2 style="color: #111;">You're in, {{ full_name }}! 🎉</h2>
-    <p style="color: #444;">Your registration for <strong>{{ event_title }}</strong> has been approved.</p>
-    <table style="width:100%; border-collapse:collapse; margin: 16px 0;">
-      <tr><td style="padding: 8px 0; color: #888; width:120px;">📅 Date &amp; Time</td><td style="color:#111;">{{ event_start }}</td></tr>
-      <tr><td style="padding: 8px 0; color: #888;">📍 Venue</td><td style="color:#111;">{{ event_venue }}</td></tr>
-    </table>
-    <p style="color: #444;">Show this QR code at the entrance on event day:</p>
-    <div style="text-align: center; margin: 24px 0;">
-      <img src="{{ qr_image_url }}" alt="Your QR Code" style="width: 200px; height: 200px; border: 1px solid #eee; border-radius: 8px;">
-    </div>
-    <p style="color: #888; font-size: 13px;">You can also access your QR code anytime from your dashboard.</p>
-    <p style="color: #888; font-size: 13px;">C Square Club, Chandigarh University</p>
-  </div>
-</body>
-</html>
+{% extends "emails/base.html" %}
+
+{% block title %}You're in!{% endblock %}
+
+{% block content %}
+<h2 style="color: #111; margin-top: 0; font-size: 24px;">You're in, {{ full_name }}! 🎉</h2>
+<p style="color: #444;">Your registration for <strong>{{ event_title }}</strong> has been approved.</p>
+
+<table style="width:100%; border-collapse:collapse; margin: 24px 0; font-size: 15px;">
+  <tr>
+    <td style="padding: 12px 0; color: #888; width:120px; border-bottom: 1px solid #eee;">📅 Date &amp; Time</td>
+    <td style="color:#111; font-weight: 500; border-bottom: 1px solid #eee;">{{ event_start }}</td>
+  </tr>
+  <tr>
+    <td style="padding: 12px 0; color: #888; border-bottom: 1px solid #eee;">📍 Venue</td>
+    <td style="color:#111; font-weight: 500; border-bottom: 1px solid #eee;">{{ event_venue }}</td>
+  </tr>
+</table>
+
+<p style="color: #444; margin-top: 24px;">Show this QR code at the entrance on event day:</p>
+<div style="margin: 24px 0;">
+  <img src="{{ qr_image_url }}" alt="Your QR Code" style="width: 200px; height: 200px; border: 1px solid #eee; border-radius: 8px; display: block;">
+</div>
+<p style="color: #888; font-size: 14px;">You can also access your QR code anytime from your dashboard.</p>
+{% endblock %}
