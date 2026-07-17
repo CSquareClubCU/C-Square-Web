@@ -195,14 +195,9 @@ export default function AdminSettingsPage() {
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-
-                {evt.logo_url ? (
-                  <img src={evt.logo_url} alt={evt.title} className="w-20 h-20 object-contain mb-4" />
-                ) : (
-                  <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-                    <ImageIcon className="w-8 h-8 text-gray-400" />
-                  </div>
-                )}
+                <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+                  <ImageIcon className="w-8 h-8 text-gray-400" />
+                </div>
                 <h3 className="font-semibold text-center text-[15px]">{evt.title}</h3>
                 <p className="text-xs text-gray-400 mt-1">Order: {evt.order}</p>
               </div>
@@ -242,19 +237,7 @@ export default function AdminSettingsPage() {
                 />
                 <p className="text-xs text-gray-500 mt-1">Lower numbers appear first.</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Logo</label>
-                <p className="text-xs text-gray-500 mb-2">Recommended dimensions: 400x400px (1:1 aspect ratio).</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                  className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-black hover:file:bg-gray-100 cursor-pointer"
-                />
-                {!file && editingEvent?.logo_url && (
-                  <p className="text-xs text-green-600 mt-1">Leave empty to keep existing logo.</p>
-                )}
-              </div>
+
               <div className="flex justify-end gap-3 pt-4">
                 <Button type="button" variant="ghost" onClick={handleCloseModal}>Cancel</Button>
                 <Button type="submit" disabled={actionLoading} className="bg-black text-white px-6">

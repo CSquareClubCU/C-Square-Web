@@ -46,16 +46,22 @@ export function TeamHeroBackground({ photos }: { photos: string[] }) {
       });
     });
 
-    // Sort by distance to the flanks of the text (columns 13 and 27)
-    // so the first few photos aren't hidden by the central white radial gradient
+    // Sort by distance from the center, but penalize the central text area
+    // so images fill the visible screen around the text first.
     const seeded = [...allPositions].sort((a, b) => {
-      // Distance to either column 13 or 27 (the visible edges)
-      const distToFlanksA = Math.min(Math.abs(a.col - 13), Math.abs(a.col - 27));
-      const distToFlanksB = Math.min(Math.abs(b.col - 13), Math.abs(b.col - 27));
+      const distFromCenterA = Math.sqrt(Math.pow(a.col - 19.5, 2) + Math.pow((a.row - 2) * 2.5, 2));
+      const distFromCenterB = Math.sqrt(Math.pow(b.col - 19.5, 2) + Math.pow((b.row - 2) * 2.5, 2));
       
-      const distA = Math.abs(a.row - 2) * 2 + distToFlanksA + ((a.row * 7 + a.col * 13) % 5);
-      const distB = Math.abs(b.row - 2) * 2 + distToFlanksB + ((b.row * 7 + b.col * 13) % 5);
-      return distA - distB;
+      const penaltyA = (a.col >= 14 && a.col <= 25 && a.row >= 1 && a.row <= 3) ? 15 : 0;
+      const penaltyB = (b.col >= 14 && b.col <= 25 && b.row >= 1 && b.row <= 3) ? 15 : 0;
+      
+      const noiseA = ((a.row * 7 + a.col * 13) % 5) * 0.5;
+      const noiseB = ((b.row * 7 + b.col * 13) % 5) * 0.5;
+      
+      const scoreA = distFromCenterA + penaltyA + noiseA;
+      const scoreB = distFromCenterB + penaltyB + noiseB;
+      
+      return scoreA - scoreB;
     });
 
     const map = new Map<string, string>();
