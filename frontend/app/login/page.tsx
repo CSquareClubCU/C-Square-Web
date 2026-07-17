@@ -59,7 +59,7 @@ function LoginForm() {
 
         <div className="relative z-10">
           <Link href="/" className="text-xl font-bold tracking-tight opacity-90">
-            CSquareClub
+            C Square Club
           </Link>
         </div>
 
@@ -78,8 +78,7 @@ function LoginForm() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-lg text-white/60 leading-relaxed"
           >
-            Sign in with your email. We&apos;ll send you a magic link — no
-            passwords to remember, ever.
+            Join the community of builders, creators, and innovators.
           </motion.p>
         </div>
 
@@ -94,24 +93,24 @@ function LoginForm() {
       </div>
 
       {/* Right side — login form */}
-      <div className="flex-1 flex items-center justify-center px-5 md:px-10">
-        <div className="w-full max-w-md">
-          {/* Back link */}
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
-            className="mb-12"
+      <div className="flex-1 flex items-center justify-center px-5 md:px-10 relative">
+        {/* Back link */}
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+          className="absolute top-8 left-5 md:top-12 md:left-10 lg:top-16 lg:left-16 z-20"
+        >
+          <Link
+            href="/"
+            className="text-sm text-[var(--c-muted-text)] hover:text-[var(--c-accent)] transition-colors flex items-center"
           >
-            <Link
-              href="/"
-              className="text-sm text-[var(--c-muted-text)] hover:text-[var(--c-accent)] transition-colors flex items-center"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to home
-            </Link>
-          </motion.div>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to home
+          </Link>
+        </motion.div>
 
+        <div className="w-full max-w-md">
           <AnimatePresence mode="wait">
             {!sent ? (
               <motion.div
@@ -121,22 +120,32 @@ function LoginForm() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
               >
-                <div className="flex items-center space-x-3 mb-3">
-                  <Sparkles className="w-5 h-5 text-[var(--c-accent)]" />
-                  <span className="text-xs font-semibold tracking-[0.15em] uppercase text-[var(--c-muted-text)]">
-                    Magic Link Login
-                  </span>
-                </div>
 
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
-                  Welcome back.
-                </h1>
-                <p className="text-[var(--c-secondary-text)] mb-10 leading-relaxed">
-                  Enter your email and we&apos;ll send you a magic link to sign
-                  in. No password needed — works for both new and returning users.
-                </p>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <motion.h1 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="text-3xl md:text-4xl font-bold tracking-tight mb-3"
+                >
+                  Welcome to C Square Club.
+                </motion.h1>
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="text-[var(--c-secondary-text)] mb-10 leading-relaxed"
+                >
+                  Enter your email to sign in or create an account.
+                </motion.p>
+
+                <motion.form 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  onSubmit={handleSubmit} 
+                  className="space-y-6"
+                >
                   <div className="space-y-2">
                     <label
                       htmlFor="email"
@@ -180,17 +189,22 @@ function LoginForm() {
                       />
                     ) : (
                       <>
-                        Send Magic Link
+                        Continue with Email
                         <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
                   </Button>
-                </form>
+                </motion.form>
 
-                <p className="text-xs text-[var(--c-muted-text)] mt-8 text-center">
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                  className="text-xs text-[var(--c-muted-text)] mt-8 text-center"
+                >
                   By signing in, you agree to our terms of service. Your
                   account is created automatically on first sign in.
-                </p>
+                </motion.p>
               </motion.div>
             ) : (
               <motion.div
@@ -218,7 +232,7 @@ function LoginForm() {
                   Check your inbox!
                 </h2>
                 <p className="text-[var(--c-secondary-text)] mb-2 leading-relaxed max-w-sm mx-auto">
-                  We&apos;ve sent a magic link to
+                  We&apos;ve sent a sign-in link to
                 </p>
                 <p className="font-semibold text-[var(--c-accent)] mb-8">{email}</p>
                 <p className="text-sm text-[var(--c-muted-text)] mb-8">

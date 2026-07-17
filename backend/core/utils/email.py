@@ -45,6 +45,16 @@ def send_email(
         print('='*50 + '\n')
         return
 
+    import re
+    from django.utils.html import strip_tags
+
+    # Generate plain text version to avoid Outlook/Exchange spam filters
+    plain_text = strip_tags(html_body).strip()
+    # Extract URLs and append them to plain text so they are accessible
+    urls = re.findall(r'href=[\'"]?([^\'" >]+)', html_body)
+    if urls:
+        plain_text += "\n\nLinks:\n" + "\n".join(urls)
+
     try:
         from azure.communication.email import EmailClient
         client = EmailClient.from_connection_string(connection_string)
@@ -56,7 +66,7 @@ def send_email(
             },
             "content": {
                 "subject": subject,
-                "plainText": "Please view this email in an HTML-compatible client.",
+                "plainText": plain_text,
                 "html": html_body
             }
         }
@@ -79,6 +89,7 @@ def send_magic_link_email(to: str, magic_link_url: str) -> None:
     """Send the magic link login email."""
     html_body = render_to_string('emails/magic_link.html', {
         'magic_link_url': magic_link_url,
+        'frontend_url': settings.FRONTEND_URL,
     })
     send_email(
         to=to,
@@ -92,6 +103,7 @@ def send_registration_submitted_email(to: str, event_title: str) -> None:
     """Notify student that their registration was received and is pending review."""
     html_body = render_to_string('emails/registration_submitted.html', {
         'event_title': event_title,
+        'frontend_url': settings.FRONTEND_URL,
     })
     send_email(
         to=to,
@@ -115,6 +127,7 @@ def send_registration_approved_email(
         'event_start': event_start,
         'event_venue': event_venue,
         'qr_image_url': qr_image_url,
+        'frontend_url': settings.FRONTEND_URL,
     })
     send_email(
         to=to,
@@ -134,6 +147,7 @@ def send_registration_rejected_email(
         'full_name': full_name,
         'event_title': event_title,
         'reason': reason,
+        'frontend_url': settings.FRONTEND_URL,
     })
     send_email(
         to=to,
@@ -148,6 +162,7 @@ def send_waitlist_email(to: str, full_name: str, event_title: str, position: int
         'full_name': full_name,
         'event_title': event_title,
         'position': position,
+        'frontend_url': settings.FRONTEND_URL,
     })
     send_email(
         to=to,
@@ -161,6 +176,7 @@ def send_off_waitlist_email(to: str, full_name: str, event_title: str) -> None:
     html_body = render_to_string('emails/off_waitlist.html', {
         'full_name': full_name,
         'event_title': event_title,
+        'frontend_url': settings.FRONTEND_URL,
     })
     send_email(
         to=to,
@@ -182,6 +198,7 @@ def send_teammate_invite_email(
         'event_title': event_title,
         'leader_name': leader_name,
         'confirmation_url': confirmation_url,
+        'frontend_url': settings.FRONTEND_URL,
     })
     send_email(
         to=to,
