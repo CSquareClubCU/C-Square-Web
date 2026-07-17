@@ -95,6 +95,7 @@ export interface Event {
   is_flagship: boolean;
   points: number;
   faqs: { question: string; answer: string }[] | null;
+  requires_approval: boolean;
 }
 
 export interface PastEvent {
@@ -133,7 +134,7 @@ export interface Registration {
   rejection_reason: string | null;
   waitlist_position: number | null;
   is_team_registration: boolean;
-  team: string | null; // UUID of the team
+  team: Team | null;
   registered_at: string;
   approved_at: string | null;
   // Populated in RegistrationDetailSerializer
@@ -177,6 +178,7 @@ export interface TeamMemberRecord {
   has_confirmed: boolean;
   confirmed_at: string | null;
   user: string | null; // UUID
+  user_full_name?: string | null;
 }
 
 export interface Team {
@@ -188,7 +190,16 @@ export interface Team {
   leader_email: string;
   leader_full_name: string;
   status: TeamStatus;
+  join_code: string | null;
   members: TeamMemberRecord[];
+  registrations: {
+    id: string;
+    user_email: string;
+    user_full_name: string;
+    user_student_uid: string;
+    status: RegistrationStatus;
+    registered_at: string;
+  }[];
   created_at: string;
 }
 
@@ -246,6 +257,7 @@ export interface TeamMember {
   id: string;
   full_name: string;
   designation: string;
+  category: string;
   photo_url: string | null;
   display_order: number;
   is_active: boolean;
@@ -253,7 +265,6 @@ export interface TeamMember {
   user_email?: string | null;
   github_url: string | null;
   linkedin_url: string | null;
-  twitter_url: string | null;
 }
 
 // ---------------------------------------------------------------------------

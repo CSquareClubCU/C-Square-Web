@@ -120,3 +120,42 @@ def delete_blob(blob_path: str) -> None:
         blob_client.delete_blob(delete_snapshots='include')
     except Exception as exc:
         logger.warning('Azure Blob Storage delete failed for path %s: %s', blob_path, exc)
+
+
+def delete_blob_from_url(url: str) -> None:
+    """
+    Given an Azure Blob Storage public URL, extract the blob path and delete it.
+    Also handles local media (localhost:8000/media/...) for dev mode.
+    Silently no-ops if the URL is empty, not Azure, or deletion fails.
+    """
+    if not url:
+        return
+
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+
+    # Local dev media file
+    if parsed.netloc in ('localhost:8000', '127.0.0.1:8000') and parsed.path.startswith('/media/'):
+        try:
+            from django.core.files.storage import default_storage
+            path = parsed.path.replace('/media/', '', 1)
+            if default_storage.exists(path):
+                default_storage.delete(path)
+        except Exception as exc:
+            logger.warning('Local media delete failed for %s: %s', url, exc)
+        return
+
+    # Azure Blob Storage URL: https://<account>.blob.core.windows.net/<container>/<blob_path>
+    if parsed.netloc.endswith('.blob.core.windows.net'):
+        # Strip leading slash and split off container name
+        path_parts = parsed.path.lstrip('/').split('/', 1)
+        if len(path_parts) == 2:
+            container = path_parts[0]
+            if container == getattr(settings, 'AZURE_STORAGE_CONTAINER_NAME', None):
+                blob_path = path_parts[1]  # everything after the container name
+                delete_blob(blob_path)
+            else:
+                logger.warning('delete_blob_from_url: container mismatch for %s', url)
+        return
+
+    logger.debug('delete_blob_from_url: unrecognised URL scheme, skipping: %s', url)

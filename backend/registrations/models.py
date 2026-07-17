@@ -53,6 +53,13 @@ class Team(BaseModel):
         default=TeamStatus.PENDING_CONFIRMATION,
         db_index=True,
     )
+    join_code = models.CharField(
+        max_length=10, 
+        unique=True, 
+        null=True, 
+        blank=True, 
+        db_index=True
+    )
 
     class Meta:
         db_table = 'registrations_team'
@@ -161,23 +168,22 @@ class Registration(BaseModel):
     def __str__(self):
         return f'{self.user.email} -> {self.event.title}'
 
-from django.db.models.signals import pre_delete
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.db import transaction
 
-@receiver(pre_delete, sender=Registration)
+@receiver(post_delete, sender=Registration)
 def cleanup_registration_qr(sender, instance, **kwargs):
+    """Delete the QR code image from Azure Blob Storage when a Registration is deleted."""
     if instance.qr_image_url:
-        from django.conf import settings
-        from django.core.files.storage import default_storage
-        
-        from urllib.parse import urlparse
-        parsed_url = urlparse(instance.qr_image_url)
-        
-        # Check if local storage
-        if parsed_url.netloc == 'localhost:8000' and parsed_url.path.startswith('/media/'):
-            path = parsed_url.path.replace('/media/', '', 1)
-            if default_storage.exists(path):
-                default_storage.delete(path)
-        elif parsed_url.netloc.endswith('.blob.core.windows.net'):
-            from core.utils.storage import delete_blob
-            delete_blob(f'qr-codes/{instance.id}/qr.png')
+        url = instance.qr_image_url
+        from core.utils.storage import delete_blob_from_url
+        def _delete():
+            try:
+                delete_blob_from_url(url)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    'Failed to delete QR code for registration %s: %s', instance.id, exc
+                )
+        transaction.on_commit(_delete)

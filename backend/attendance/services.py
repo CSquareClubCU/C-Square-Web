@@ -53,10 +53,12 @@ def _do_checkin(record: AttendanceRecord, method: str, marked_by) -> AttendanceR
             'is_checked_in', 'checked_in_at', 'check_in_method', 'marked_by', 'updated_at'
         ])
         
-        # Award club points
-        user = record.user
-        user.club_points += record.event.points
-        user.save(update_fields=['club_points', 'updated_at'])
+        # Award club points atomically using F() to avoid read-modify-write race conditions
+        from django.db.models import F
+        from django.contrib.auth import get_user_model
+        get_user_model().objects.filter(pk=record.user.pk).update(
+            club_points=F('club_points') + record.event.points
+        )
 
     logger.info(
         '%s checked in via %s at %s by %s',
@@ -172,10 +174,13 @@ def revoke_checkin(registration_id: uuid.UUID, revoked_by) -> AttendanceRecord:
             'is_checked_in', 'checked_in_at', 'check_in_method', 'marked_by', 'updated_at'
         ])
 
-        # Revert club points
-        user = record.user
-        user.club_points = max(0, user.club_points - record.event.points)
-        user.save(update_fields=['club_points', 'updated_at'])
+        # Revert club points atomically
+        from django.db.models import F, Value
+        from django.db.models.functions import Greatest
+        from django.contrib.auth import get_user_model
+        get_user_model().objects.filter(pk=record.user.pk).update(
+            club_points=Greatest(F('club_points') - record.event.points, Value(0))
+        )
 
     logger.info(
         '%s had check-in revoked at %s by %s',

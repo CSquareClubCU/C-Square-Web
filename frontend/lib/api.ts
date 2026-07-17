@@ -19,6 +19,7 @@ import type {
   RegistrationAdmin,
   CheckinStats,
   AttendanceRecord,
+  Team,
   TeamMember,
   PaginatedResponse,
   EventType,
@@ -313,6 +314,34 @@ export async function registerForEvent(
   return post<Registration>("/registrations/", { event_id: eventId });
 }
 
+export async function createTeam(
+  registrationId: string,
+  teamName: string
+): Promise<Team> {
+  return post<Team>("/registrations/team/create/", {
+    registration_id: registrationId,
+    team_name: teamName,
+  });
+}
+
+export async function joinTeam(
+  registrationId: string,
+  joinCode: string
+): Promise<Team> {
+  return post<Team>("/registrations/team/join/", {
+    registration_id: registrationId,
+    join_code: joinCode,
+  });
+}
+
+export async function leaveTeam(
+  registrationId: string
+): Promise<{ success: boolean; message: string }> {
+  return post("/registrations/team/leave/", {
+    registration_id: registrationId,
+  });
+}
+
 /**
  * POST /api/registrations/{id}/cancel/
  * Cancel a registration.
@@ -353,6 +382,39 @@ export async function fetchEventRegistrations(
   return get<PaginatedResponse<RegistrationAdmin>>(
     `/registrations/event/${eventId}/${query ? query : ''}`
   );
+}
+
+/**
+ * GET /api/registrations/event/{event_id}/teams/
+ * Admin: list teams for a specific event. Paginated.
+ */
+export async function fetchEventTeams(
+  eventId: string,
+  params?: { search?: string; page?: number }
+): Promise<PaginatedResponse<Team>> {
+  const qs = new URLSearchParams();
+  if (params?.search) qs.set("search", params.search);
+  if (params?.page) qs.set("page", String(params.page));
+  const query = qs.toString() ? `?${qs.toString()}` : "";
+  return get<PaginatedResponse<Team>>(
+    `/registrations/event/${eventId}/teams/${query ? query : ''}`
+  );
+}
+
+/**
+ * POST /api/registrations/team/{id}/approve/
+ * Admin: Approve a team.
+ */
+export async function approveTeam(teamId: string): Promise<any> {
+  return post(`/registrations/team/${teamId}/approve/`);
+}
+
+/**
+ * POST /api/registrations/team/{id}/reject/
+ * Admin: Reject a team.
+ */
+export async function rejectTeam(teamId: string, reason: string): Promise<any> {
+  return post(`/registrations/team/${teamId}/reject/`, { reason });
 }
 
 /**
@@ -417,6 +479,7 @@ export interface EventCreateData {
   contact_name?: string | null;
   contact_email?: string | null;
   is_registration_open?: boolean;
+  requires_approval?: boolean;
   is_flagship?: boolean;
   points?: number;
 }
@@ -687,6 +750,14 @@ export async function revokeCheckin(registrationId: string): Promise<void> {
 
 export async function deleteRegistration(registrationId: string): Promise<void> {
   return del(`/registrations/${registrationId}/admin-delete/`);
+}
+
+/**
+ * DELETE /api/registrations/team/{id}/admin-delete/
+ * Admin: Completely remove a team and all its member registrations.
+ */
+export async function deleteTeam(teamId: string): Promise<void> {
+  return del(`/registrations/team/${teamId}/admin-delete/`);
 }
 
 export async function fetchPastEvents(): Promise<any[]> {

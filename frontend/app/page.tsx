@@ -120,12 +120,28 @@ export default function Home() {
   const [flagshipEvent, setFlagshipEvent] = useState<Event | null>(null);
   const [teamMembers, setTeamMembers] = useState<CoreTeamMemberPublic[]>([]);
   const [statsLoaded, setStatsLoaded] = useState(false);
+  const [eventFilter, setEventFilter] = useState("All");
 
   useEffect(() => {
     // Fetch all homepage live data in parallel
     Promise.allSettled([
       fetchStats(),
-      fetchEvents({ status: "published" }),
+      (async () => {
+        let allUpcoming: Event[] = [];
+        let page = 1;
+        while (true) {
+          const res = await fetchEvents({ upcoming: true, status: "published", page });
+          allUpcoming = allUpcoming.concat(res.results);
+          if (!res.next) break;
+          page++;
+        }
+        const now = new Date();
+        allUpcoming = allUpcoming.filter(e => {
+            const isPast = e.end_datetime ? new Date(e.end_datetime) < now : new Date(e.start_datetime) < now;
+            return !isPast;
+        });
+        return { results: allUpcoming };
+      })(),
       fetchTeam(),
     ]).then(([statsRes, eventsRes, teamRes]) => {
       if (statsRes.status === "fulfilled") {
@@ -137,9 +153,8 @@ export default function Home() {
         const flagship = publishedEvents.find((e: Event) => e.is_flagship) || publishedEvents[0] || null;
         setFlagshipEvent(flagship);
         
-        // Show at most 6 non-flagship events on the homepage
-        const nonFlagship = publishedEvents.filter((e: Event) => e.id !== flagship?.id);
-        setHomeEvents(nonFlagship.slice(0, 6));
+        // Store all published events so filtering works correctly
+        setHomeEvents(publishedEvents);
       }
       if (teamRes.status === "fulfilled") {
         // Show at most 6 team members
@@ -450,94 +465,108 @@ export default function Home() {
                 What&apos;s on the calendar.
               </h2>
             </div>
-            <div className="hidden md:flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm">
-              <div className="px-5 py-2 rounded-[12px] bg-black text-white text-[13px] font-semibold cursor-default">All</div>
-              <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Hackathon</div>
-              <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Workshop</div>
-              <div className="px-5 py-2 rounded-[12px] text-gray-500 hover:text-black text-[13px] font-semibold cursor-default transition-colors">Competition</div>
-              <div className="w-[1px] h-4 bg-gray-200 mx-1"></div>
-              <Link href="/events" className="px-5 py-2 rounded-[12px] text-black hover:bg-gray-50 text-[13px] font-semibold transition-colors flex items-center gap-1">
+            <div className="flex flex-wrap md:flex-nowrap items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar max-w-full">
+              {["All", "Hackathon", "Workshop", "Seminar", "Competition"].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setEventFilter(cat)}
+                  className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold cursor-default transition-colors whitespace-nowrap ${
+                    eventFilter === cat
+                      ? "bg-black text-white"
+                      : "text-gray-500 hover:text-black"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+              <div className="hidden md:block w-[1px] h-4 bg-gray-200 mx-1 shrink-0"></div>
+              <Link href="/events" className="px-4 py-2 rounded-[12px] text-black hover:bg-gray-50 text-[13px] font-semibold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0">
                 View all <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </FadeUp>
 
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {homeEvents.length > 0 ? (
-              homeEvents.map((event) => {
-                const gradient = getGradientForType(event.event_type);
-                const dotColor = getDotColorForType(event.event_type);
-                const eventDate = new Date(event.start_datetime);
+          <StaggerContainer key={eventFilter} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {(() => {
+              const filteredEvents = homeEvents.filter(e => eventFilter === "All" || e.event_type === eventFilter.toLowerCase()).slice(0, 6);
+              if (filteredEvents.length > 0) {
+                return filteredEvents.map((event) => {
+                  const gradient = getGradientForType(event.event_type);
+                  const dotColor = getDotColorForType(event.event_type);
+                  const eventDate = new Date(event.start_datetime);
+                  return (
+                    <StaggerItem key={event.id}>
+                      <TiltCard className="h-full">
+                        <Link href={`/events/${event.slug}`} className="block h-full group">
+                          <div className={`h-full flex flex-col rounded-[24px] border border-gray-100 bg-white overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all duration-500 ${eventDate < new Date() ? 'opacity-60 grayscale' : 'hover:shadow-xl'}`}>
+                            
+                            {/* Banner */}
+                            <div className={`h-48 relative overflow-hidden bg-gradient-to-br ${gradient} p-4`}>
+                              {event.banner_image_url && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={event.banner_image_url} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
+                              )}
+                              
+                              {/* Type Badge */}
+                              <div className="absolute top-4 left-4 z-10">
+                                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[11px] font-bold text-gray-800 shadow-sm">
+                                   <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                                   <span className="capitalize">{event.event_type}</span>
+                                </div>
+                              </div>
+                      
+                              {/* Date Square */}
+                              <div className="absolute bottom-4 right-4 z-10">
+                                <div className="flex flex-col items-center justify-center w-12 h-12 bg-white rounded-xl shadow-md">
+                                   <span className="text-lg font-bold text-black leading-none">{eventDate.getDate()}</span>
+                                   <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none mt-0.5">
+                                     {eventDate.toLocaleString('default', { month: 'short' })}
+                                   </span>
+                                </div>
+                              </div>
+                            </div>
+                      
+                            {/* Content */}
+                            <div className="flex-1 p-6 flex flex-col">
+                              <h3 className="font-semibold tracking-tight text-xl mb-2 text-black leading-snug group-hover:text-blue-600 transition-colors">
+                                {event.title}
+                              </h3>
+                              
+                              <p className="text-gray-500 text-[14px] font-medium leading-relaxed mb-6 line-clamp-2">
+                                 {event.description || "Join us for this exciting event!"}
+                              </p>
+                              
+                              <div className="mt-auto space-y-3 mb-6">
+                                <div className="flex items-center gap-3 text-[13px] font-medium text-gray-600">
+                                  <Calendar className="w-4 h-4 text-gray-400" />
+                                  <span>{formatDate(event.start_datetime)}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-[13px] font-medium text-gray-600">
+                                  <MapPin className="w-4 h-4 text-gray-400" />
+                                  <span className="truncate">{event.venue}</span>
+                                </div>
+                              </div>
+                              
+                              <div className="pt-5 border-t border-gray-100 flex items-center justify-between">
+                                <span className="text-[13px] font-bold text-black">View details</span>
+                                <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-black group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      </TiltCard>
+                    </StaggerItem>
+                  );
+                });
+              } else {
                 return (
-                  <StaggerItem key={event.id}>
-                    <TiltCard className="h-full">
-                      <Link href={`/events/${event.slug}`} className="block h-full group">
-                        <div className={`h-full flex flex-col rounded-[24px] border border-gray-100 bg-white overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all duration-500 ${eventDate < new Date() ? 'opacity-60 grayscale' : 'hover:shadow-xl'}`}>
-                          
-                          {/* Banner */}
-                          <div className={`h-48 relative overflow-hidden bg-gradient-to-br ${gradient} p-4`}>
-                            {event.banner_image_url && (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={event.banner_image_url} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
-                            )}
-                            
-                            {/* Type Badge */}
-                            <div className="absolute top-4 left-4 z-10">
-                              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-[11px] font-bold text-gray-800 shadow-sm">
-                                 <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
-                                 <span className="capitalize">{event.event_type}</span>
-                              </div>
-                            </div>
-                    
-                            {/* Date Square */}
-                            <div className="absolute bottom-4 right-4 z-10">
-                              <div className="flex flex-col items-center justify-center w-12 h-12 bg-white rounded-xl shadow-md">
-                                 <span className="text-lg font-bold text-black leading-none">{eventDate.getDate()}</span>
-                                 <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-none mt-0.5">
-                                   {eventDate.toLocaleString('default', { month: 'short' })}
-                                 </span>
-                              </div>
-                            </div>
-                          </div>
-                    
-                          {/* Content */}
-                          <div className="flex-1 p-6 flex flex-col">
-                            <h3 className="font-semibold tracking-tight text-xl mb-2 text-black leading-snug group-hover:text-blue-600 transition-colors">
-                              {event.title}
-                            </h3>
-                            
-                            <p className="text-gray-500 text-[14px] font-medium leading-relaxed mb-6 line-clamp-2">
-                               {event.description || "Join us for this exciting event!"}
-                            </p>
-                            
-                            <div className="mt-auto space-y-3 mb-6">
-                              <div className="flex items-center gap-3 text-[13px] font-medium text-gray-600">
-                                <Calendar className="w-4 h-4 text-gray-400" />
-                                <span>{formatDate(event.start_datetime)}</span>
-                              </div>
-                              <div className="flex items-center gap-3 text-[13px] font-medium text-gray-600">
-                                <MapPin className="w-4 h-4 text-gray-400" />
-                                <span className="truncate">{event.venue}</span>
-                              </div>
-                            </div>
-                            
-                            <div className="pt-5 border-t border-gray-100 flex items-center justify-between">
-                              <span className="text-[13px] font-bold text-black">View details</span>
-                              <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-black group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    </TiltCard>
-                  </StaggerItem>
+                  <div className="col-span-1 md:col-span-3 text-center py-20 bg-gray-50 rounded-[24px] border border-gray-200">
+                    <p className="text-xl font-semibold text-gray-600">No upcoming events right now.</p>
+                    <p className="text-gray-500 mt-2">Check back later for updates!</p>
+                  </div>
                 );
-              })
-            ) : (
-              <div className="col-span-1 md:col-span-3 text-center py-20 bg-gray-50 rounded-[24px] border border-gray-200">
-                <p className="text-xl font-semibold text-gray-600">No upcoming events right now.</p>
-                <p className="text-gray-500 mt-2">Check back later for updates!</p>
-              </div>
-            )}
+              }
+            })()}
             </StaggerContainer>
 
             <div className="mt-8 text-center sm:hidden">
@@ -591,11 +620,6 @@ export default function Home() {
                     </p>
                     
                     <div className="flex items-center gap-4 mt-auto">
-                      {member.twitter_url && (
-                        <a href={member.twitter_url} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-black transition-colors">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-                        </a>
-                      )}
                       {member.github_url && (
                         <a href={member.github_url} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-black transition-colors">
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>

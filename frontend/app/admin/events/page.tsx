@@ -9,6 +9,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -48,6 +49,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminEventsPage() {
+  const router = useRouter();
   useRequireAuth({ role: "admin" });
   const [events, setEvents] = useState<Event[]>([]);
   const [total, setTotal] = useState(0);
@@ -176,7 +178,16 @@ export default function AdminEventsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97 }}
-                  className="w-full bg-white border border-black/[0.04] rounded-[24px] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group"
+                  className="w-full bg-white border border-black/[0.04] rounded-[24px] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+                  onClick={() => router.push(`/admin/events/${event.slug}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      router.push(`/admin/events/${event.slug}`);
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-5 min-w-0">
                     <div className="w-12 h-12 rounded-[12px] bg-[#f8f9fa] border border-black/[0.04] flex items-center justify-center shrink-0">
@@ -212,28 +223,22 @@ export default function AdminEventsPage() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <Link href={`/checkin/${event.slug}`}>
+                    <Link href={`/checkin/${event.slug}`} onClick={(e) => e.stopPropagation()}>
                       <Button variant="outline" size="sm" className="text-gray-600">
                         <QrCode className="w-4 h-4 mr-1.5" />
                         Attendance
                       </Button>
                     </Link>
-                    <Link href={`/admin/events/${event.slug}`}>
-                      <Button variant="outline" size="sm" className="text-gray-600 bg-[#f8f9fa] border-transparent hover:bg-gray-100 hover:border-gray-200">
-                        <Edit3 className="w-4 h-4 mr-1.5" />
-                        Manage
-                      </Button>
-                    </Link>
-                    {event.status === "draft" && (
+                    {(event.status === "draft" || event.status === "cancelled") && (
                       <button
-                        onClick={() => handleDelete(event.slug)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(event.slug); }}
                         disabled={deletingId === event.slug}
                         className={`p-2 rounded-[8px] transition-all duration-200 ${
                           deleteConfirm === event.slug
                             ? "bg-red-50 text-red-600 border border-red-100"
                             : "text-gray-400 hover:text-red-500 hover:bg-red-50 border border-transparent"
                         }`}
-                        title={deleteConfirm === event.slug ? "Click again to confirm" : "Delete draft"}
+                        title={deleteConfirm === event.slug ? "Click again to confirm" : `Delete ${event.status} event`}
                       >
                         {deletingId === event.slug ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -244,11 +249,9 @@ export default function AdminEventsPage() {
                         )}
                       </button>
                     )}
-                    <Link href={`/admin/events/${event.slug}`}>
-                      <button className="p-2 text-gray-400 hover:text-black transition-colors">
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </Link>
+                    <button className="p-2 text-gray-400 hover:text-black transition-colors" title="Manage event">
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </motion.div>
               ))}

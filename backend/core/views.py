@@ -85,10 +85,11 @@ class SettingsAdminView(APIView):
         return Response(serializer.data)
 
     def put(self, request):
-        settings = SiteSettings.load()
-        serializer = SiteSettingsSerializer(settings, data=request.data, partial=True)
+        from core.exceptions import AppError
+        settings_obj = SiteSettings.load()
+        serializer = SiteSettingsSerializer(settings_obj, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        raise AppError('VALIDATION_ERROR', 'Invalid input.', 400, fields=serializer.errors)
 

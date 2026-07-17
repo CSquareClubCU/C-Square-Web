@@ -37,11 +37,15 @@ import {
 import { Button } from "@/components/ui/Button";
 import { FadeUp } from "@/components/animations/MotionElements";
 import { ConfirmAlert } from "@/components/ui/ConfirmAlert";
-import { fetchEventById, fetchEventRegistrations, approveRegistration, rejectRegistration, moveFromWaitlist, exportAttendanceCsv, updateEvent, uploadEventBanner, awardBonusPoints, deleteRegistration, fetchEventVolunteers, assignVolunteer, removeVolunteer, fetchTeam, deleteEvent } from "@/lib/api";
+import { fetchEventById, fetchEventRegistrations, approveRegistration, rejectRegistration, moveFromWaitlist, exportAttendanceCsv, updateEvent, uploadEventBanner, awardBonusPoints, deleteRegistration, deleteTeam, fetchEventVolunteers, assignVolunteer, removeVolunteer, fetchTeam, deleteEvent, fetchEventTeams, approveTeam, rejectTeam } from "@/lib/api";
 import type { EventCreateData, VolunteerAssignment } from "@/lib/api";
 import { formatDate, formatTime } from "@/lib/utils";
-import type { Event, RegistrationAdmin, RegistrationStatus, CoreTeamMemberPublic } from "@/types";
+import type { Event, RegistrationAdmin, RegistrationStatus, CoreTeamMemberPublic, Team } from "@/types";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+const REMARK_PLUGINS = [remarkGfm];
 const STATUS_TABS: Array<{ value: RegistrationStatus | ""; label: string; icon: React.ReactNode }> = [
   { value: "", label: "All", icon: <Users className="w-3.5 h-3.5" /> },
   { value: "pending", label: "Pending", icon: <Clock className="w-3.5 h-3.5" /> },
@@ -73,12 +77,20 @@ export default function AdminEventDetailPage() {
   const [removeModal, setRemoveModal] = useState<{ id: string; name: string } | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
 
+  const [viewMode, setViewMode] = useState<"teams" | "individuals">("teams");
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
+  const [teamRejectModal, setTeamRejectModal] = useState<{ id: string; name: string } | null>(null);
+  const [deleteTeamModal, setDeleteTeamModal] = useState<{ id: string; name: string } | null>(null);
+
   // Bonus Points
   const [bonusModal, setBonusModal] = useState<{ id: string; name: string; userId: string; points: number } | null>(null);
   const [editOpen, setEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState<Partial<EventCreateData>>({});
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [descMode, setDescMode] = useState<"write" | "preview">("write");
+  const [rulesMode, setRulesMode] = useState<"write" | "preview">("write");
+  const [editForm, setEditForm] = useState<Partial<EventCreateData>>({});
   const [bannerLoading, setBannerLoading] = useState(false);
 
   // Volunteers
@@ -89,9 +101,10 @@ export default function AdminEventDetailPage() {
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [volunteersModalOpen, setVolunteersModalOpen] = useState(false);
 
-  // Delete Event Alert
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [cancelAlertOpen, setCancelAlertOpen] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   const handlePrizeChange = (index: number, field: string, value: string) => {
     setEditForm((prev) => {
@@ -211,14 +224,37 @@ export default function AdminEventDetailPage() {
     }
   }, [event, statusFilter, debouncedSearch, page]);
 
+  const loadTeams = useCallback(async () => {
+    if (!event) return;
+    setLoadingTeams(true);
+    try {
+      const data = await fetchEventTeams(event.id, {
+        search: debouncedSearch || undefined,
+        page,
+      });
+      setTeams(data.results);
+      setTotal(data.count);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingTeams(false);
+    }
+  }, [event, debouncedSearch, page]);
+
   useEffect(() => {
     let mounted = true;
     const init = async () => {
-      if (mounted) await loadRegistrations();
+      if (mounted) {
+        if (event?.is_team_event && viewMode === "teams") {
+          await loadTeams();
+        } else {
+          await loadRegistrations();
+        }
+      }
     };
     init();
     return () => { mounted = false; };
-  }, [loadRegistrations]);
+  }, [loadRegistrations, loadTeams, event?.is_team_event, viewMode]);
   // Reset page when filters change
   useEffect(() => { 
     const t = setTimeout(() => setPage(1), 0);
@@ -234,6 +270,15 @@ export default function AdminEventDetailPage() {
     finally { setActionLoading(null); }
   }
 
+  async function handleApproveTeam(teamId: string) {
+    setActionLoading(teamId);
+    try {
+      await approveTeam(teamId);
+      await loadTeams();
+    } catch (err: any) { alert(err.message || "Failed to approve team."); console.error(err); }
+    finally { setActionLoading(null); }
+  }
+
   async function handleReject() {
     if (!rejectModal || !rejectReason.trim()) return;
     setActionLoading(rejectModal.id);
@@ -243,6 +288,29 @@ export default function AdminEventDetailPage() {
       setRejectReason("");
       await loadRegistrations();
     } catch (err: any) { alert(err.message || "Failed to reject registration."); console.error(err); }
+    finally { setActionLoading(null); }
+  }
+
+  async function handleRejectTeamSubmit() {
+    if (!teamRejectModal || !rejectReason.trim()) return;
+    setActionLoading(teamRejectModal.id);
+    try {
+      await rejectTeam(teamRejectModal.id, rejectReason);
+      setTeamRejectModal(null);
+      setRejectReason("");
+      await loadTeams();
+    } catch (err: any) { alert(err.message || "Failed to reject team."); console.error(err); }
+    finally { setActionLoading(null); }
+  }
+
+  async function handleDeleteTeam() {
+    if (!deleteTeamModal) return;
+    setActionLoading(deleteTeamModal.id);
+    try {
+      await deleteTeam(deleteTeamModal.id);
+      setDeleteTeamModal(null);
+      await loadTeams();
+    } catch (err: any) { alert(err.message || "Failed to delete team."); console.error(err); }
     finally { setActionLoading(null); }
   }
 
@@ -334,7 +402,6 @@ export default function AdminEventDetailPage() {
     };
     setEditForm({
       title: event.title,
-      description: event.description,
       event_type: event.event_type,
       venue: event.venue,
       capacity: event.capacity,
@@ -348,10 +415,12 @@ export default function AdminEventDetailPage() {
       max_team_size: event.max_team_size ?? null,
       prizes: event.prizes || [],
       faqs: event.faqs || [],
+      description: event.description || "",
       rules: event.rules || "",
       contact_name: event.contact_name || "",
       contact_email: event.contact_email || "",
       is_registration_open: event.is_registration_open,
+      requires_approval: event.requires_approval,
       is_flagship: event.is_flagship,
       points: event.points,
     });
@@ -365,8 +434,15 @@ export default function AdminEventDetailPage() {
     setEditLoading(true);
     setEditError(null);
     try {
+      // Sanitize team settings
+      const payload = { ...editForm };
+      if (!payload.is_team_event) {
+        payload.min_team_size = null;
+        payload.max_team_size = null;
+      }
+      
       // PATCH by slug
-      const updated = await updateEvent(event.slug, editForm);
+      const updated = await updateEvent(event.slug, payload);
       setEvent(updated);
       setEditOpen(false);
     } catch (err: unknown) {
@@ -386,6 +462,21 @@ export default function AdminEventDetailPage() {
       alert(err.message || "Failed to delete event.");
       setDeleteLoading(false);
       setDeleteAlertOpen(false);
+    }
+  }
+
+  async function handleCancelEvent() {
+    if (!event) return;
+    setCancelLoading(true);
+    try {
+      const updated = await updateEvent(event.slug, { status: "cancelled" });
+      setEvent(updated);
+      setCancelAlertOpen(false);
+      setEditOpen(false);
+    } catch (err: any) {
+      alert(err.message || "Failed to cancel event.");
+    } finally {
+      setCancelLoading(false);
     }
   }
 
@@ -508,13 +599,31 @@ export default function AdminEventDetailPage() {
         </div>
       </section>
 
-      {/* Registrations */}
+      {/* Registrations & Teams */}
       <div className="max-w-[1200px] mx-auto px-5 md:px-10 pb-24 space-y-6">
+
+        {event.is_team_event && (
+          <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+            <button
+              onClick={() => { setViewMode("teams"); setPage(1); }}
+              className={`px-4 py-2 text-[14px] font-medium border-b-2 transition-colors ${viewMode === "teams" ? "border-black text-black" : "border-transparent text-gray-500 hover:text-black"}`}
+            >
+              Teams
+            </button>
+            <button
+              onClick={() => { setViewMode("individuals"); setPage(1); }}
+              className={`px-4 py-2 text-[14px] font-medium border-b-2 transition-colors ${viewMode === "individuals" ? "border-black text-black" : "border-transparent text-gray-500 hover:text-black"}`}
+            >
+              Individuals
+            </button>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Status tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+          {(!event.is_team_event || viewMode === "individuals") ? (
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
             {STATUS_TABS.map((tab) => (
               <button
                 key={tab.value}
@@ -530,6 +639,9 @@ export default function AdminEventDetailPage() {
               </button>
             ))}
           </div>
+          ) : (
+            <div className="flex-1" /> // Spacer for Teams view
+          )}
 
           {/* Search */}
           <div className="relative flex-1 sm:max-w-xs">
@@ -546,23 +658,134 @@ export default function AdminEventDetailPage() {
 
         {/* Count */}
         <p className="text-sm text-[var(--c-muted-text)]">
-          {total} registration{total !== 1 ? "s" : ""}
-          {statusFilter ? ` · ${statusFilter}` : ""}
+          {viewMode === "teams" && event.is_team_event ? (
+            <>{total} team{total !== 1 ? "s" : ""}</>
+          ) : (
+            <>{total} registration{total !== 1 ? "s" : ""}{statusFilter ? ` · ${statusFilter}` : ""}</>
+          )}
         </p>
 
         {/* Table */}
         <div className="bg-white border border-[#e5e7eb] rounded-[12px] overflow-hidden">
-          {loadingRegs ? (
+          {(viewMode === "teams" && event.is_team_event ? loadingTeams : loadingRegs) ? (
             <div className="py-16 flex items-center justify-center">
               <Loader2 className="w-7 h-7 animate-spin text-gray-300" />
             </div>
-          ) : registrations.length === 0 ? (
+          ) : (viewMode === "teams" && event.is_team_event ? teams.length === 0 : registrations.length === 0) ? (
             <div className="py-20 text-center bg-[#f8f9fa]">
               <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 font-medium">No registrations</p>
-              <p className="text-sm text-gray-400 mt-1">
-                {search || statusFilter ? "Try adjusting your filters." : "No one has registered yet."}
+              <p className="text-gray-500 font-medium">
+                {viewMode === "teams" && event.is_team_event ? "No teams found" : "No registrations"}
               </p>
+              <p className="text-sm text-gray-400 mt-1">
+                {search || statusFilter ? "Try adjusting your filters." : 
+                 (viewMode === "teams" && event.is_team_event ? "No one has created a team yet." : "No one has registered yet.")}
+              </p>
+            </div>
+          ) : viewMode === "teams" && event.is_team_event ? (
+            <div className="divide-y divide-[#e5e7eb]">
+              <AnimatePresence>
+                {teams.map((team) => {
+                  const pendingCount = team.registrations.filter(r => r.status === "pending").length;
+                  const totalMembers = team.registrations.length;
+                  const approvedCount = team.registrations.filter(r => r.status === "approved").length;
+                  
+                  // Overall team status logic
+                  let teamStatusDisplay = team.status.charAt(0).toUpperCase() + team.status.replace("_", " ").slice(1);
+                  let teamStatusColor = team.status === "approved" ? "bg-[#10b981]" : team.status === "rejected" ? "bg-[#ef4444]" : "bg-[#f59e0b]";
+
+                  return (
+                    <motion.div
+                      key={team.id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 px-6 py-5 hover:bg-gray-50 transition-colors"
+                    >
+                      {/* Team info */}
+                      <div className="flex-1 min-w-0 space-y-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${teamStatusColor}`} />
+                          <p className="font-semibold text-[15px] text-[#111111] truncate">
+                            {team.name}
+                          </p>
+                          <span className="text-[11px] font-medium text-[#6b7280] bg-gray-100 px-2 py-0.5 rounded-full border border-[#e5e7eb]">
+                            {teamStatusDisplay}
+                          </span>
+                          <span className="text-[11px] font-medium text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full bg-white">
+                            Code: {team.join_code}
+                          </span>
+                        </div>
+                        
+                        {/* Members list */}
+                        <div className="pl-4 space-y-2 border-l-2 border-gray-100">
+                          {team.registrations.map(reg => (
+                            <div key={reg.id} className="flex items-center gap-2 text-[13px]">
+                              <div className={`w-1.5 h-1.5 rounded-full ${
+                                reg.status === 'approved' ? 'bg-[#10b981]' :
+                                reg.status === 'pending' ? 'bg-[#f59e0b]' :
+                                reg.status === 'rejected' ? 'bg-[#ef4444]' : 'bg-[#d1d5db]'
+                              }`} />
+                              <span className="text-gray-900 font-medium">
+                                {reg.user_full_name} {reg.user_email === team.leader_email && "(Leader)"}
+                              </span>
+                              <span className="text-gray-500 ml-1">{reg.user_email}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col items-end gap-2 shrink-0 min-w-[140px] pt-1">
+                        {actionLoading === team.id ? (
+                          <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                        ) : (
+                          <>
+                            {pendingCount > 0 && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleApproveTeam(team.id)}
+                                  className="text-xs w-full"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                                  Approve Team
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setTeamRejectModal({ id: team.id, name: team.name })}
+                                  className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 w-full"
+                                >
+                                  <XCircle className="w-3.5 h-3.5 mr-1" />
+                                  Reject Team
+                                </Button>
+                              </>
+                            )}
+                            {approvedCount === totalMembers && totalMembers > 0 && (
+                              <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium mt-1">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Team Fully Approved
+                              </span>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDeleteTeamModal({ id: team.id, name: team.name })}
+                              className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 w-full mt-1"
+                              title="Delete entire team"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 mr-1" />
+                              Delete Team
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           ) : (
             <div className="divide-y divide-[#e5e7eb]">
@@ -732,6 +955,47 @@ export default function AdminEventDetailPage() {
       </div>
 
       <ConfirmAlert
+        isOpen={!!teamRejectModal}
+        title="Reject Team"
+        message={
+          <div>
+            <p className="text-[14px] text-gray-500 mb-4">
+              You are rejecting the entire team <strong>{teamRejectModal?.name}</strong>. Provide a reason — this will be emailed to all members.
+            </p>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              rows={3}
+              placeholder="e.g. Invalid submission."
+              className="w-full px-4 py-3 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black resize-none"
+            />
+          </div>
+        }
+        onConfirm={handleRejectTeamSubmit}
+        onCancel={() => { setTeamRejectModal(null); setRejectReason(""); }}
+        confirmText="Reject Team"
+        isDestructive={true}
+        loading={teamRejectModal ? actionLoading === teamRejectModal.id : false}
+        confirmDisabled={!rejectReason.trim()}
+      />
+
+      <ConfirmAlert
+        isOpen={!!deleteTeamModal}
+        title="Delete Team"
+        message={
+          <p className="text-[14px] text-gray-500">
+            Permanently delete team <strong>{deleteTeamModal?.name}</strong> and <strong>all member registrations</strong>?
+            This action cannot be undone. Any approved members will free up capacity.
+          </p>
+        }
+        onConfirm={handleDeleteTeam}
+        onCancel={() => setDeleteTeamModal(null)}
+        confirmText="Delete Team"
+        isDestructive={true}
+        loading={deleteTeamModal ? actionLoading === deleteTeamModal.id : false}
+      />
+
+      <ConfirmAlert
         isOpen={!!rejectModal}
         title="Reject Registration"
         message={
@@ -836,6 +1100,30 @@ export default function AdminEventDetailPage() {
                     </div>
                   ))}
 
+                  <div>
+                    <label htmlFor="edit-description" className="block text-sm font-medium mb-1.5">Description</label>
+                    <div className="flex items-center gap-4 mb-2">
+                      <button type="button" onClick={() => setDescMode('write')} className={`text-[13px] font-medium transition-colors ${descMode === 'write' ? 'text-black border-b border-black' : 'text-gray-500 hover:text-black'}`}>Write</button>
+                      <button type="button" onClick={() => setDescMode('preview')} className={`text-[13px] font-medium transition-colors ${descMode === 'preview' ? 'text-black border-b border-black' : 'text-gray-500 hover:text-black'}`}>Preview</button>
+                    </div>
+                    {descMode === 'write' ? (
+                      <textarea
+                        id="edit-description"
+                        rows={5}
+                        placeholder="Describe the event — supports Markdown"
+                        value={editForm.description || ""}
+                        onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
+                        className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors resize-none"
+                      />
+                    ) : (
+                      <div className="p-4 border border-black/[0.08] rounded-[8px] bg-white min-h-[140px] prose prose-sm max-w-none text-black">
+                        <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>
+                          {editForm.description || "*No description provided.*"}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between border border-[var(--c-border)] p-4 rounded-xl mt-4">
                     <div>
                       <div className="font-semibold text-sm">Event Banner</div>
@@ -891,6 +1179,49 @@ export default function AdminEventDetailPage() {
                   </select>
                 </div>
 
+                <div className="flex items-center justify-between border border-[var(--c-border)] p-4 rounded-xl mt-4">
+                  <div>
+                    <div className="font-semibold text-sm">Team Event</div>
+                    <div className="text-xs text-[var(--c-muted-text)]">Allow users to register as teams</div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={editForm.is_team_event}
+                      onChange={(e) => setEditForm(p => ({ ...p, is_team_event: e.target.checked }))}
+                      className="sr-only peer" 
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+                  </label>
+                </div>
+
+                {editForm.is_team_event && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="edit-min-team-size" className="block text-sm font-medium mb-1.5">Min Team Size</label>
+                      <input
+                        id="edit-min-team-size"
+                        type="number"
+                        min={2}
+                        value={editForm.min_team_size ?? ""}
+                        onChange={(e) => setEditForm((p) => ({ ...p, min_team_size: parseInt(e.target.value, 10) || null }))}
+                        className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="edit-max-team-size" className="block text-sm font-medium mb-1.5">Max Team Size</label>
+                      <input
+                        id="edit-max-team-size"
+                        type="number"
+                        min={2}
+                        value={editForm.max_team_size ?? ""}
+                        onChange={(e) => setEditForm((p) => ({ ...p, max_team_size: parseInt(e.target.value, 10) || null }))}
+                        className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
                     { id: "edit-start", label: "Start", name: "start_datetime" },
@@ -935,13 +1266,25 @@ export default function AdminEventDetailPage() {
 
                 <div>
                   <label htmlFor="edit-rules" className="block text-sm font-medium mb-1.5">Rules</label>
-                  <textarea
-                    id="edit-rules"
-                    rows={4}
-                    value={editForm.rules || ""}
-                    onChange={(e) => setEditForm((p) => ({ ...p, rules: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors resize-none"
-                  />
+                  <div className="flex items-center gap-4 mb-2">
+                    <button type="button" onClick={() => setRulesMode('write')} className={`text-[13px] font-medium transition-colors ${rulesMode === 'write' ? 'text-black border-b border-black' : 'text-gray-500 hover:text-black'}`}>Write</button>
+                    <button type="button" onClick={() => setRulesMode('preview')} className={`text-[13px] font-medium transition-colors ${rulesMode === 'preview' ? 'text-black border-b border-black' : 'text-gray-500 hover:text-black'}`}>Preview</button>
+                  </div>
+                  {rulesMode === 'write' ? (
+                    <textarea
+                      id="edit-rules"
+                      rows={4}
+                      value={editForm.rules || ""}
+                      onChange={(e) => setEditForm((p) => ({ ...p, rules: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors resize-none"
+                    />
+                  ) : (
+                    <div className="p-4 border border-black/[0.08] rounded-[8px] bg-white min-h-[120px] prose prose-sm max-w-none text-black">
+                      <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>
+                        {editForm.rules || "*No rules provided.*"}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
 
                 <div className="border border-[var(--c-border)] rounded-xl p-4">
@@ -1039,15 +1382,27 @@ export default function AdminEventDetailPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="edit-registration_open"
-                    checked={editForm.is_registration_open ?? true}
-                    onChange={(e) => setEditForm((p) => ({ ...p, is_registration_open: e.target.checked }))}
-                    className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
-                  />
-                  <label htmlFor="edit-registration_open" className="text-sm font-medium">Registrations Open</label>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="edit-registration_open"
+                      checked={editForm.is_registration_open ?? true}
+                      onChange={(e) => setEditForm((p) => ({ ...p, is_registration_open: e.target.checked }))}
+                      className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
+                    />
+                    <label htmlFor="edit-registration_open" className="text-sm font-medium">Registrations Open</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="edit-requires_approval"
+                      checked={editForm.requires_approval ?? true}
+                      onChange={(e) => setEditForm((p) => ({ ...p, requires_approval: e.target.checked }))}
+                      className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
+                    />
+                    <label htmlFor="edit-requires_approval" className="text-sm font-medium">Requires Approval (Waitlist)</label>
+                  </div>
                 </div>
 
                 {editError && (
@@ -1059,10 +1414,20 @@ export default function AdminEventDetailPage() {
                 </div>
 
                 <div className="px-6 py-5 border-t border-black/[0.04] bg-[#f8f9fa] flex items-center justify-between gap-3 shrink-0">
-                  <Button type="button" variant="ghost" className="text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => setDeleteAlertOpen(true)}>
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Event
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {event?.status !== "published" && (
+                      <Button type="button" variant="ghost" className="text-red-600 hover:bg-red-50 hover:text-red-700 px-3" onClick={() => setDeleteAlertOpen(true)}>
+                        <Trash2 className="w-4 h-4 mr-1.5" />
+                        Delete
+                      </Button>
+                    )}
+                    {event?.status !== "cancelled" && (
+                      <Button type="button" variant="ghost" className="text-orange-600 hover:bg-orange-50 hover:text-orange-700 px-3" onClick={() => setCancelAlertOpen(true)}>
+                        <XCircle className="w-4 h-4 mr-1.5" />
+                        Cancel Event
+                      </Button>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3">
                     <Button type="button" variant="outline" className="border-black/[0.08]" onClick={() => setEditOpen(false)}>
                       Cancel
@@ -1170,6 +1535,17 @@ export default function AdminEventDetailPage() {
         loading={deleteLoading}
         onConfirm={handleDeleteEvent}
         onCancel={() => setDeleteAlertOpen(false)}
+      />
+      <ConfirmAlert
+        isOpen={cancelAlertOpen}
+        title="Cancel Event"
+        message={<>Are you sure you want to cancel this event? Its status will be changed to cancelled.</>}
+        confirmText="Cancel Event"
+        cancelText="Go Back"
+        isDestructive={true}
+        loading={cancelLoading}
+        onConfirm={handleCancelEvent}
+        onCancel={() => setCancelAlertOpen(false)}
       />
       {/* Remove Registration Confirm Alert */}
       <ConfirmAlert

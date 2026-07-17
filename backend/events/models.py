@@ -73,6 +73,10 @@ class Event(BaseModel):
     contact_name = models.CharField(max_length=255, null=True, blank=True)
     contact_email = models.EmailField(null=True, blank=True)
     is_registration_open = models.BooleanField(default=True)
+    requires_approval = models.BooleanField(
+        default=True,
+        help_text="If True, registrations require admin approval. If False, they are automatically Approved (unless capacity is full)."
+    )
 
     # Status
     status = models.CharField(
@@ -196,3 +200,73 @@ class PastEvent(BaseModel):
 
     def __str__(self):
         return self.title
+
+
+# ---------------------------------------------------------------------------
+# Storage cleanup signals
+# ---------------------------------------------------------------------------
+
+from django.db.models.signals import post_delete, pre_save
+from django.dispatch import receiver
+from django.db import transaction
+
+
+@receiver(post_delete, sender=Event)
+def cleanup_event_banner(sender, instance, **kwargs):
+    """Delete the event banner from Azure Blob Storage when an Event is deleted."""
+    if instance.banner_image_url:
+        url = instance.banner_image_url
+        from core.utils.storage import delete_blob_from_url
+        def _delete():
+            try:
+                delete_blob_from_url(url)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    'Failed to delete banner for event %s: %s', instance.id, exc
+                )
+        transaction.on_commit(_delete)
+
+
+@receiver(pre_save, sender=Event)
+def cleanup_old_event_banner_on_replace(sender, instance, **kwargs):
+    """
+    When a banner is replaced with a new file, delete the old blob.
+    Handles the case where the extension changes (e.g. jpg -> webp),
+    since upload_to_blob uses overwrite=True only for the same path.
+    """
+    if not instance.pk:
+        return  # New event, nothing to clean up
+    try:
+        old = Event.objects.only('banner_image_url').get(pk=instance.pk)
+    except Event.DoesNotExist:
+        return
+    if old.banner_image_url and old.banner_image_url != instance.banner_image_url:
+        url = old.banner_image_url
+        from core.utils.storage import delete_blob_from_url
+        def _delete():
+            try:
+                delete_blob_from_url(url)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    'Failed to delete old banner for event %s: %s', instance.id, exc
+                )
+        transaction.on_commit(_delete)
+
+
+@receiver(post_delete, sender=PastEvent)
+def cleanup_past_event_logo(sender, instance, **kwargs):
+    """Delete the past event logo from Azure Blob Storage when a PastEvent is deleted."""
+    if instance.logo_url:
+        url = instance.logo_url
+        from core.utils.storage import delete_blob_from_url
+        def _delete():
+            try:
+                delete_blob_from_url(url)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning(
+                    'Failed to delete logo for past event %s: %s', instance.id, exc
+                )
+        transaction.on_commit(_delete)
