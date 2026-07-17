@@ -451,10 +451,12 @@ class AdminDeleteRegistrationView(APIView):
                         
                 if registration.qr_image_url:
                     from core.utils.storage import delete_blob_from_url
-                    try:
-                        delete_blob_from_url(registration.qr_image_url)
-                    except Exception as exc:
-                        logger.warning('Failed to delete QR blob for registration %s: %s', registration.id, exc)
+                    def delete_qr(url=registration.qr_image_url, reg_id=registration.id):
+                        try:
+                            delete_blob_from_url(url)
+                        except Exception as exc:
+                            logger.warning('Failed to delete QR blob for registration %s: %s', reg_id, exc)
+                    transaction.on_commit(delete_qr)
 
                 registration.delete()
 
@@ -480,14 +482,16 @@ class AdminDeleteTeamView(APIView):
         from django.db import transaction
         try:
             with transaction.atomic():
-                team = Team.objects.select_related('event').prefetch_related('registrations').get(id=pk)
-                event = team.event
+                team_base = Team.objects.select_related('event').get(id=pk)
+                event = Event.objects.select_for_update().get(id=team_base.event_id)
+                team = Team.objects.select_for_update().get(id=pk)
+                registrations = list(team.registrations.select_for_update().all())
 
                 # Track how many approved registrations are being removed
-                approved_count = team.registrations.filter(status=RegistrationStatus.APPROVED).count()
+                approved_count = sum(1 for reg in registrations if reg.status == RegistrationStatus.APPROVED)
 
                 # Clean up attendance records and deduct points for any checked-in members
-                for reg in team.registrations.all():
+                for reg in registrations:
                     if reg.status == RegistrationStatus.APPROVED:
                         from attendance.models import AttendanceRecord
                         if hasattr(reg, 'attendance_record'):
@@ -503,13 +507,16 @@ class AdminDeleteTeamView(APIView):
                             
                     if reg.qr_image_url:
                         from core.utils.storage import delete_blob_from_url
-                        try:
-                            delete_blob_from_url(reg.qr_image_url)
-                        except Exception as exc:
-                            logger.warning('Failed to delete QR blob for registration %s: %s', reg.id, exc)
+                        def delete_qr(url=reg.qr_image_url, reg_id=reg.id):
+                            try:
+                                delete_blob_from_url(url)
+                            except Exception as exc:
+                                logger.warning('Failed to delete QR blob for registration %s: %s', reg_id, exc)
+                        transaction.on_commit(delete_qr)
 
                 # Delete the team (cascades to registrations via FK if set, otherwise explicit)
-                team.registrations.all().delete()
+                for reg in registrations:
+                    reg.delete()
                 team.delete()
 
             if approved_count > 0:

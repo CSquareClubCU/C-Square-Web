@@ -126,7 +126,22 @@ export default function Home() {
     // Fetch all homepage live data in parallel
     Promise.allSettled([
       fetchStats(),
-      fetchEvents({ status: "published" }),
+      (async () => {
+        let allUpcoming: Event[] = [];
+        let page = 1;
+        while (true) {
+          const res = await fetchEvents({ upcoming: true, status: "published", page });
+          allUpcoming = allUpcoming.concat(res.results);
+          if (!res.next) break;
+          page++;
+        }
+        const now = new Date();
+        allUpcoming = allUpcoming.filter(e => {
+            const isPast = e.end_datetime ? new Date(e.end_datetime) < now : new Date(e.start_datetime) < now;
+            return !isPast;
+        });
+        return { results: allUpcoming };
+      })(),
       fetchTeam(),
     ]).then(([statsRes, eventsRes, teamRes]) => {
       if (statsRes.status === "fulfilled") {
@@ -450,12 +465,12 @@ export default function Home() {
                 What&apos;s on the calendar.
               </h2>
             </div>
-            <div className="hidden md:flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm">
-              {["All", "Hackathon", "Workshop", "Competition"].map((cat) => (
+            <div className="flex flex-wrap md:flex-nowrap items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar max-w-full">
+              {["All", "Hackathon", "Workshop", "Seminar", "Competition"].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setEventFilter(cat)}
-                  className={`px-5 py-2 rounded-[12px] text-[13px] font-semibold cursor-default transition-colors ${
+                  className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold cursor-default transition-colors whitespace-nowrap ${
                     eventFilter === cat
                       ? "bg-black text-white"
                       : "text-gray-500 hover:text-black"
@@ -464,8 +479,8 @@ export default function Home() {
                   {cat}
                 </button>
               ))}
-              <div className="w-[1px] h-4 bg-gray-200 mx-1"></div>
-              <Link href="/events" className="px-5 py-2 rounded-[12px] text-black hover:bg-gray-50 text-[13px] font-semibold transition-colors flex items-center gap-1">
+              <div className="hidden md:block w-[1px] h-4 bg-gray-200 mx-1 shrink-0"></div>
+              <Link href="/events" className="px-4 py-2 rounded-[12px] text-black hover:bg-gray-50 text-[13px] font-semibold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0">
                 View all <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

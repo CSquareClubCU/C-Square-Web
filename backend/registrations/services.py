@@ -160,8 +160,16 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
     except Exception as e:
         logger.error("Failed to send registration email/QR for %s: %s", registration.id, str(e))
         if needs_auto_approve and not registration.qr_image_url:
-            # Fallback to pending email if QR failed
-            _send_pending_email(user, event)
+            from django.utils.html import escape
+            html_content = f"<p>Your registration for {escape(event.title)} is approved!</p><p>We experienced a slight delay generating your QR code. It will be available on your dashboard shortly.</p>"
+            try:
+                send_email(
+                    to_email=user.email,
+                    subject=f"Approved: {escape(event.title)}",
+                    html_content=html_content
+                )
+            except Exception as email_err:
+                logger.error("Failed to send approval fallback email: %s", str(email_err))
 
     return registration
 
@@ -199,6 +207,9 @@ def create_team_from_registration(registration_id: uuid.UUID, team_name: str, us
             registration = Registration.objects.select_for_update().get(id=registration_id, user=user)
         except Registration.DoesNotExist:
             raise AppError('NOT_FOUND', 'Registration not found.', 404)
+
+        if registration.status not in [RegistrationStatus.APPROVED, RegistrationStatus.PENDING]:
+            raise AppError('INVALID_STATUS', 'You must have an active registration to create a team.', 400)
 
         if registration.team:
             raise AppError('ALREADY_IN_TEAM', 'You are already in a team for this event.', 409)
@@ -270,6 +281,9 @@ def join_team_with_code(registration_id: uuid.UUID, join_code: str, user) -> Tea
             registration = Registration.objects.select_for_update().get(id=registration_id, user=user)
         except Registration.DoesNotExist:
             raise AppError('NOT_FOUND', 'Registration not found.', 404)
+
+        if registration.status not in [RegistrationStatus.APPROVED, RegistrationStatus.PENDING]:
+            raise AppError('INVALID_STATUS', 'You must have an active registration to join a team.', 400)
 
         if registration.team:
             raise AppError('ALREADY_IN_TEAM', 'You are already in a team for this event.', 409)
@@ -344,26 +358,25 @@ def leave_team(registration_id: uuid.UUID, user) -> Registration:
         # Clean up the QR blob if the user was approved
         if registration.status == RegistrationStatus.APPROVED and registration.qr_image_url:
             from core.utils.storage import delete_blob_from_url
-            try:
-                delete_blob_from_url(registration.qr_image_url)
-            except Exception as exc:
-                logger.warning('Failed to delete QR blob for registration %s: %s', registration.id, exc)
+            def delete_qr(url=registration.qr_image_url, reg_id=registration.id):
+                try:
+                    delete_blob_from_url(url)
+                except Exception as exc:
+                    logger.warning('Failed to delete QR blob for registration %s: %s', reg_id, exc)
+            transaction.on_commit(delete_qr)
 
         # Clean up the AttendanceRecord and deduct points if user was approved
         if registration.status == RegistrationStatus.APPROVED:
-            try:
-                from attendance.models import AttendanceRecord
-                if hasattr(registration, 'attendance_record'):
-                    record = registration.attendance_record
-                    if record.is_checked_in:
-                        from django.db.models import F, Value
-                        from django.db.models.functions import Greatest
-                        User.objects.filter(pk=record.user.pk).update(
-                            club_points=Greatest(F('club_points') - registration.event.points, Value(0))
-                        )
-                    AttendanceRecord.objects.filter(registration=registration).delete()
-            except Exception as exc:
-                logger.warning('Failed to clean up AttendanceRecord for registration %s: %s', registration.id, exc)
+            from attendance.models import AttendanceRecord
+            if hasattr(registration, 'attendance_record'):
+                record = registration.attendance_record
+                if record.is_checked_in:
+                    from django.db.models import F, Value
+                    from django.db.models.functions import Greatest
+                    User.objects.filter(pk=record.user.pk).update(
+                        club_points=Greatest(F('club_points') - registration.event.points, Value(0))
+                    )
+                AttendanceRecord.objects.filter(registration=registration).delete()
 
         # Reset status if it was approved as part of a team
         if registration.status == RegistrationStatus.APPROVED:
@@ -723,10 +736,12 @@ def cancel_registration(registration_id: uuid.UUID, user) -> None:
         # Delete QR blob if registration was approved
         if was_approved and registration.qr_image_url:
             from core.utils.storage import delete_blob_from_url
-            try:
-                delete_blob_from_url(registration.qr_image_url)
-            except Exception as exc:
-                logger.warning('Failed to delete QR blob for registration %s: %s', registration.id, exc)
+            def delete_qr(url=registration.qr_image_url, reg_id=registration.id):
+                try:
+                    delete_blob_from_url(url)
+                except Exception as exc:
+                    logger.warning('Failed to delete QR blob for registration %s: %s', reg_id, exc)
+            transaction.on_commit(delete_qr)
             
         registration.status = RegistrationStatus.CANCELLED
         registration.waitlist_position = None
