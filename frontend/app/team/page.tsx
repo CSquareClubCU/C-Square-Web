@@ -16,7 +16,7 @@ function FadeInImage({ src, alt }: { src: string; alt: string }) {
     if (imgRef.current?.complete) {
       setLoaded(true);
     }
-  }, []);
+  }, [src]);
 
   return (
     // eslint-disable-next-line @next/next/no-img-element

@@ -44,8 +44,8 @@ import type { Event, RegistrationAdmin, RegistrationStatus, CoreTeamMemberPublic
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-const remarkPlugins = [remarkGfm];
 
+const REMARK_PLUGINS = [remarkGfm];
 const STATUS_TABS: Array<{ value: RegistrationStatus | ""; label: string; icon: React.ReactNode }> = [
   { value: "", label: "All", icon: <Users className="w-3.5 h-3.5" /> },
   { value: "pending", label: "Pending", icon: <Clock className="w-3.5 h-3.5" /> },
@@ -1117,7 +1117,7 @@ export default function AdminEventDetailPage() {
                       />
                     ) : (
                       <div className="p-4 border border-black/[0.08] rounded-[8px] bg-white min-h-[140px] prose prose-sm max-w-none text-black">
-                        <ReactMarkdown remarkPlugins={remarkPlugins}>
+                        <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>
                           {editForm.description || "*No description provided.*"}
                         </ReactMarkdown>
                       </div>
@@ -1280,7 +1280,7 @@ export default function AdminEventDetailPage() {
                     />
                   ) : (
                     <div className="p-4 border border-black/[0.08] rounded-[8px] bg-white min-h-[120px] prose prose-sm max-w-none text-black">
-                      <ReactMarkdown remarkPlugins={remarkPlugins}>
+                      <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>
                         {editForm.rules || "*No rules provided.*"}
                       </ReactMarkdown>
                     </div>

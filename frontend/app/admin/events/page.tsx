@@ -178,7 +178,7 @@ export default function AdminEventsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97 }}
-                  className="w-full bg-white border border-black/[0.04] rounded-[24px] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group cursor-pointer"
+                  className="w-full bg-white border border-black/[0.04] rounded-[24px] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
                   onClick={() => router.push(`/admin/events/${event.slug}`)}
                   role="button"
                   tabIndex={0}

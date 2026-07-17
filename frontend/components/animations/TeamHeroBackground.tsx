@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useEffect, useState, useRef } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { fetchTeam } from "@/lib/api";
 const imagePositions = [
   [1, 2, 4, 6, 7, 9, 10, 12, 14, 15, 17, 19, 21, 23, 24, 26, 28, 29, 31, 33, 35, 36, 38],
@@ -12,13 +12,13 @@ const imagePositions = [
 
 function FadeInImage({ src }: { src: string }) {
   const [loaded, setLoaded] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const imgRef = React.useRef<HTMLImageElement>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (imgRef.current?.complete) {
       setLoaded(true);
     }
-  }, []);
+  }, [src]);
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
