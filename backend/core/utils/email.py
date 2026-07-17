@@ -49,7 +49,7 @@ def send_email(
 
     # Generate plain text version to avoid Outlook/Exchange spam filters
     safe_body = html_body or ""
-    safe_body_spaced = re.sub(r'</?(div|p|br|h[1-6]|li|tr|td|th)[^>]*>', '\n', safe_body, flags=re.IGNORECASE)
+    safe_body_spaced = re.sub(r'</?(?:div|p|br|h[1-6]|li|tr|td|th)(?:\s[^>]*)?>', '\n', safe_body, flags=re.IGNORECASE)
     plain_text = html.unescape(strip_tags(safe_body_spaced).strip())
     # Extract URLs and append them to plain text so they are accessible
     urls = re.findall(r'href=[\'"]?([^\'" >]+)', safe_body)
