@@ -806,6 +806,7 @@ export const fetchRegistrations = async () => {
 
 export interface SiteSettings {
   whatsapp_group_link: string | null;
+  previous_events_count: number;
 }
 
 export async function fetchSettings(): Promise<SiteSettings> {

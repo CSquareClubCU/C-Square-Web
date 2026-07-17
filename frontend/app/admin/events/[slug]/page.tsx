@@ -1127,7 +1127,7 @@ export default function AdminEventDetailPage() {
                   <div className="flex items-center justify-between border border-[var(--c-border)] p-4 rounded-xl mt-4">
                     <div>
                       <div className="font-semibold text-sm">Event Banner</div>
-                      <div className="text-xs text-[var(--c-muted-text)]">Max size 5MB, JPG/PNG/WEBP only</div>
+                      <div className="text-xs text-[var(--c-muted-text)]">Max size 5MB, JPG/PNG/WEBP only. Recommended: 1920x1080px (16:9).</div>
                     </div>
                     <label className="cursor-pointer group relative">
                       <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp" onChange={handleBannerUpload} disabled={bannerLoading} />

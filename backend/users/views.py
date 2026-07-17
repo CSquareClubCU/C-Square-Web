@@ -79,7 +79,7 @@ class MagicLinkVerifyView(APIView):
             )
 
         # Service validates token and returns user (or raises AppError)
-        user = services.verify_magic_link(token, request)
+        user = services.verify_magic_link(token)
 
         # Establish Django session
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')

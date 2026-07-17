@@ -146,7 +146,7 @@ CORS_ALLOW_CREDENTIALS = True
 # ---------------------------------------------------------------------------
 # Frontend integration
 # ---------------------------------------------------------------------------
-FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000').strip('/')
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000').strip().strip('/')
 if not FRONTEND_URL.startswith(('http://', 'https://')):
     FRONTEND_URL = f'https://{FRONTEND_URL}'
 
@@ -164,5 +164,5 @@ AZURE_STORAGE_CONNECTION_STRING = env('AZURE_STORAGE_CONNECTION_STRING', default
 AZURE_STORAGE_CONTAINER_NAME = env('AZURE_STORAGE_CONTAINER_NAME', default='csquare')
 
 # Azure Email Settings
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='DoNotReply@csquare.in')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='DoNotReply@csquareclub.co.in')
 AZURE_COMMUNICATION_CONNECTION_STRING = env('AZURE_COMMUNICATION_CONNECTION_STRING', default=None)

@@ -478,9 +478,10 @@ export default function AdminTeamPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1.5 text-black">
+                    <label className="block text-sm font-medium mb-1 text-black">
                       Photo
                     </label>
+                    <p className="text-xs text-gray-500 mb-2">Recommended dimensions: 500x500px (1:1 aspect ratio).</p>
                     <input
                       type="file"
                       accept="image/jpeg, image/png, image/webp"

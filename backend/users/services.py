@@ -60,14 +60,15 @@ def send_magic_link(email: str) -> None:
 
     # Rate limiting: max 3 requests per 15 minutes
     cache_key = f'magic_link_req_{email}'
-    req_count = cache.get(cache_key, 0)
-    if req_count >= 3:
+    cache.add(cache_key, 0, timeout=900)
+    req_count = cache.incr(cache_key)
+    if req_count > 3:
         raise AppError(
             code='RATE_LIMIT_EXCEEDED',
             message='Too many requests. Please try again later.',
             status=429
         )
-    cache.set(cache_key, req_count + 1, timeout=900)
+
 
     from urllib.parse import urlencode
 
@@ -82,7 +83,7 @@ def send_magic_link(email: str) -> None:
     send_magic_link_email(to=email, magic_link_url=verify_url)
 
 
-def verify_magic_link(token: str, request) -> User:
+def verify_magic_link(token: str) -> User:
     """
     Verify a magic link token and return the authenticated user.
 
@@ -92,7 +93,7 @@ def verify_magic_link(token: str, request) -> User:
 
     Args:
         token: The signed token from the query string.
-        request: The Django request object.
+
 
     Returns:
         The authenticated User instance.
@@ -105,18 +106,18 @@ def verify_magic_link(token: str, request) -> User:
     signer = TimestampSigner()
     try:
         email = signer.unsign(token, max_age=900)
-    except SignatureExpired:
+    except SignatureExpired as e:
         raise AppError(
             code='INVALID_TOKEN',
             message='This link has expired. Please request a new one.',
             status=400,
-        )
-    except BadSignature:
+        ) from e
+    except BadSignature as e:
         raise AppError(
             code='INVALID_TOKEN',
             message='This link is invalid. Please request a new one.',
             status=400,
-        )
+        ) from e
 
     # Find the user case-insensitively, or create them if they don't exist
     user = User.objects.filter(email__iexact=email).first()
@@ -127,6 +128,7 @@ def verify_magic_link(token: str, request) -> User:
             is_cu_student=_is_cu_student(email),
             role=UserRole.STUDENT,
         )
+
         logger.info('New user created via magic link verification: User ID %s', user.id)
 
     # Sync is_staff and is_superuser with role — admin users need is_staff=True and is_superuser=True for Django Admin

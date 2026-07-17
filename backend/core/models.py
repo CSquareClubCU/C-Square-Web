@@ -30,6 +30,7 @@ class SiteSettings(BaseModel):
     We just use the first object (or create one if it doesn't exist).
     """
     whatsapp_group_link = models.URLField(max_length=500, blank=True, null=True, help_text="Link to join the WhatsApp Community")
+    previous_events_count = models.IntegerField(default=0, help_text="Number of events hosted before this platform was built.")
 
     class Meta:
         verbose_name_plural = "Site Settings"

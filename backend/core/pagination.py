@@ -5,7 +5,7 @@ Produces the response shape documented in API_SPEC.md:
 
     {
         "count": 100,
-        "next": "https://api.csquare.in/api/events/?page=2",
+        "next": "https://api.csquareclub.co.in/api/events/?page=2",
         "previous": null,
         "results": [...]
     }

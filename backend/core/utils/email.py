@@ -6,10 +6,12 @@ Each specific email type (magic link, approval, rejection, etc.)
 has its own helper function that renders a template and calls send_email().
 """
 
+import html
 import logging
-
+import re
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,7 @@ def send_email(
     """
     to = to or to_email
     html_body = html_body or html_content
-    sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'DoNotReply@csquare.in')
+    sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'DoNotReply@csquareclub.co.in')
     connection_string = getattr(settings, 'AZURE_COMMUNICATION_CONNECTION_STRING', None)
 
     if not connection_string:
@@ -45,13 +47,10 @@ def send_email(
         print('='*50 + '\n')
         return
 
-    import html
-    import re
-    from django.utils.html import strip_tags
-
     # Generate plain text version to avoid Outlook/Exchange spam filters
     safe_body = html_body or ""
-    plain_text = html.unescape(strip_tags(safe_body).strip())
+    safe_body_spaced = re.sub(r'</?(?:div|p|br|h[1-6]|li|tr|td|th)(?:\s[^<>]*)?>', '\n', safe_body, flags=re.IGNORECASE)
+    plain_text = html.unescape(strip_tags(safe_body_spaced).strip())
     # Extract URLs and append them to plain text so they are accessible
     urls = re.findall(r'href=[\'"]?([^\'" >]+)', safe_body)
     if urls:

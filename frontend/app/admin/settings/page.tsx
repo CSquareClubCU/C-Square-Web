@@ -12,6 +12,7 @@ export default function AdminSettingsPage() {
   useRequireAuth({ role: "admin" });
   const [events, setEvents] = useState<PastEvent[]>([]);
   const [whatsappLink, setWhatsappLink] = useState("");
+  const [previousEventsCount, setPreviousEventsCount] = useState<number | string>(0);
   const [savingSettings, setSavingSettings] = useState(false);
   const [loading, setLoading] = useState(true);
   
@@ -28,10 +29,11 @@ export default function AdminSettingsPage() {
     try {
       const [eventsData, settingsData] = await Promise.all([
         fetchPastEvents(),
-        fetchAdminSettings().catch(() => ({ whatsapp_group_link: "" }))
+        fetchAdminSettings().catch(() => ({ whatsapp_group_link: "", previous_events_count: 0 }))
       ]);
       setEvents(Array.isArray(eventsData) ? eventsData : (eventsData as any).results || []);
       setWhatsappLink(settingsData?.whatsapp_group_link || "");
+      setPreviousEventsCount(settingsData?.previous_events_count || 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -47,7 +49,10 @@ export default function AdminSettingsPage() {
     e.preventDefault();
     setSavingSettings(true);
     try {
-      await updateAdminSettings({ whatsapp_group_link: whatsappLink });
+      await updateAdminSettings({ 
+        whatsapp_group_link: whatsappLink,
+        previous_events_count: previousEventsCount === "" ? 0 : (parseInt(previousEventsCount as string, 10) || 0)
+      });
       alert("Settings saved successfully.");
     } catch (err: any) {
       alert(err.message || "Failed to save settings.");
@@ -146,6 +151,16 @@ export default function AdminSettingsPage() {
               />
               <p className="text-xs text-gray-500 mt-2">Shown to users during onboarding and in their dashboard.</p>
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Baseline Events Count</label>
+              <input
+                type="number"
+                value={previousEventsCount}
+                onChange={(e) => setPreviousEventsCount(e.target.value === "" ? "" : parseInt(e.target.value, 10))}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:outline-none transition-colors"
+              />
+              <p className="text-xs text-gray-500 mt-2">Count of past events hosted before this platform to add to the total events count.</p>
+            </div>
             <Button type="submit" disabled={savingSettings} className="bg-black text-white px-6">
               {savingSettings && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               {savingSettings ? "Saving..." : "Save Settings"}
@@ -229,6 +244,7 @@ export default function AdminSettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Logo</label>
+                <p className="text-xs text-gray-500 mb-2">Recommended dimensions: 400x400px (1:1 aspect ratio).</p>
                 <input
                   type="file"
                   accept="image/*"
