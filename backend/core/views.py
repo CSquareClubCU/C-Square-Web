@@ -33,11 +33,11 @@ class PublicStatsView(APIView):
         if cached_data:
             return Response(cached_data)
         from events.models import Event
-        from registrations.models import Registration
+        from django.contrib.auth import get_user_model
         from team.models import TeamMember
 
         total_events = Event.objects.count()
-        total_registrations = Registration.objects.count()
+        total_registrations = get_user_model().objects.count()
         active_team_members = TeamMember.objects.filter(is_active=True).count()
 
         # Count checked-in attendees across all events
