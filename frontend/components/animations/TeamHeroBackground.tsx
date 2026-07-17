@@ -2,7 +2,6 @@
 
 import React, { useMemo, useEffect, useState } from "react";
 import { fetchTeam } from "@/lib/api";
-
 const imagePositions = [
   [1, 2, 4, 6, 7, 9, 10, 12, 14, 15, 17, 19, 21, 23, 24, 26, 28, 29, 31, 33, 35, 36, 38],
   [0, 3, 5, 8, 11, 13, 16, 18, 20, 22, 25, 27, 30, 32, 34, 37, 39],
