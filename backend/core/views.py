@@ -36,8 +36,9 @@ class PublicStatsView(APIView):
         from django.contrib.auth import get_user_model
         from team.models import TeamMember
 
-        settings = SiteSettings.load()
-        total_events = Event.objects.count() + settings.previous_events_count
+        settings = SiteSettings.objects.first()
+        previous_count = settings.previous_events_count if settings else 0
+        total_events = Event.objects.count() + previous_count
         total_registrations = get_user_model().objects.count()
         active_team_members = TeamMember.objects.filter(is_active=True).count()
 

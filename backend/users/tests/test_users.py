@@ -143,7 +143,7 @@ class TestSendMagicLink:
     @patch('users.services.send_magic_link_email')
     def test_rate_limiting_prevents_spam(self, mock_email, db):
         from django.core.cache import cache
-        cache.clear()
+        cache.delete('magic_link_req_spam@cuchd.in')
         
         with patch('django.core.signing.TimestampSigner.sign', return_value='token'):
             services.send_magic_link('spam@cuchd.in')
@@ -169,7 +169,7 @@ class TestVerifyMagicLink:
         from django.core.signing import BadSignature
         with patch('django.core.signing.TimestampSigner.unsign', side_effect=BadSignature('Bad')):
             with pytest.raises(AppError) as exc_info:
-                services.verify_magic_link('bad-token', request)
+                services.verify_magic_link('bad-token')
         assert exc_info.value.code == 'INVALID_TOKEN'
         assert exc_info.value.status == 400
 
@@ -178,21 +178,21 @@ class TestVerifyMagicLink:
         from django.core.signing import SignatureExpired
         with patch('django.core.signing.TimestampSigner.unsign', side_effect=SignatureExpired('Expired')):
             with pytest.raises(AppError) as exc_info:
-                services.verify_magic_link('expired-token', request)
+                services.verify_magic_link('expired-token')
         assert exc_info.value.code == 'INVALID_TOKEN'
         assert exc_info.value.status == 400
 
     def test_valid_token_returns_existing_user(self, student_user):
         request = RequestFactory().get('/')
         with patch('django.core.signing.TimestampSigner.unsign', return_value='student@cuchd.in'):
-            result = services.verify_magic_link('valid-token', request)
+            result = services.verify_magic_link('valid-token')
         assert result == student_user
 
     def test_valid_token_creates_new_user_if_not_exists(self, db):
         request = RequestFactory().get('/')
         assert not User.objects.filter(email='new@cuchd.in').exists()
         with patch('django.core.signing.TimestampSigner.unsign', return_value='new@cuchd.in'):
-            result = services.verify_magic_link('valid-token', request)
+            result = services.verify_magic_link('valid-token')
         
         # User is created on verification
         assert result.email == 'new@cuchd.in'
@@ -205,7 +205,7 @@ class TestVerifyMagicLink:
         admin_user.save()
         request = RequestFactory().get('/')
         with patch('django.core.signing.TimestampSigner.unsign', return_value='admin@cuchd.in'):
-            result = services.verify_magic_link('valid-token', request)
+            result = services.verify_magic_link('valid-token')
         # Refresh from DB
         admin_user.refresh_from_db()
         assert admin_user.is_staff is True

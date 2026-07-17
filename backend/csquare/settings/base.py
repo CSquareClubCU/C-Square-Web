@@ -146,7 +146,7 @@ CORS_ALLOW_CREDENTIALS = True
 # ---------------------------------------------------------------------------
 # Frontend integration
 # ---------------------------------------------------------------------------
-FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000').strip('/')
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000').strip().strip('/')
 if not FRONTEND_URL.startswith(('http://', 'https://')):
     FRONTEND_URL = f'https://{FRONTEND_URL}'
 
