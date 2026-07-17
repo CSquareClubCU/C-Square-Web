@@ -42,7 +42,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal Info', {'fields': ('full_name', 'phone')}),
-        ('Student Info', {'fields': ('student_uid', 'branch', 'year', 'semester', 'batch')}),
+        ('Student Info', {'fields': ('student_uid', 'batch', 'institution', 'degree_type', 'graduation_year')}),
         ('Roles & Access', {'fields': ('role', 'is_cu_student', 'is_active', 'is_staff', 'is_superuser')}),
         ('Permissions', {'fields': ('groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
