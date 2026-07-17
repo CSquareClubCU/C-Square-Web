@@ -29,7 +29,7 @@ export default function AdminSettingsPage() {
     try {
       const [eventsData, settingsData] = await Promise.all([
         fetchPastEvents(),
-        fetchAdminSettings().catch(() => ({ whatsapp_group_link: "" }))
+        fetchAdminSettings().catch(() => ({ whatsapp_group_link: "", previous_events_count: 0 }))
       ]);
       setEvents(Array.isArray(eventsData) ? eventsData : (eventsData as any).results || []);
       setWhatsappLink(settingsData?.whatsapp_group_link || "");
