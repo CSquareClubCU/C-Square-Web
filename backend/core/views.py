@@ -91,6 +91,7 @@ class SettingsAdminView(APIView):
         serializer = SiteSettingsSerializer(settings_obj, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            cache.delete('public_stats')
             return Response(serializer.data)
         raise AppError('VALIDATION_ERROR', 'Invalid input.', 400, fields=serializer.errors)
 
