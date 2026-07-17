@@ -244,6 +244,7 @@ export default function AdminSettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Logo</label>
+                <p className="text-xs text-gray-500 mb-2">Recommended dimensions: 400x400px (1:1 aspect ratio).</p>
                 <input
                   type="file"
                   accept="image/*"
