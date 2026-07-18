@@ -195,7 +195,9 @@ export default function AdminSettingsPage() {
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-
+                <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+                  <ImageIcon className="w-8 h-8 text-gray-400" />
+                </div>
                 <h3 className="font-semibold text-center text-[15px]">{evt.title}</h3>
                 <p className="text-xs text-gray-400 mt-1">Order: {evt.order}</p>
               </div>
