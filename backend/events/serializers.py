@@ -43,6 +43,7 @@ class EventListSerializer(serializers.ModelSerializer):
             'contact_name',
             'contact_email',
             'is_registration_open',
+            'is_checkin_active',
         ]
         read_only_fields = fields
 
@@ -93,6 +94,7 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'contact_name',
             'contact_email',
             'is_registration_open',
+            'is_checkin_active',
             'requires_approval',
             'created_at',
         ]
@@ -135,6 +137,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'contact_name',
             'contact_email',
             'is_registration_open',
+            'is_checkin_active',
             'requires_approval',
         ]
 

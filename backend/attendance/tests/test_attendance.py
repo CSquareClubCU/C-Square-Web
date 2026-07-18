@@ -55,8 +55,8 @@ def event(db, admin_user):
     now = timezone.now()
     return Event.objects.create(
         title='Test Event', description='D', event_type=EventType.WORKSHOP,
-        start_datetime=now + timedelta(days=1),
-        end_datetime=now + timedelta(days=1, hours=4),
+        start_datetime=now,
+        end_datetime=now + timedelta(hours=4),
         venue='Block 10', capacity=100,
         registration_deadline=now + timedelta(hours=12),
         status=EventStatus.PUBLISHED,
@@ -123,7 +123,12 @@ class TestCheckinByQR:
         assert record.check_in_method == CheckInMethod.QR
         assert record.marked_by == admin_user
 
-    def test_assigned_volunteer_can_checkin(self, attendance_record, approved_registration, volunteer_user, volunteer_assignment):
+    def test_assigned_volunteer_can_checkin(self, attendance_record, approved_registration, volunteer_user):
+        # Assign volunteer to event
+        event = approved_registration.event
+        event.is_checkin_active = True
+        event.save()
+        VolunteerAssignment.objects.create(event=event, volunteer=volunteer_user)
         record = services.checkin_by_qr(str(approved_registration.qr_token), volunteer_user)
         assert record.is_checked_in is True
 

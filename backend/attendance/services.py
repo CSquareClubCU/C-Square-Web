@@ -41,9 +41,23 @@ def _do_checkin(record: AttendanceRecord, method: str, marked_by) -> AttendanceR
     from django.db import transaction
     
     with transaction.atomic():
-        record = AttendanceRecord.objects.select_for_update().get(id=record.id)
+        record = AttendanceRecord.objects.select_for_update().select_related('event').get(id=record.id)
         if record.is_checked_in:
             return record
+
+        current_date = timezone.localtime().date()
+        event_date = timezone.localtime(record.event.start_datetime).date()
+        
+        if current_date < event_date:
+            raise AppError('CHECKIN_EARLY', 'Check-in is not allowed before the event date.', 400)
+
+        is_admin = marked_by and marked_by.role == UserRole.ADMIN
+        
+        if not is_admin:
+            if not record.event.is_checkin_active:
+                raise AppError('CHECKIN_CLOSED', 'Check-in is currently closed for this event.', 400)
+            if timezone.now() > record.event.end_datetime:
+                raise AppError('CHECKIN_LATE', 'Check-in is not allowed after the event ends.', 400)
 
         record.is_checked_in = True
         record.checked_in_at = timezone.now()

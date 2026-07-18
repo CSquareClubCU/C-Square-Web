@@ -92,6 +92,7 @@ export interface Event {
   contact_name: string | null;
   contact_email: string | null;
   is_registration_open: boolean;
+  is_checkin_active: boolean;
   is_flagship: boolean;
   points: number;
   faqs: { question: string; answer: string }[] | null;

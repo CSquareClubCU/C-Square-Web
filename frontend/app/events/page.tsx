@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import { fetchEvents } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
@@ -77,49 +77,50 @@ export default function EventsPage() {
 
   // Use the event marked as flagship
   const flagshipEvent = useMemo(() => {
-    return events.find((e) => e.is_flagship) || events.find((e) => e.status === "published") || null;
+    return events.find((e) => e.is_flagship) || null;
   }, [events]);
 
   const timeLeft = useCountdown(flagshipEvent?.start_datetime);
 
-  // Single unified grid logic based on all filters
-  const filteredEvents = useMemo(() => {
-    let list = events;
-
-    // Filter Flagship out of the grid since it is displayed above
-    if (flagshipEvent) {
-      list = list.filter((e) => e.id !== flagshipEvent.id);
-    }
-
+  // Unified predicate to check if an event matches current filters
+  const matchesFilters = useCallback((e: Event) => {
     // Status Filter (Upcoming / Past)
-    if (activeStatus === "Upcoming") {
-      list = list.filter((e) => e.status === "published");
-    } else {
-      list = list.filter((e) => e.status === "completed");
-    }
+    if (activeStatus === "Upcoming" && e.status !== "published") return false;
+    if (activeStatus === "Past" && e.status !== "completed") return false;
 
     // Category Filter
-    if (activeCategory !== "All") {
-      list = list.filter((e) => e.event_type.toLowerCase() === activeCategory.toLowerCase());
-    }
+    if (activeCategory !== "All" && e.event_type.toLowerCase() !== activeCategory.toLowerCase()) return false;
 
     // Search Filter
     if (searchQuery.trim() !== "") {
       const q = searchQuery.toLowerCase();
-      list = list.filter((e) => 
-        e.title.toLowerCase().includes(q) || 
-        e.venue.toLowerCase().includes(q) ||
-        (e.description && e.description.toLowerCase().includes(q))
-      );
+      if (!e.title.toLowerCase().includes(q) && 
+          !e.venue.toLowerCase().includes(q) &&
+          !(e.description && e.description.toLowerCase().includes(q))) {
+        return false;
+      }
     }
 
     // Year Filter
-    if (activeYear !== "All") {
-      list = list.filter((e) => new Date(e.start_datetime).getFullYear().toString() === activeYear);
-    }
+    if (activeYear !== "All" && new Date(e.start_datetime).getFullYear().toString() !== activeYear) return false;
 
+    return true;
+  }, [activeStatus, activeCategory, searchQuery, activeYear]);
+
+  // Determine if flagship should be shown in the hero section based on current filters
+  const isFlagshipDisplayed = flagshipEvent ? matchesFilters(flagshipEvent) : false;
+
+  // Single unified grid logic based on all filters
+  const filteredEvents = useMemo(() => {
+    let list = events.filter(matchesFilters);
+    
+    // Filter Flagship out of the grid ONLY if it is displayed above
+    if (isFlagshipDisplayed && flagshipEvent) {
+      list = list.filter((e) => e.id !== flagshipEvent.id);
+    }
+    
     return list;
-  }, [events, flagshipEvent, activeStatus, activeCategory, searchQuery, activeYear]);
+  }, [events, matchesFilters, isFlagshipDisplayed, flagshipEvent]);
 
 
 

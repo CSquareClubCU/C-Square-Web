@@ -100,13 +100,17 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
             raise AppError('ALREADY_REGISTERED', 'You are already registered for this event.', 409)
 
         if status == RegistrationStatus.PENDING and not getattr(event, 'requires_approval', True):
-            needs_auto_approve = True
-            registration.status = RegistrationStatus.APPROVED
-            registration.qr_token = uuid.uuid4()
-            registration.approved_at = timezone.now()
-            registration.save(update_fields=['status', 'qr_token', 'approved_at'])
+            # For team events with min_team_size > 1, do not auto-approve the individual immediately.
+            if event.is_team_event and (event.min_team_size or 1) > 1:
+                needs_auto_approve = False
+            else:
+                needs_auto_approve = True
+                registration.status = RegistrationStatus.APPROVED
+                registration.qr_token = uuid.uuid4()
+                registration.approved_at = timezone.now()
+                registration.save(update_fields=['status', 'qr_token', 'approved_at'])
 
-            if AttendanceRecord:
+            if AttendanceRecord and needs_auto_approve:
                 try:
                     AttendanceRecord.objects.create(
                         registration=registration,
@@ -221,7 +225,7 @@ def create_team_from_registration(registration_id: uuid.UUID, team_name: str, us
 
         from django.db import IntegrityError
         
-        team_status = TeamStatus.PENDING_APPROVAL if getattr(event, 'requires_approval', True) else TeamStatus.APPROVED
+        team_status = TeamStatus.PENDING_APPROVAL if getattr(event, 'requires_approval', True) or (event.min_team_size or 1) > 1 else TeamStatus.APPROVED
 
         try:
             team = Team.objects.create(
@@ -313,8 +317,26 @@ def join_team_with_code(registration_id: uuid.UUID, join_code: str, user) -> Tea
         registration.is_team_registration = True
         registration.team = team
         registration.save(update_fields=['is_team_registration', 'team'])
+        
+        # Check if team reached min_team_size for auto-approval
+        if team.status == TeamStatus.PENDING_APPROVAL and not getattr(event, 'requires_approval', True):
+            if current_members + 1 >= (event.min_team_size or 1):
+                # We need to approve the team and all pending members
+                auto_approve_team = True
+            else:
+                auto_approve_team = False
+        else:
+            auto_approve_team = False
 
     logger.info('User %s joined team "%s" via code', user.email, team.name)
+    
+    if auto_approve_team:
+        try:
+            approve_team(team.id, admin_user=None)
+            logger.info('Team "%s" automatically approved as it reached min team size', team.name)
+        except Exception as e:
+            logger.error('Failed to auto-approve team %s: %s', team.id, str(e))
+            
     return team
 
 
@@ -355,6 +377,41 @@ def leave_team(registration_id: uuid.UUID, user) -> Registration:
             registration.is_team_registration = False
             registration.team = None
         
+        # Revert team status if it falls below min_team_size
+        team_deleted = not team.id
+        if not team_deleted and team.status == TeamStatus.APPROVED and (team.event.min_team_size or 1) > 1:
+            if team.members.count() < team.event.min_team_size:
+                team.status = TeamStatus.PENDING_APPROVAL
+                team.save(update_fields=['status'])
+                # Revert all active members' registrations to PENDING
+                member_regs = Registration.objects.filter(team=team, status=RegistrationStatus.APPROVED)
+                for m_reg in member_regs:
+                    if m_reg.qr_image_url:
+                        from core.utils.storage import delete_blob_from_url
+                        def delete_qr(url=m_reg.qr_image_url, reg_id=m_reg.id):
+                            try:
+                                delete_blob_from_url(url)
+                            except Exception as exc:
+                                logger.warning('Failed to delete QR blob for registration %s: %s', reg_id, exc)
+                        transaction.on_commit(delete_qr)
+
+                    m_reg.status = RegistrationStatus.PENDING
+                    m_reg.qr_token = None
+                    m_reg.qr_image_url = None
+                    m_reg.save(update_fields=['status', 'qr_token', 'qr_image_url', 'updated_at'])
+                    
+                    # Clean up AttendanceRecord
+                    if hasattr(m_reg, 'attendance_record'):
+                        from attendance.models import AttendanceRecord
+                        record = m_reg.attendance_record
+                        if record.is_checked_in:
+                            from django.db.models import F, Value
+                            from django.db.models.functions import Greatest
+                            User.objects.filter(pk=record.user.pk).update(
+                                club_points=Greatest(F('club_points') - m_reg.event.points, Value(0))
+                            )
+                        AttendanceRecord.objects.filter(registration=m_reg).delete()
+
         # Clean up the QR blob if the user was approved
         if registration.status == RegistrationStatus.APPROVED and registration.qr_image_url:
             from core.utils.storage import delete_blob_from_url
@@ -531,6 +588,9 @@ def approve_team(team_id: uuid.UUID, admin_user) -> Team:
         if approved_count + len(regs_to_approve) > event.capacity:
             raise AppError('CAPACITY_EXCEEDED', 'Approving this team would exceed event capacity.', 400)
 
+        team.status = TeamStatus.APPROVED
+        team.save(update_fields=['status'])
+
         for reg in regs_to_approve:
             qr_token = uuid.uuid4()
             
@@ -679,6 +739,7 @@ def reject_registration(registration_id: uuid.UUID, reason: str, admin_user) -> 
             logger.error("Failed to send rejection email: %s", str(e))
 
     logger.info('%d registration(s) rejected for event "%s"', len(regs_to_reject), registration.event.title)
+    registration.refresh_from_db()
     return registration
 
 
