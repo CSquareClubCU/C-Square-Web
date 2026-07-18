@@ -77,7 +77,8 @@ export default function DashboardPage() {
       if (params.get("profile_updated") === "true") {
         setSuccess("Profile updated successfully!");
         window.history.replaceState({}, "", "/dashboard");
-        setTimeout(() => setSuccess(null), 5000);
+        const timer = setTimeout(() => setSuccess(null), 5000);
+        return () => clearTimeout(timer);
       }
     }
   }, []);
@@ -324,8 +325,8 @@ export default function DashboardPage() {
                     const status = statusConfig[reg.status] || statusConfig.pending;
                     return (
                       <StaggerItem key={reg.id}>
-                        <Link href={`/dashboard/${reg.id}`}>
                         <div
+                          onClick={() => router.push(`/dashboard/${reg.id}`)}
                           className="w-full bg-white border border-black/[0.04] rounded-[24px] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all cursor-pointer group"
                         >
                           <div className="flex-1">
@@ -377,7 +378,6 @@ export default function DashboardPage() {
                             </Button>
                           </div>
                         </div>
-                        </Link>
                       </StaggerItem>
                     );
                   })

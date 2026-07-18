@@ -110,7 +110,7 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
                 registration.approved_at = timezone.now()
                 registration.save(update_fields=['status', 'qr_token', 'approved_at'])
 
-            if AttendanceRecord:
+            if AttendanceRecord and needs_auto_approve:
                 try:
                     AttendanceRecord.objects.create(
                         registration=registration,
@@ -322,8 +322,6 @@ def join_team_with_code(registration_id: uuid.UUID, join_code: str, user) -> Tea
         if team.status == TeamStatus.PENDING_APPROVAL and not getattr(event, 'requires_approval', True):
             if current_members + 1 >= (event.min_team_size or 1):
                 # We need to approve the team and all pending members
-                team.status = TeamStatus.APPROVED
-                team.save(update_fields=['status'])
                 auto_approve_team = True
             else:
                 auto_approve_team = False
@@ -388,6 +386,15 @@ def leave_team(registration_id: uuid.UUID, user) -> Registration:
                 # Revert all active members' registrations to PENDING
                 member_regs = Registration.objects.filter(team=team, status=RegistrationStatus.APPROVED)
                 for m_reg in member_regs:
+                    if m_reg.qr_image_url:
+                        from core.utils.storage import delete_blob_from_url
+                        def delete_qr(url=m_reg.qr_image_url, reg_id=m_reg.id):
+                            try:
+                                delete_blob_from_url(url)
+                            except Exception as exc:
+                                logger.warning('Failed to delete QR blob for registration %s: %s', reg_id, exc)
+                        transaction.on_commit(delete_qr)
+
                     m_reg.status = RegistrationStatus.PENDING
                     m_reg.qr_token = None
                     m_reg.qr_image_url = None
@@ -580,6 +587,9 @@ def approve_team(team_id: uuid.UUID, admin_user) -> Team:
         approved_count = Registration.objects.filter(event=event, status=RegistrationStatus.APPROVED).count()
         if approved_count + len(regs_to_approve) > event.capacity:
             raise AppError('CAPACITY_EXCEEDED', 'Approving this team would exceed event capacity.', 400)
+
+        team.status = TeamStatus.APPROVED
+        team.save(update_fields=['status'])
 
         for reg in regs_to_approve:
             qr_token = uuid.uuid4()

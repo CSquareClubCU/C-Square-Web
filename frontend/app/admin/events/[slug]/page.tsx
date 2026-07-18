@@ -84,7 +84,7 @@ export default function AdminEventDetailPage() {
   const [deleteTeamModal, setDeleteTeamModal] = useState<{ id: string; name: string } | null>(null);
 
   // Bonus Points
-  const [bonusModal, setBonusModal] = useState<{ id: string; name: string; userId: string; points: number } | null>(null);
+  const [bonusModal, setBonusModal] = useState<{ id: string; name: string; userId: string; points: number | string } | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -341,7 +341,7 @@ export default function AdminEventDetailPage() {
     if (!bonusModal || !bonusModal.points) return;
     setActionLoading(bonusModal.id);
     try {
-      await awardBonusPoints(bonusModal.userId, bonusModal.points);
+      await awardBonusPoints(bonusModal.userId, Number(bonusModal.points) || 0);
       setBonusModal(null);
       // Wait for 1 second so the action button stops spinning
       setTimeout(() => setActionLoading(null), 1000);
@@ -398,8 +398,8 @@ export default function AdminEventDetailPage() {
     setEditLoading(true);
     try {
       const newStatus = !event.is_checkin_active;
-      await updateEvent(event.slug, { is_checkin_active: newStatus });
-      setEvent({ ...event, is_checkin_active: newStatus });
+      const updated = await updateEvent(event.slug, { is_checkin_active: newStatus });
+      setEvent(updated);
     } catch (err: any) { alert(err.message || "Failed to toggle check-in."); }
     finally { setEditLoading(false); }
   }
@@ -1055,18 +1055,24 @@ export default function AdminEventDetailPage() {
               </div>
             </div>
             <input
-              type="number"
-              value={bonusModal?.points || 0}
-              onChange={(e) => bonusModal && setBonusModal({ ...bonusModal, points: parseInt(e.target.value, 10) || 0 })}
+              type="text"
+              value={bonusModal?.points !== undefined ? bonusModal.points : ""}
+              onChange={(e) => {
+                if (bonusModal) {
+                  const val = e.target.value;
+                  const parsed = parseInt(val, 10);
+                  setBonusModal({ ...bonusModal, points: val === "" || val === "-" ? val : (isNaN(parsed) ? 0 : parsed) });
+                }
+              }}
               className="w-full px-4 py-3 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black"
             />
           </div>
         }
         onConfirm={handleAwardBonus}
         onCancel={() => setBonusModal(null)}
-        confirmText={bonusModal?.points && bonusModal.points < 0 ? "Deduct" : "Award"}
+        confirmText={bonusModal?.points && Number(bonusModal.points) < 0 ? "Deduct" : "Award"}
         loading={bonusModal ? actionLoading === bonusModal.id : false}
-        confirmDisabled={!bonusModal?.points}
+        confirmDisabled={!bonusModal?.points || bonusModal.points === "-"}
       />
 
       {/* Edit Event Panel */}

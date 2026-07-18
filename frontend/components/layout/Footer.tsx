@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, Mail } from "lucide-react";
 
 const footerLinks = [
@@ -40,7 +41,7 @@ export function Footer() {
           {/* Brand & Mission */}
           <div className="max-w-sm">
             <div className="flex items-center gap-3 mb-5">
-              <img src="/logo-mark.png" alt="C Square Logo" className="w-10 h-10 object-contain invert brightness-0" />
+              <Image src="/logo-mark.png" alt="C Square Logo" width={40} height={40} className="object-contain invert brightness-0" />
               <h3 className="text-3xl font-black tracking-tighter text-white">
                 C Square<span className="text-blue-500">.</span>
               </h3>

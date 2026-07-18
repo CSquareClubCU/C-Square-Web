@@ -30,7 +30,6 @@ export default function SettingsPage() {
   const [isCuStudent, setIsCuStudent] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   // Initialize form fields once user is loaded
   useEffect(() => {
@@ -60,7 +59,6 @@ export default function SettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccess(false);
 
     if (!fullName.trim()) {
       setError("Please enter your full name.");
@@ -151,13 +149,6 @@ export default function SettingsPage() {
                   <p className="text-sm font-medium">{error}</p>
                 </div>
               )}
-              {success && (
-                <div className="p-4 bg-emerald-50 rounded-[12px] flex items-start gap-3 text-emerald-600">
-                  <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
-                  <p className="text-sm font-medium">Profile updated successfully.</p>
-                </div>
-              )}
-
               <div>
                 <label htmlFor="full_name" className="block text-sm font-medium text-gray-900 mb-2">
                   Full Name

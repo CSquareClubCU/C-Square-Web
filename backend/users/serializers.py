@@ -53,6 +53,8 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'email', 'role', 'is_cu_student', 'club_points', 'club_rank']
 
     def get_club_rank(self, obj):
+        if hasattr(obj, 'annotated_club_rank'):
+            return obj.annotated_club_rank
         if getattr(obj, 'club_points', None) is None:
             return None
         # Rank is number of users with strictly more points + 1
