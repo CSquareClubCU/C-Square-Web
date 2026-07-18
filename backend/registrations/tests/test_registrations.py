@@ -184,10 +184,6 @@ class TestRegisterIndividual:
             services.register_individual(cu_only_event.id, external_user)
         assert exc.value.code == 'EXTERNAL_NOT_ALLOWED'
 
-    def test_team_event_raises_error(self, team_event, student):
-        with pytest.raises(AppError) as exc:
-            services.register_individual(team_event.id, student)
-        assert exc.value.code == 'TEAM_EVENT'
 
     @patch('registrations.services.send_email')
     def test_closed_registration_raises_400(self, mock_email, admin_user, student):

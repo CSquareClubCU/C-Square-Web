@@ -364,7 +364,9 @@ export default function EventDetailPage() {
                           {regStatus === "approved" ? "Joined" :
                            regStatus === "waitlisted" ? "Waitlisted" :
                            regStatus === "rejected" ? "Declined" :
-                           "Pending"}
+                           (event.is_team_event && myRegistration?.team && event.min_team_size && myRegistration.team.members.length < event.min_team_size)
+                             ? `Pending (${myRegistration.team.members.length}/${event.min_team_size} members)`
+                             : "Pending"}
                         </span>
                       </div>
                       
