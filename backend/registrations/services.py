@@ -152,6 +152,7 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
                 'event_start': event.start_time.strftime('%d %b %Y, %I:%M %p') if event.start_time else 'TBA',
                 'event_venue': event.venue if event.venue else 'TBA',
                 'qr_image_url': qr_url,
+                'frontend_url': settings.FRONTEND_URL,
             }
             html_content = render_to_string('emails/registration_approved.html', context)
             send_email(
@@ -490,6 +491,7 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
                 'event_start': reg.event.start_time.strftime('%d %b %Y, %I:%M %p') if reg.event.start_time else 'TBA',
                 'event_venue': reg.event.venue if reg.event.venue else 'TBA',
                 'qr_image_url': qr_url,
+                'frontend_url': settings.FRONTEND_URL,
             }
             html_content = render_to_string('emails/registration_approved.html', context)
             send_email(

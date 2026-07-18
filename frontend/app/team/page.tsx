@@ -112,7 +112,8 @@ export default function TeamPage() {
                 <select
                   value={activeFilter}
                   onChange={(e) => handleFilterClick(e.target.value)}
-                  className="appearance-none bg-black text-white rounded-[12px] px-4 py-2 pr-8 text-[13px] font-semibold focus:outline-none cursor-pointer h-full"
+                  aria-label="Filter team members by category"
+                  className="appearance-none bg-black text-white rounded-[12px] px-4 py-2 pr-8 text-[13px] font-semibold focus:outline-hidden cursor-pointer h-full"
                 >
                   {categories.map((category) => (
                     <option key={category} value={category} className="bg-white text-black">{category}</option>

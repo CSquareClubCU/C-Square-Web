@@ -118,7 +118,7 @@ export function TeamHeroBackground({ photos }: { photos: string[] }) {
       />
 
       {/* Grid Container */}
-      <div className="flex flex-col min-w-max gap-2 md:gap-4">
+      <div aria-hidden="true" className="flex flex-col min-w-max gap-2 md:gap-4">
         {rows.map((row, i) => (
           <div
             key={`row-${i}`}

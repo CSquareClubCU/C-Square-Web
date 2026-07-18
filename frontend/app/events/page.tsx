@@ -240,7 +240,8 @@ export default function EventsPage() {
               <select
                 value={activeCategory}
                 onChange={(e) => handleFilterClick(e.target.value)}
-                className="appearance-none bg-black text-white rounded-[12px] px-4 py-2 pr-8 text-[13px] font-semibold focus:outline-none cursor-pointer h-full"
+                aria-label="Filter events by category"
+                className="appearance-none bg-black text-white rounded-[12px] px-4 py-2 pr-8 text-[13px] font-semibold focus:outline-hidden cursor-pointer h-full"
               >
                 {categories.map((category) => (
                   <option key={category} value={category} className="bg-white text-black">{category}</option>
@@ -293,7 +294,8 @@ export default function EventsPage() {
               <select 
                 value={activeYear}
                 onChange={(e) => setActiveYear(e.target.value)}
-                className="appearance-none bg-transparent rounded-[8px] px-4 py-2 pr-8 text-[13px] font-semibold text-gray-500 outline-none hover:text-black focus:bg-gray-50 transition-colors cursor-pointer h-full"
+                aria-label="Filter events by year"
+                className="appearance-none bg-transparent rounded-[8px] px-4 py-2 pr-8 text-[13px] font-semibold text-gray-500 outline-hidden hover:text-black focus:bg-gray-50 transition-colors cursor-pointer h-full"
               >
                 <option value="All">Year</option>
                 <option value="2026">2026</option>
@@ -314,7 +316,8 @@ export default function EventsPage() {
                 placeholder="Search events"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent text-[13px] font-semibold placeholder:text-gray-400 outline-none w-full"
+                aria-label="Search events"
+                className="bg-transparent text-[13px] font-semibold placeholder:text-gray-400 outline-hidden w-full"
               />
             </div>
           </div>

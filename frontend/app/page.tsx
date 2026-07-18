@@ -472,7 +472,8 @@ export default function Home() {
                 <select
                   value={eventFilter}
                   onChange={(e) => setEventFilter(e.target.value)}
-                  className="appearance-none bg-black text-white rounded-[12px] px-4 py-2 pr-8 text-[13px] font-semibold focus:outline-none cursor-pointer h-full"
+                  aria-label="Filter events by category"
+                  className="appearance-none bg-black text-white rounded-[12px] px-4 py-2 pr-8 text-[13px] font-semibold focus:outline-hidden cursor-pointer h-full"
                 >
                   {["All", "Hackathon", "Workshop", "Seminar", "Competition"].map((cat) => (
                     <option key={cat} value={cat} className="bg-white text-black">{cat}</option>
