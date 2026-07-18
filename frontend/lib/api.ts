@@ -479,6 +479,7 @@ export interface EventCreateData {
   contact_name?: string | null;
   contact_email?: string | null;
   is_registration_open?: boolean;
+  is_checkin_active?: boolean;
   requires_approval?: boolean;
   is_flagship?: boolean;
   points?: number;
