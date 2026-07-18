@@ -77,7 +77,7 @@ export default function EventsPage() {
 
   // Use the event marked as flagship
   const flagshipEvent = useMemo(() => {
-    return events.find((e) => e.is_flagship) || events.find((e) => e.status === "published") || null;
+    return events.find((e) => e.is_flagship) || null;
   }, [events]);
 
   const timeLeft = useCountdown(flagshipEvent?.start_datetime);
@@ -86,8 +86,9 @@ export default function EventsPage() {
   const filteredEvents = useMemo(() => {
     let list = events;
 
-    // Filter Flagship out of the grid since it is displayed above
-    if (flagshipEvent) {
+    // Filter Flagship out of the grid ONLY if it is displayed above
+    const isFlagshipDisplayed = flagshipEvent && activeStatus === "Upcoming" && activeCategory === "All" && searchQuery === "";
+    if (isFlagshipDisplayed) {
       list = list.filter((e) => e.id !== flagshipEvent.id);
     }
 
