@@ -5,7 +5,7 @@ import Link from "next/link";
 import { fetchEvents } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
-import { MapPin, Calendar, ArrowRight, Search, Trophy, Users, LayoutGrid } from "lucide-react";
+import { MapPin, Calendar, ArrowRight, Search, Trophy, Users, LayoutGrid, ChevronDown } from "lucide-react";
 import { FadeUp, StaggerContainer, StaggerItem, TiltCard } from "@/components/animations/MotionElements";
 import { Typewriter } from "@/components/animations/Typewriter";
 import { Event } from "@/types";
@@ -234,22 +234,37 @@ export default function EventsPage() {
           transition={{ duration: 0.5 }}
           className="mb-8 md:mb-10 w-full"
         >
-          <div className="flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar w-full">
-            {/* Categories */}
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => handleFilterClick(category)}
-                className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
-                  activeCategory === category
-                    ? "bg-black text-white shadow-md"
-                    : "text-gray-500 hover:text-black hover:bg-gray-50"
-                }`}
+          <div className="flex flex-wrap md:flex-nowrap items-center gap-x-1 gap-y-2 p-1.5 md:p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-visible w-full">
+            {/* Mobile Categories Dropdown */}
+            <div className="md:hidden relative shrink-0">
+              <select
+                value={activeCategory}
+                onChange={(e) => handleFilterClick(e.target.value)}
+                className="appearance-none bg-black text-white rounded-[12px] px-4 py-2 pr-8 text-[13px] font-semibold focus:outline-none cursor-pointer h-full"
               >
-                {category}
-              </button>
-            ))}
+                {categories.map((category) => (
+                  <option key={category} value={category} className="bg-white text-black">{category}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none" />
+            </div>
 
+            {/* Desktop Categories */}
+            <div className="hidden md:flex items-center gap-1">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleFilterClick(category)}
+                  className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
+                    activeCategory === category
+                      ? "bg-black text-white shadow-md"
+                      : "text-gray-500 hover:text-black hover:bg-gray-50"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
             {/* Divider */}
             <div className="w-px h-6 bg-gray-200 mx-1 flex-shrink-0 hidden md:block"></div>
 
@@ -278,9 +293,9 @@ export default function EventsPage() {
               <select 
                 value={activeYear}
                 onChange={(e) => setActiveYear(e.target.value)}
-                className="appearance-none bg-white border border-gray-200 rounded-[8px] px-4 py-2 pr-8 text-[13px] font-semibold text-gray-500 outline-none hover:text-black focus:border-gray-300 transition-colors cursor-pointer h-[40px]"
+                className="appearance-none bg-transparent rounded-[8px] px-4 py-2 pr-8 text-[13px] font-semibold text-gray-500 outline-none hover:text-black focus:bg-gray-50 transition-colors cursor-pointer h-full"
               >
-                <option value="All">All</option>
+                <option value="All">Year</option>
                 <option value="2026">2026</option>
                 <option value="2025">2025</option>
                 <option value="2024">2024</option>
@@ -292,7 +307,7 @@ export default function EventsPage() {
             </div>
 
             {/* Search Bar */}
-            <div className="flex flex-1 items-center gap-2 px-3 py-1.5 bg-white rounded-[8px] border border-gray-200 focus-within:border-gray-400 transition-colors min-w-[200px] ml-1 h-[40px]">
+            <div className="flex flex-1 items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-[12px] border-none transition-colors min-w-[140px] ml-1 h-[36px]">
               <Search className="w-4 h-4 text-gray-400" />
               <input
                 type="text"

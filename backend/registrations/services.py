@@ -11,6 +11,7 @@ from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.template.loader import render_to_string
 import qrcode
 
 from core.exceptions import AppError
@@ -145,11 +146,14 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
             registration.qr_image_url = qr_url
             registration.save(update_fields=['qr_image_url', 'updated_at'])
 
-            html_content = f"""
-            <p>Your registration for {event.title} is approved!</p>
-            <p>Your QR code is below. Present this at the event for check-in.</p>
-            <img src="{qr_url}" alt="QR Code" />
-            """
+            context = {
+                'full_name': user.full_name,
+                'event_title': event.title,
+                'event_start': event.start_time.strftime('%d %b %Y, %I:%M %p') if event.start_time else 'TBA',
+                'event_venue': event.venue if event.venue else 'TBA',
+                'qr_image_url': qr_url,
+            }
+            html_content = render_to_string('emails/registration_approved.html', context)
             send_email(
                 to_email=user.email,
                 subject=f"Approved: {event.title}",
@@ -480,11 +484,14 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
             reg.save(update_fields=['qr_image_url', 'updated_at'])
 
             # Send Email directly
-            html_content = f"""
-            <p>Your registration for {reg.event.title} is approved!</p>
-            <p>Your QR code is below. Present this at the event for check-in.</p>
-            <img src="{qr_url}" alt="QR Code" />
-            """
+            context = {
+                'full_name': reg.user.full_name,
+                'event_title': reg.event.title,
+                'event_start': reg.event.start_time.strftime('%d %b %Y, %I:%M %p') if reg.event.start_time else 'TBA',
+                'event_venue': reg.event.venue if reg.event.venue else 'TBA',
+                'qr_image_url': qr_url,
+            }
+            html_content = render_to_string('emails/registration_approved.html', context)
             send_email(
                 to_email=reg.user.email,
                 subject=f"Approved: {reg.event.title}",

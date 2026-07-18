@@ -18,6 +18,7 @@ import {
   Users,
   Clock,
   Filter,
+  ChevronDown,
   ArrowRight,
   Trash2,
   Edit3,
@@ -131,20 +132,37 @@ export default function AdminEventsPage() {
 
         {/* Unified Filter Bar */}
         <div className="mb-8 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar">
-            {statusOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setStatusFilter(opt.value as EventStatus | "")}
-                className={`px-5 py-2 rounded-[12px] text-[13px] font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
-                  statusFilter === opt.value
-                    ? "bg-black text-white shadow-md"
-                    : "text-gray-500 hover:text-black hover:bg-gray-50"
-                }`}
+          <div className="flex flex-wrap items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-visible w-full md:w-auto">
+            {/* Mobile Filter Dropdown */}
+            <div className="md:hidden relative shrink-0">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as EventStatus | "")}
+                className="appearance-none bg-black text-white rounded-[12px] px-4 py-2 pr-8 text-[13px] font-semibold focus:outline-none cursor-pointer h-full"
               >
-                {opt.label}
-              </button>
-            ))}
+                {statusOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value} className="bg-white text-black">{opt.label}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none" />
+            </div>
+
+            {/* Desktop Filter Tabs */}
+            <div className="hidden md:flex items-center gap-1">
+              {statusOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setStatusFilter(opt.value as EventStatus | "")}
+                  className={`px-5 py-2 rounded-[12px] text-[13px] font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
+                    statusFilter === opt.value
+                      ? "bg-black text-white shadow-md"
+                      : "text-gray-500 hover:text-black hover:bg-gray-50"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -7,6 +7,7 @@ import { FadeUp, StaggerContainer, StaggerItem, TiltCard } from "@/components/an
 import { TeamHeroBackground } from "@/components/animations/TeamHeroBackground";
 import type { CoreTeamMemberPublic } from "@/types";
 import { useCategoryFilter } from "@/hooks/useCategoryFilter";
+import { ChevronDown } from "lucide-react";
 
 function FadeInImage({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false);
@@ -105,20 +106,37 @@ export default function TeamPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex justify-center mb-16"
           >
-            <div className="flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar max-w-full">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => handleFilterClick(category)}
-                  className={`px-5 py-2 rounded-[12px] text-[13px] font-semibold transition-colors whitespace-nowrap ${
-                    activeFilter === category
-                      ? "bg-black text-white"
-                      : "text-gray-500 hover:text-black"
-                  }`}
+            <div className="flex flex-wrap items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-visible w-full md:w-auto">
+              {/* Mobile Filter Dropdown */}
+              <div className="md:hidden relative shrink-0">
+                <select
+                  value={activeFilter}
+                  onChange={(e) => handleFilterClick(e.target.value)}
+                  className="appearance-none bg-black text-white rounded-[12px] px-4 py-2 pr-8 text-[13px] font-semibold focus:outline-none cursor-pointer h-full"
                 >
-                  {category}
-                </button>
-              ))}
+                  {categories.map((category) => (
+                    <option key={category} value={category} className="bg-white text-black">{category}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none" />
+              </div>
+
+              {/* Desktop Filter Tabs */}
+              <div className="hidden md:flex items-center gap-1">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => handleFilterClick(category)}
+                    className={`px-5 py-2 rounded-[12px] text-[13px] font-semibold transition-colors whitespace-nowrap ${
+                      activeFilter === category
+                        ? "bg-black text-white"
+                        : "text-gray-500 hover:text-black"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}

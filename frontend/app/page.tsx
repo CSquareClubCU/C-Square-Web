@@ -18,6 +18,7 @@ import {
   Clock,
   MapPin,
   User,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
@@ -358,14 +359,13 @@ export default function Home() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Card */}
-            <FadeUp delay={0.1} className="bg-[#0a0a0a] text-white rounded-[24px] p-8 md:p-10 border border-black/[0.04] shadow-2xl flex flex-col justify-between">
+            <FadeUp delay={0.1} className="bg-[#0a0a0a] text-white rounded-[24px] p-6 md:p-10 border border-black/[0.04] shadow-2xl flex flex-col justify-between">
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold text-white/90 mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                   Flagship • {flagship.event_type.charAt(0).toUpperCase() + flagship.event_type.slice(1)}
                 </div>
-                
-                <h3 className="text-4xl md:text-5xl font-semibold tracking-tighter mb-3 text-white">
+                <h3 className="text-3xl md:text-5xl font-semibold tracking-tighter mb-3 text-white">
                   {flagship.title}
                 </h3>
                 
@@ -415,7 +415,7 @@ export default function Home() {
             </FadeUp>
 
             {/* Right Card */}
-            <FadeUp delay={0.2} className={`relative rounded-[24px] overflow-hidden p-8 md:p-10 flex flex-col justify-between text-white shadow-[0_4px_30px_rgba(0,0,0,0.1)] ${isPast ? 'bg-gray-800' : 'bg-gradient-to-tr from-[#161420] via-[#1a1722] to-[#6d3039]'}`}>
+            <FadeUp delay={0.2} className={`relative rounded-[24px] overflow-hidden p-6 md:p-10 flex flex-col justify-between text-white shadow-[0_4px_30px_rgba(0,0,0,0.1)] ${isPast ? 'bg-gray-800' : 'bg-gradient-to-tr from-[#161420] via-[#1a1722] to-[#6d3039]'}`}>
               <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none" style={{ backgroundImage: 'url("/noise.png")' }}></div>
 
               <div className="relative z-10 mb-8">
@@ -465,21 +465,39 @@ export default function Home() {
                 What&apos;s on the calendar.
               </h2>
             </div>
-            <div className="flex flex-wrap md:flex-nowrap items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar max-w-full">
-              {["All", "Hackathon", "Workshop", "Seminar", "Competition"].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setEventFilter(cat)}
-                  className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold cursor-default transition-colors whitespace-nowrap ${
-                    eventFilter === cat
-                      ? "bg-black text-white"
-                      : "text-gray-500 hover:text-black"
-                  }`}
+            {/* Unified Filter Bar */}
+            <div className="flex flex-wrap md:flex-nowrap items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-visible max-w-full">
+              {/* Mobile Filter Dropdown */}
+              <div className="md:hidden relative shrink-0">
+                <select
+                  value={eventFilter}
+                  onChange={(e) => setEventFilter(e.target.value)}
+                  className="appearance-none bg-black text-white rounded-[12px] px-4 py-2 pr-8 text-[13px] font-semibold focus:outline-none cursor-pointer h-full"
                 >
-                  {cat}
-                </button>
-              ))}
-              <div className="hidden md:block w-[1px] h-4 bg-gray-200 mx-1 shrink-0"></div>
+                  {["All", "Hackathon", "Workshop", "Seminar", "Competition"].map((cat) => (
+                    <option key={cat} value={cat} className="bg-white text-black">{cat}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none" />
+              </div>
+
+              {/* Desktop Filter Tabs */}
+              <div className="hidden md:flex items-center gap-1">
+                {["All", "Hackathon", "Workshop", "Seminar", "Competition"].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setEventFilter(cat)}
+                    className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold cursor-default transition-colors whitespace-nowrap ${
+                      eventFilter === cat
+                        ? "bg-black text-white"
+                        : "text-gray-500 hover:text-black"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+              <div className="w-[1px] h-4 bg-gray-200 mx-1 shrink-0 hidden md:block"></div>
               <Link href="/events" className="px-4 py-2 rounded-[12px] text-black hover:bg-gray-50 text-[13px] font-semibold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0">
                 View all <ArrowRight className="w-3.5 h-3.5" />
               </Link>
