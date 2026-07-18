@@ -153,6 +153,23 @@ def update_user_profile(user: User, validated_data: dict) -> User:
     for field, value in validated_data.items():
         setattr(user, field, value)
     user.save(update_fields=[*validated_data.keys(), 'updated_at'])
+
+    # Sync changes to linked team profile(s)
+    if hasattr(user, 'team_profile'):
+        for member in user.team_profile.all():
+            team_updates = []
+            if 'full_name' in validated_data:
+                member.full_name = validated_data['full_name']
+                team_updates.append('full_name')
+            if 'github_url' in validated_data:
+                member.github_url = validated_data['github_url']
+                team_updates.append('github_url')
+            if 'linkedin_url' in validated_data:
+                member.linkedin_url = validated_data['linkedin_url']
+                team_updates.append('linkedin_url')
+            if team_updates:
+                member.save(update_fields=team_updates)
+
     return user
 
 

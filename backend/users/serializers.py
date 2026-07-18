@@ -55,7 +55,8 @@ class UserSerializer(serializers.ModelSerializer):
     def get_club_rank(self, obj):
         if getattr(obj, 'club_points', None) is None:
             return None
-        return getattr(obj, 'annotated_rank', None)
+        # Rank is number of users with strictly more points + 1
+        return User.objects.filter(club_points__gt=obj.club_points).count() + 1
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):

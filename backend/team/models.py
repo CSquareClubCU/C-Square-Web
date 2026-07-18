@@ -70,7 +70,7 @@ class TeamMember(BaseModel):
 # Storage cleanup signals
 # ---------------------------------------------------------------------------
 
-from django.db.models.signals import post_delete, pre_save
+from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch import receiver
 from django.db import transaction
 
@@ -91,6 +91,34 @@ def cleanup_team_member_photo(sender, instance, **kwargs):
                 )
         transaction.on_commit(_delete)
 
+
+@receiver(post_delete, sender=TeamMember)
+@receiver(post_save, sender=TeamMember)
+def normalize_team_display_order(sender, instance, **kwargs):
+    """
+    Ensure display_order has no gaps or duplicates.
+    When a collision occurs, the most recently updated member wins.
+    If display_order is 0, it is moved to the end.
+    """
+    from django.db import transaction
+
+    def _do_normalize():
+        # Fetch all members
+        members = list(TeamMember.objects.all())
+        # Sort: display_order > 0 first, then newest updated_at wins tiebreakers
+        members.sort(key=lambda m: (m.display_order if m.display_order > 0 else 999999, -m.updated_at.timestamp()))
+        
+        updates = []
+        for index, member in enumerate(members, start=1):
+            if member.display_order != index:
+                member.display_order = index
+                updates.append(member)
+        
+        if updates:
+            # bulk_update avoids recursion since it doesn't trigger save() or signals
+            TeamMember.objects.bulk_update(updates, ['display_order'])
+
+    transaction.on_commit(_do_normalize)
 
 @receiver(pre_save, sender=TeamMember)
 def cleanup_old_team_member_photo_on_replace(sender, instance, **kwargs):

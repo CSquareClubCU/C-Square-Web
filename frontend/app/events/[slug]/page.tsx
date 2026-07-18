@@ -364,8 +364,8 @@ export default function EventDetailPage() {
                           {regStatus === "approved" ? "Joined" :
                            regStatus === "waitlisted" ? "Waitlisted" :
                            regStatus === "rejected" ? "Declined" :
-                           (event.is_team_event && myRegistration?.team && event.min_team_size && myRegistration.team.members.length < event.min_team_size)
-                             ? `Pending (${myRegistration.team.members.length}/${event.min_team_size} members)`
+                           (event.is_team_event && myRegistration?.team && event.min_team_size && (myRegistration.team.members?.length || 0) < event.min_team_size)
+                             ? `Pending (${myRegistration.team.members?.length || 0}/${event.min_team_size} members)`
                              : "Pending"}
                         </span>
                       </div>
@@ -377,17 +377,7 @@ export default function EventDetailPage() {
                           </Button>
                         </Link>
                       )}
-                      
-                      {(regStatus === "pending" || regStatus === "waitlisted") && (
-                        <Button
-                          onClick={handleCancel}
-                          disabled={regLoading}
-                          variant="outline"
-                          className="w-full border-[#e5e7eb] text-[#374151] hover:bg-[#ef4444]/10 hover:text-[#ef4444] hover:border-[#ef4444]/20 shadow-sm transition-colors"
-                        >
-                          {regLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (cancelConfirm ? "Confirm Cancel" : "Cancel Request")}
-                        </Button>
-                      )}
+
                     </div>
                     
                     {showTeamSection && (

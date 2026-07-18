@@ -99,8 +99,7 @@ export default function SettingsPage() {
 
       // Refresh context so useRequireAuth doesn't bounce us back!
       await refresh();
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      router.push("/dashboard?profile_updated=true");
     } catch (err: unknown) {
       if (err instanceof ApiError && err.fields) {
         const fields = err.fields;

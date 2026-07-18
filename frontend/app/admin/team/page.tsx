@@ -36,8 +36,6 @@ type MemberForm = {
   photo_url: string;
   display_order: string;
   user_id: string;
-  github_url: string;
-  linkedin_url: string;
 };
 
 const emptyForm: MemberForm = {
@@ -47,8 +45,6 @@ const emptyForm: MemberForm = {
   photo_url: "",
   display_order: "0",
   user_id: "",
-  github_url: "",
-  linkedin_url: "",
 };
 
 export default function AdminTeamPage() {
@@ -119,8 +115,6 @@ export default function AdminTeamPage() {
       photo_url: member.photo_url || "",
       display_order: String(member.display_order),
       user_id: member.user || "",
-      github_url: member.github_url || "",
-      linkedin_url: member.linkedin_url || "",
     });
     setPhotoFile(null);
     setFormError(null);
@@ -152,8 +146,6 @@ export default function AdminTeamPage() {
         category: form.category,
         display_order: parseInt(form.display_order, 10) || 0,
         user_id: form.user_id || null,
-        github_url: form.github_url.trim() || null,
-        linkedin_url: form.linkedin_url.trim() || null,
       };
       
       let memberId = editingMember?.id;
@@ -596,36 +588,7 @@ export default function AdminTeamPage() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-black/[0.04]">
-                    <h4 className="text-sm font-semibold mb-3 text-black">Social Links (Optional)</h4>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-medium mb-1 text-gray-500">
-                          GitHub URL
-                        </label>
-                        <input
-                          type="url"
-                          value={form.github_url}
-                          onChange={(e) => setForm({ ...form, github_url: e.target.value })}
-                          className="w-full px-3 py-2 rounded-[6px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[14px]"
-                          placeholder="https://github.com/..."
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium mb-1 text-gray-500">
-                          LinkedIn URL
-                        </label>
-                        <input
-                          type="url"
-                          value={form.linkedin_url}
-                          onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })}
-                          className="w-full px-3 py-2 rounded-[6px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[14px]"
-                          placeholder="https://linkedin.com/in/..."
-                        />
-                      </div>
-                    </div>
                   </div>
-                </div>
 
                 {/* Modal Footer */}
                 <div className="px-6 py-5 border-t border-black/[0.04] bg-[#f8f9fa] flex items-center justify-end gap-3">

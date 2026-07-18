@@ -73,6 +73,10 @@ class Event(BaseModel):
     contact_name = models.CharField(max_length=255, null=True, blank=True)
     contact_email = models.EmailField(null=True, blank=True)
     is_registration_open = models.BooleanField(default=True)
+    is_checkin_active = models.BooleanField(
+        default=False,
+        help_text="If True, volunteers can check in users. Admins can always check in."
+    )
     requires_approval = models.BooleanField(
         default=True,
         help_text="If True, registrations require admin approval. If False, they are automatically Approved (unless capacity is full)."

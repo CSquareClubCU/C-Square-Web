@@ -68,7 +68,19 @@ export default function DashboardPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [whatsappLink, setWhatsappLink] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("profile_updated") === "true") {
+        setSuccess("Profile updated successfully!");
+        window.history.replaceState({}, "", "/dashboard");
+        setTimeout(() => setSuccess(null), 5000);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -149,6 +161,15 @@ export default function DashboardPage() {
     <div className="w-full min-h-screen bg-white">
       <div className="max-w-[1200px] mx-auto px-5 md:px-10 pt-12 pb-24">
         
+        {success && (
+          <FadeUp>
+            <div className="mb-8 p-4 bg-green-50 text-green-700 rounded-[16px] text-sm flex items-center gap-3 border border-green-100 shadow-sm">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+              <span className="font-medium">{success}</span>
+            </div>
+          </FadeUp>
+        )}
+
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
@@ -342,7 +363,16 @@ export default function DashboardPage() {
                                 View Ticket
                               </Button>
                             )}
-                            <Button variant="outline" size="sm" className="bg-[#f8f9fa] border-black/[0.04] hover:bg-gray-100">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="bg-[#f8f9fa] border-black/[0.04] hover:bg-gray-100"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                router.push(`/events/${reg.event.slug}`);
+                              }}
+                            >
                               Details
                             </Button>
                           </div>
@@ -382,7 +412,7 @@ export default function DashboardPage() {
                 <div className="h-px w-full bg-black/[0.04]" />
                 <div className="flex items-center justify-between text-[13px]">
                   <span className="text-gray-500 font-medium">Leaderboard</span>
-                  <span className="text-black font-semibold">#47</span>
+                  <span className="text-black font-semibold">{user.club_rank ? `#${user.club_rank}` : "Unranked"}</span>
                 </div>
               </div>
               

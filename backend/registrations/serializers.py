@@ -37,7 +37,7 @@ class RegistrationMyListSerializer(serializers.ModelSerializer):
 
     def get_team(self, obj):
         if obj.team:
-            return TeamPublicSerializer(obj.team).data
+            return TeamSerializer(obj.team).data
         return None
 
     class Meta:

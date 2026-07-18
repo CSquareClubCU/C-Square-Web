@@ -393,6 +393,17 @@ export default function AdminEventDetailPage() {
     finally { setExportLoading(false); }
   }
 
+  async function handleToggleCheckin() {
+    if (!event) return;
+    setEditLoading(true);
+    try {
+      const newStatus = !event.is_checkin_active;
+      await updateEvent(event.slug, { is_checkin_active: newStatus });
+      setEvent({ ...event, is_checkin_active: newStatus });
+    } catch (err: any) { alert(err.message || "Failed to toggle check-in."); }
+    finally { setEditLoading(false); }
+  }
+
   function openEdit() {
     if (!event) return;
     // Pre-fill form with current event values
@@ -572,6 +583,17 @@ export default function AdminEventDetailPage() {
                 >
                   {exportLoading ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Download className="w-4 h-4 mr-1.5" />}
                   Export
+                </Button>
+                {/* Toggle Checkin Button */}
+                <Button
+                  size="sm"
+                  className={event.is_checkin_active ? "bg-red-600 text-white hover:bg-red-700" : "bg-emerald-600 text-white hover:bg-emerald-700"}
+                  onClick={handleToggleCheckin}
+                  disabled={editLoading || (new Date().setHours(0,0,0,0) < new Date(event.start_datetime).setHours(0,0,0,0))}
+                  title={(new Date().setHours(0,0,0,0) < new Date(event.start_datetime).setHours(0,0,0,0)) ? "Check-in can only be started on or after the event date." : ""}
+                >
+                  {editLoading ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <QrCode className="w-4 h-4 mr-1.5" />}
+                  {event.is_checkin_active ? "Stop Check-in" : "Start Check-in"}
                 </Button>
               </div>
             </div>
@@ -1022,16 +1044,18 @@ export default function AdminEventDetailPage() {
 
       <ConfirmAlert
         isOpen={!!bonusModal}
-        title="Award Bonus Points"
+        title="Award / Deduct Bonus Points"
         message={
           <div>
-            <p className="text-[14px] text-gray-500 mb-4 flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-500" />
-              Award points manually to <strong>{bonusModal?.name}</strong>.
-            </p>
+            <div className="text-[14px] text-gray-500 mb-4 flex items-start gap-3">
+              <Trophy className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
+              <div>
+                Award or deduct points for <strong className="text-black">{bonusModal?.name}</strong>. 
+                <span className="block mt-1 text-[13px] opacity-80">(Use negative values to deduct)</span>
+              </div>
+            </div>
             <input
               type="number"
-              min="0"
               value={bonusModal?.points || 0}
               onChange={(e) => bonusModal && setBonusModal({ ...bonusModal, points: parseInt(e.target.value, 10) || 0 })}
               className="w-full px-4 py-3 rounded-xl border border-[var(--c-border)] text-sm focus:outline-none focus:border-black"
@@ -1040,7 +1064,7 @@ export default function AdminEventDetailPage() {
         }
         onConfirm={handleAwardBonus}
         onCancel={() => setBonusModal(null)}
-        confirmText="Award"
+        confirmText={bonusModal?.points && bonusModal.points < 0 ? "Deduct" : "Award"}
         loading={bonusModal ? actionLoading === bonusModal.id : false}
         confirmDisabled={!bonusModal?.points}
       />
