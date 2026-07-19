@@ -312,6 +312,20 @@ export function Header() {
                     {roleLink.label}
                   </Link>
                 )}
+                {user && user.role !== "student" && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-colors ${
+                      pathname === "/dashboard"
+                        ? "bg-gray-100 text-black"
+                        : "text-[#444] hover:bg-gray-50 hover:text-black"
+                    }`}
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    Dashboard
+                  </Link>
+                )}
               </nav>
 
               {/* Auth section */}

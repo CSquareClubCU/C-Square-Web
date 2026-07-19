@@ -8,20 +8,33 @@ from team.models import TeamMember
 
 class TeamMemberSerializer(serializers.ModelSerializer):
     """Public representation of a team member."""
+    photo_url = serializers.SerializerMethodField()
+
     class Meta:
         model = TeamMember
         fields = ['id', 'full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'github_url', 'linkedin_url']
         read_only_fields = fields
 
+    def get_photo_url(self, obj):
+        if obj.photo_url:
+            return f"{obj.photo_url}?t={obj.updated_at.timestamp()}"
+        return None
+
 
 class TeamMemberAdminSerializer(serializers.ModelSerializer):
     """Admin representation of a team member, including user linkage."""
     user_email = serializers.CharField(source='user.email', read_only=True)
+    photo_url = serializers.SerializerMethodField()
 
     class Meta:
         model = TeamMember
         fields = ['id', 'full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'github_url', 'linkedin_url', 'user', 'user_email']
         read_only_fields = fields
+
+    def get_photo_url(self, obj):
+        if obj.photo_url:
+            return f"{obj.photo_url}?t={obj.updated_at.timestamp()}"
+        return None
 
 
 class TeamMemberCreateUpdateSerializer(serializers.ModelSerializer):

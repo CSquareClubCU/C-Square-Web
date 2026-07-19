@@ -334,7 +334,7 @@ export default function AdminTeamPage() {
                   )}
 
                   {/* Actions */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 mt-2 lg:mt-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => openEdit(member)}
                       className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"

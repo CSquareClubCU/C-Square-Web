@@ -218,32 +218,32 @@ export default function DashboardPage() {
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
-          <div className="bg-[#f8f9fa] rounded-2xl p-6 border border-black/[0.04]">
-            <div className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-4">
-              <CalendarDays className="w-4 h-4" />
+        <div className="grid grid-cols-3 gap-2 md:gap-4 mb-16">
+          <div className="bg-[#f8f9fa] rounded-2xl p-3 md:p-6 border border-black/[0.04]">
+            <div className="flex flex-col xl:flex-row items-start xl:items-center gap-1 md:gap-2 text-[11px] md:text-sm text-gray-500 font-medium mb-3 md:mb-4">
+              <CalendarDays className="w-4 h-4 shrink-0" />
               Registered
             </div>
-            <div className="text-3xl font-semibold tracking-tight text-black mb-1">{upcomingRegs.length}</div>
-            <div className="text-[13px] text-gray-500">Upcoming</div>
+            <div className="text-2xl md:text-3xl font-semibold tracking-tight text-black mb-0.5 md:mb-1">{upcomingRegs.length}</div>
+            <div className="text-[10px] md:text-[13px] text-gray-500 truncate">Upcoming</div>
           </div>
           
-          <div className="bg-[#f8f9fa] rounded-2xl p-6 border border-black/[0.04]">
-            <div className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-4">
-              <CheckCircle2 className="w-4 h-4" />
+          <div className="bg-[#f8f9fa] rounded-2xl p-3 md:p-6 border border-black/[0.04]">
+            <div className="flex flex-col xl:flex-row items-start xl:items-center gap-1 md:gap-2 text-[11px] md:text-sm text-gray-500 font-medium mb-3 md:mb-4">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
               Attended
             </div>
-            <div className="text-3xl font-semibold tracking-tight text-black mb-1">{pastRegs.length}</div>
-            <div className="text-[13px] text-gray-500">Past events</div>
+            <div className="text-2xl md:text-3xl font-semibold tracking-tight text-black mb-0.5 md:mb-1">{pastRegs.length}</div>
+            <div className="text-[10px] md:text-[13px] text-gray-500 truncate">Past events</div>
           </div>
           
-          <div className="bg-[#f8f9fa] rounded-2xl p-6 border border-black/[0.04]">
-            <div className="flex items-center gap-2 text-sm text-gray-500 font-medium mb-4">
-              <Trophy className="w-4 h-4" />
+          <div className="bg-[#f8f9fa] rounded-2xl p-3 md:p-6 border border-black/[0.04]">
+            <div className="flex flex-col xl:flex-row items-start xl:items-center gap-1 md:gap-2 text-[11px] md:text-sm text-gray-500 font-medium mb-3 md:mb-4">
+              <Trophy className="w-4 h-4 shrink-0" />
               Club points
             </div>
-            <div className="text-3xl font-semibold tracking-tight text-black mb-1">{user.club_points?.toLocaleString() || 0}</div>
-            <div className="text-[13px] text-gray-500">{user.club_rank ? `Rank #${user.club_rank}` : "Unranked"}</div>
+            <div className="text-2xl md:text-3xl font-semibold tracking-tight text-black mb-0.5 md:mb-1">{user.club_points?.toLocaleString() || 0}</div>
+            <div className="text-[10px] md:text-[13px] text-gray-500 truncate">{user.club_rank ? `Rank #${user.club_rank}` : "Unranked"}</div>
           </div>
         </div>
 

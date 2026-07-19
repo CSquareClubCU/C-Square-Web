@@ -302,28 +302,29 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto px-5 md:px-10">
           <div className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] shadow-sm p-6 md:p-8 flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-16">
             
-            <div className="lg:w-[240px] shrink-0 border-l-2 border-[#111111] pl-5">
+            <div className="hidden lg:block lg:w-[240px] shrink-0 border-l-2 border-[#111111] pl-5">
                <p className="text-[14px] leading-relaxed text-[#6b7280] font-medium">
                  <span className="text-[#111111] font-semibold tracking-tight">C Square Impact</span><br />
                  Building the next generation of tech talent, one event at a time.
                </p>
             </div>
             
-            <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
+            <div className="flex-1 grid grid-cols-4 gap-2 md:gap-4 w-full">
               {statCards.map((stat, i) => (
-                <FadeUp key={i} delay={i * 0.1} className="flex flex-col cursor-default">
-                   <span className="text-3xl md:text-4xl font-semibold tracking-tighter text-[#111111] flex items-baseline leading-none mb-2">
+                <FadeUp key={i} delay={i * 0.1} className="flex flex-col cursor-default items-center md:items-start text-center md:text-left">
+                   <span className="text-xl md:text-4xl font-semibold tracking-tighter text-[#111111] flex justify-center md:justify-start items-baseline leading-none mb-1 md:mb-2 w-full">
                       {statsLoaded ? (
                         <>
                           <AnimatedCounter value={stat.value} />
-                          <span className="text-[#6b7280] ml-1">{stat.suffix}</span>
+                          <span className="text-[#6b7280] ml-0.5 md:ml-1 text-sm md:text-base">{stat.suffix}</span>
                         </>
                       ) : (
-                        <span className="inline-block w-12 h-8 bg-[#f5f5f5] rounded animate-pulse" />
+                        <span className="inline-block w-8 h-5 md:w-12 md:h-8 bg-[#f5f5f5] rounded animate-pulse mx-auto md:mx-0" />
                       )}
                    </span>
-                   <span className="text-[11px] font-semibold tracking-wide text-[#6b7280] uppercase flex items-center gap-1.5">
-                     {stat.icon && React.cloneElement(stat.icon as React.ReactElement<any>, { className: "w-3.5 h-3.5 text-[#111111]" })}
+                   <span className="text-[9px] md:text-[11px] font-semibold tracking-wide text-[#6b7280] uppercase flex flex-col md:flex-row items-center justify-center md:justify-start gap-0.5 md:gap-1.5 leading-tight md:leading-normal w-full">
+                     {/* Desktop Icon (Side) */}
+                     {stat.icon && React.cloneElement(stat.icon as React.ReactElement<any>, { className: "hidden md:block w-3.5 h-3.5 text-[#111111]" })}
                      {stat.label}
                    </span>
                 </FadeUp>
@@ -465,7 +466,7 @@ export default function Home() {
                 What&apos;s on the calendar.
               </h2>
             </div>
-            <div className="flex flex-wrap md:flex-nowrap items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar max-w-full">
+            <div className="flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-1 md:p-1 md:bg-white md:border md:border-gray-200 md:rounded-[16px] md:shadow-sm overflow-x-auto no-scrollbar max-w-full">
               {["All", "Hackathon", "Workshop", "Seminar", "Competition"].map((cat) => (
                 <button
                   key={cat}
@@ -473,14 +474,14 @@ export default function Home() {
                   className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold cursor-default transition-colors whitespace-nowrap ${
                     eventFilter === cat
                       ? "bg-black text-white"
-                      : "text-gray-500 hover:text-black"
+                      : "bg-white border border-gray-200 text-gray-600 md:bg-transparent md:border-transparent md:text-gray-500 hover:text-black"
                   }`}
                 >
                   {cat}
                 </button>
               ))}
               <div className="hidden md:block w-[1px] h-4 bg-gray-200 mx-1 shrink-0"></div>
-              <Link href="/events" className="px-4 py-2 rounded-[12px] text-black hover:bg-gray-50 text-[13px] font-semibold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0">
+              <Link href="/events" className="px-4 py-2 rounded-[12px] bg-white border border-gray-200 md:bg-transparent md:border-transparent text-black md:hover:bg-gray-50 text-[13px] font-semibold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0">
                 View all <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -598,9 +599,9 @@ export default function Home() {
 
             <StaggerContainer className="flex flex-wrap justify-center gap-5 max-w-6xl mx-auto">
               {teamMembers.slice(0, 4).map((member) => (
-                <StaggerItem key={member.id} className="w-full sm:w-[calc(50%-10px)] md:w-[calc(20%-16px)] max-w-[220px]">
-                  <TiltCard className="flex flex-col items-center text-center group cursor-default bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-6 border border-black/[0.04] h-full">
-                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[#F5F5F5] mb-4 overflow-hidden relative transition-transform duration-500 group-hover:scale-110 flex items-center justify-center">
+                <StaggerItem key={member.id} className="w-[calc(50%-10px)] md:w-[calc(20%-16px)] max-w-[220px]">
+                  <TiltCard className="flex flex-col items-center text-center group cursor-default bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-4 md:p-6 border border-black/[0.04] h-full">
+                    <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-[#F5F5F5] mb-4 overflow-hidden relative transition-transform duration-500 group-hover:scale-110 flex items-center justify-center">
                       {member.photo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -635,10 +636,10 @@ export default function Home() {
                 </StaggerItem>
               ))}
 
-              <StaggerItem key="view-all" className="w-full sm:w-[calc(50%-10px)] md:w-[calc(20%-16px)] max-w-[220px]">
+              <StaggerItem key="view-all" className="w-[calc(50%-10px)] md:w-[calc(20%-16px)] max-w-[220px]">
                 <Link href="/team" className="block h-full outline-hidden focus-visible:ring-2 focus-visible:ring-black rounded-[24px]">
-                  <TiltCard className="flex flex-col items-center text-center group cursor-pointer bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-6 border border-black/[0.04] h-full hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-500">
-                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[#F5F5F5] text-black mb-4 flex items-center justify-center group-hover:scale-110 group-hover:bg-[#111] group-hover:text-white transition-all duration-500">
+                  <TiltCard className="flex flex-col items-center text-center group cursor-pointer bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-4 md:p-6 border border-black/[0.04] h-full hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-500">
+                    <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-[#F5F5F5] text-black mb-4 flex items-center justify-center group-hover:scale-110 group-hover:bg-[#111] group-hover:text-white transition-all duration-500">
                       <ArrowRight className="w-6 h-6 md:w-8 md:h-8 transition-transform duration-300" />
                     </div>
                     <h3 className="font-semibold tracking-tight text-[#111] text-base mb-1">View All</h3>

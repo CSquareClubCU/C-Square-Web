@@ -187,10 +187,10 @@ export default function EventDetailPage() {
         <div className="flex flex-col lg:flex-row gap-10 xl:gap-16 items-start">
           
           {/* Left Column - Content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 order-2 lg:order-1">
             <FadeUp>
               {/* Banner */}
-              <div className="w-full aspect-[2/1] rounded-[12px] overflow-hidden bg-gradient-to-br from-blue-900 to-red-900 mb-6 shadow-sm">
+              <div className="hidden lg:block w-full aspect-[2/1] rounded-[12px] overflow-hidden bg-gradient-to-br from-blue-900 to-red-900 mb-6 shadow-sm">
                 {event.banner_image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={event.banner_image_url} alt="Banner" className="w-full h-full object-cover" />
@@ -316,7 +316,20 @@ export default function EventDetailPage() {
           </div>
 
           {/* Right Column - Sticky Sidebar */}
-          <div className={`w-full lg:w-[340px] xl:w-[380px] shrink-0 h-fit self-start ${showTeamSection ? '' : 'sticky top-[120px]'}`}>
+          <div className={`w-full lg:w-[340px] xl:w-[380px] shrink-0 h-fit self-start order-1 lg:order-2 ${showTeamSection ? '' : 'lg:sticky lg:top-[120px]'}`}>
+            
+            {/* Mobile Banner */}
+            <div className="block lg:hidden w-full aspect-[2/1] rounded-[12px] overflow-hidden bg-gradient-to-br from-blue-900 to-red-900 mb-6 shadow-sm">
+              {event.banner_image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={event.banner_image_url} alt="Banner" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <ImageIcon className="w-12 h-12 text-white/30" />
+                </div>
+              )}
+            </div>
+
             <div className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] shadow-sm p-6 md:p-8">
                   
                   <h1 className="text-[24px] font-semibold tracking-tight text-[#111111] mb-8">
