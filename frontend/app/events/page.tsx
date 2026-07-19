@@ -5,7 +5,7 @@ import Link from "next/link";
 import { fetchEvents } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
-import { MapPin, Calendar, ArrowRight, Search, Trophy, Users, LayoutGrid } from "lucide-react";
+import { MapPin, Calendar, ArrowRight, Search, Trophy, Users, LayoutGrid, ChevronDown } from "lucide-react";
 import { FadeUp, StaggerContainer, StaggerItem, TiltCard } from "@/components/animations/MotionElements";
 import { Typewriter } from "@/components/animations/Typewriter";
 import { Event } from "@/types";
@@ -260,14 +260,14 @@ export default function EventsPage() {
                 <select 
                   value={activeCategory}
                   onChange={(e) => handleFilterClick(e.target.value)}
-                  className="appearance-none bg-black text-white border-none rounded-[10px] md:rounded-[12px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold outline-none hover:bg-gray-800 transition-colors cursor-pointer h-[36px] md:h-[40px]"
+                  className="appearance-none bg-black text-white border-none rounded-[10px] md:rounded-[12px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold outline-hidden hover:bg-gray-800 transition-colors cursor-pointer h-[36px] md:h-[40px]"
                 >
                   {categories.map((category) => (
                     <option key={category} value={category} className="bg-white text-black">{category}</option>
                   ))}
                 </select>
                 <div className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/70">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <ChevronDown className="w-[14px] h-[14px]" />
                 </div>
               </div>
 
@@ -302,13 +302,13 @@ export default function EventsPage() {
                     setActiveStatus(e.target.value as "Upcoming" | "Past");
                     setTimeout(() => filterBarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                   }}
-                  className="appearance-none bg-transparent border-none rounded-[10px] md:rounded-[12px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold text-gray-700 outline-none hover:bg-gray-50 transition-colors cursor-pointer h-[36px] md:h-[40px]"
+                  className="appearance-none bg-transparent border-none rounded-[10px] md:rounded-[12px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold text-gray-700 outline-hidden hover:bg-gray-50 transition-colors cursor-pointer h-[36px] md:h-[40px]"
                 >
                   <option value="Upcoming">Upcoming</option>
                   <option value="Past">Past</option>
                 </select>
                 <div className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <ChevronDown className="w-[14px] h-[14px]" />
                 </div>
               </div>
 
@@ -317,7 +317,7 @@ export default function EventsPage() {
                 <select 
                   value={activeYear}
                   onChange={(e) => setActiveYear(e.target.value)}
-                  className="appearance-none bg-transparent md:bg-white border-none md:border md:border-gray-200 rounded-[10px] md:rounded-[8px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold text-gray-700 md:text-gray-500 outline-none hover:text-black focus:border-gray-300 transition-colors cursor-pointer h-[36px] md:h-[40px]"
+                  className="appearance-none bg-transparent md:bg-white border-none md:border md:border-gray-200 rounded-[10px] md:rounded-[8px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold text-gray-700 md:text-gray-500 outline-hidden hover:text-black focus:border-gray-300 transition-colors cursor-pointer h-[36px] md:h-[40px]"
                 >
                   <option value="All">All</option>
                   <option value="2026">2026</option>
@@ -326,7 +326,7 @@ export default function EventsPage() {
                   <option value="2023">2023</option>
                 </select>
                 <div className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <ChevronDown className="w-[14px] h-[14px]" />
                 </div>
               </div>
 
@@ -338,7 +338,7 @@ export default function EventsPage() {
                   placeholder="Search events"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent text-[13px] font-semibold placeholder:text-gray-400 outline-none w-full"
+                  className="bg-transparent text-[13px] font-semibold placeholder:text-gray-400 outline-hidden w-full"
                 />
               </div>
 
@@ -360,7 +360,7 @@ export default function EventsPage() {
                   placeholder="Search events..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent text-[14px] font-semibold placeholder:text-gray-400 outline-none w-full"
+                  className="bg-transparent text-[14px] font-semibold placeholder:text-gray-400 outline-hidden w-full"
                   autoFocus
                 />
               </div>

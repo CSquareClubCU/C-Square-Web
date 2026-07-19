@@ -95,4 +95,4 @@ class TeamMemberPhotoView(APIView):
         if not serializer.is_valid():
             raise AppError('INVALID_FILE', 'File must be jpg, png, or webp and under 5MB.', fields=serializer.errors)
         updated = services.upload_team_photo(member, serializer.validated_data['photo'])
-        return Response({'photo_url': f"{updated.photo_url}?t={int(updated.updated_at.timestamp())}"})
+        return Response({'photo_url': f"{updated.photo_url}?t={updated.updated_at.timestamp()}"})

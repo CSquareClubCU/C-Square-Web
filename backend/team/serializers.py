@@ -17,7 +17,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
     def get_photo_url(self, obj):
         if obj.photo_url:
-            return f"{obj.photo_url}?t={int(obj.updated_at.timestamp())}"
+            return f"{obj.photo_url}?t={obj.updated_at.timestamp()}"
         return None
 
 
@@ -33,7 +33,7 @@ class TeamMemberAdminSerializer(serializers.ModelSerializer):
 
     def get_photo_url(self, obj):
         if obj.photo_url:
-            return f"{obj.photo_url}?t={int(obj.updated_at.timestamp())}"
+            return f"{obj.photo_url}?t={obj.updated_at.timestamp()}"
         return None
 
 
