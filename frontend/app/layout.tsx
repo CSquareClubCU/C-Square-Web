@@ -27,6 +27,10 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="icon" href="/logo-black.png" media="(prefers-color-scheme: light)" />
+        <link rel="icon" href="/logo-white.png" media="(prefers-color-scheme: dark)" />
+      </head>
       <body className="min-h-full flex flex-col font-sans relative">
         <ScrollToTop />
         <AuthProvider>
