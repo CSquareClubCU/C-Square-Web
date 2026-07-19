@@ -237,7 +237,7 @@ export default function EventsPage() {
           className="mb-8 md:mb-10 w-full"
         >
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-1 p-1.5 md:p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar w-full">
+            <div className="flex items-center justify-between gap-1 p-1.5 md:p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm w-full">
               {/* Desktop Categories */}
               <div className="hidden md:flex items-center gap-1 flex-shrink-0">
                 {categories.map((category) => (
@@ -256,11 +256,11 @@ export default function EventsPage() {
               </div>
 
               {/* Mobile Category Dropdown */}
-              <div className="md:hidden relative flex-shrink-0">
+              <div className="md:hidden relative flex-1 min-w-0">
                 <select 
                   value={activeCategory}
                   onChange={(e) => handleFilterClick(e.target.value)}
-                  className="appearance-none bg-black text-white border-none rounded-[10px] md:rounded-[12px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold outline-hidden hover:bg-gray-800 transition-colors cursor-pointer h-[36px] md:h-[40px]"
+                  className="appearance-none bg-black text-white border-none rounded-[10px] md:rounded-[12px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold outline-hidden hover:bg-gray-800 transition-colors cursor-pointer h-[36px] md:h-[40px] w-full text-ellipsis overflow-hidden whitespace-nowrap"
                 >
                   {categories.map((category) => (
                     <option key={category} value={category} className="bg-white text-black">{category}</option>
@@ -295,14 +295,14 @@ export default function EventsPage() {
               </div>
 
               {/* Mobile Status Dropdown */}
-              <div className="md:hidden relative flex-shrink-0">
+              <div className="md:hidden relative flex-1 min-w-0">
                 <select 
                   value={activeStatus}
                   onChange={(e) => {
                     setActiveStatus(e.target.value as "Upcoming" | "Past");
                     setTimeout(() => filterBarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                   }}
-                  className="appearance-none bg-transparent border-none rounded-[10px] md:rounded-[12px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold text-gray-700 outline-hidden hover:bg-gray-50 transition-colors cursor-pointer h-[36px] md:h-[40px]"
+                  className="appearance-none bg-transparent border-none rounded-[10px] md:rounded-[12px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold text-gray-700 outline-hidden hover:bg-gray-50 transition-colors cursor-pointer h-[36px] md:h-[40px] w-full text-ellipsis overflow-hidden whitespace-nowrap"
                 >
                   <option value="Upcoming">Upcoming</option>
                   <option value="Past">Past</option>
@@ -313,11 +313,11 @@ export default function EventsPage() {
               </div>
 
               {/* Dropdown (Year/Type) */}
-              <div className="relative flex-shrink-0">
+              <div className="relative flex-1 min-w-0 md:flex-shrink-0">
                 <select 
                   value={activeYear}
                   onChange={(e) => setActiveYear(e.target.value)}
-                  className="appearance-none bg-transparent md:bg-white border-none md:border md:border-gray-200 rounded-[10px] md:rounded-[8px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold text-gray-700 md:text-gray-500 outline-hidden hover:text-black focus:border-gray-300 transition-colors cursor-pointer h-[36px] md:h-[40px]"
+                  className="appearance-none bg-transparent md:bg-white border-none md:border md:border-gray-200 rounded-[10px] md:rounded-[8px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold text-gray-700 md:text-gray-500 outline-hidden hover:text-black focus:border-gray-300 transition-colors cursor-pointer h-[36px] md:h-[40px] w-full text-ellipsis overflow-hidden whitespace-nowrap"
                 >
                   <option value="All">All</option>
                   <option value="2026">2026</option>
