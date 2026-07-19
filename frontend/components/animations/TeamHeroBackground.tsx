@@ -8,6 +8,8 @@ const imagePositions = [
   [2, 5, 7, 10, 14, 16, 17, 23, 24, 26, 29, 31, 34, 38],
   [1, 4, 6, 9, 12, 15, 18, 21, 25, 28, 31, 33, 36, 39],
   [3, 5, 8, 11, 14, 17, 22, 26, 29, 32, 35, 37],
+  [0, 3, 5, 8, 11, 13, 16, 18, 20, 22, 25, 27, 30, 32, 34, 37, 39],
+  [2, 5, 7, 10, 14, 16, 17, 23, 24, 26, 29, 31, 34, 38],
 ];
 
 function FadeInImage({ src }: { src: string }) {
@@ -49,11 +51,11 @@ export function TeamHeroBackground({ photos }: { photos: string[] }) {
     // Sort by distance from the center, but penalize the central text area
     // so images fill the visible screen around the text first.
     const seeded = [...allPositions].sort((a, b) => {
-      const distFromCenterA = Math.sqrt(Math.pow(a.col - 19.5, 2) + Math.pow((a.row - 2) * 2.5, 2));
-      const distFromCenterB = Math.sqrt(Math.pow(b.col - 19.5, 2) + Math.pow((b.row - 2) * 2.5, 2));
+      const distFromCenterA = Math.sqrt(Math.pow(a.col - 19.5, 2) + Math.pow((a.row - 3) * 2.5, 2));
+      const distFromCenterB = Math.sqrt(Math.pow(b.col - 19.5, 2) + Math.pow((b.row - 3) * 2.5, 2));
       
-      const penaltyA = (a.col >= 14 && a.col <= 25 && a.row >= 1 && a.row <= 3) ? 15 : 0;
-      const penaltyB = (b.col >= 14 && b.col <= 25 && b.row >= 1 && b.row <= 3) ? 15 : 0;
+      const penaltyA = (a.col >= 14 && a.col <= 25 && a.row >= 2 && a.row <= 4) ? 15 : 0;
+      const penaltyB = (b.col >= 14 && b.col <= 25 && b.row >= 2 && b.row <= 4) ? 15 : 0;
       
       const noiseA = ((a.row * 7 + a.col * 13) % 5) * 0.5;
       const noiseB = ((b.row * 7 + b.col * 13) % 5) * 0.5;
@@ -75,7 +77,7 @@ export function TeamHeroBackground({ photos }: { photos: string[] }) {
   }, [photos]);
 
   const rows = useMemo(() => {
-    return Array.from({ length: 5 }).map((_, rowIndex) => {
+    return Array.from({ length: 7 }).map((_, rowIndex) => {
       const squares = Array.from({ length: 40 }).map((_, colIndex) => {
         const hasMember = imagePositions[rowIndex]?.includes(colIndex);
         const photo = photoMap.get(`${rowIndex}-${colIndex}`) ?? null;
@@ -115,28 +117,24 @@ export function TeamHeroBackground({ photos }: { photos: string[] }) {
       />
 
       {/* Grid Container */}
-      <div className="flex flex-col min-w-max" style={{ gap: "16px" }}>
+      <div className="flex flex-col min-w-max gap-3 md:gap-4">
         {rows.map((row, i) => (
           <div
             key={`row-${i}`}
-            className="flex"
-            style={{
-              gap: "16px",
-              marginLeft: i % 2 === 0 ? "0px" : "-44px",
-            }}
+            className={`flex gap-3 md:gap-4 ${i % 2 === 0 ? "ml-0" : "-ml-[30px] md:-ml-[44px]"}`}
           >
-            <div className="flex" style={{ gap: "16px" }}>
+            <div className="flex gap-3 md:gap-4">
               {row.map((square, j) => (
                 <div
                   key={`${square.id}-${j}`}
-                  className={`w-[72px] h-[72px] rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-black/[0.03] flex items-center justify-center overflow-hidden shrink-0 ${
+                  className={`w-[48px] h-[48px] md:w-[72px] md:h-[72px] rounded-[12px] md:rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-black/[0.03] flex items-center justify-center overflow-hidden shrink-0 ${
                     square.hasMember ? "bg-[#EFEFEF]" : "bg-[#FAFAFA]"
                   }`}
                 >
                   {square.photo ? (
                     <FadeInImage src={square.photo} />
                   ) : square.hasMember ? (
-                    <svg className="w-8 h-8 text-black/10" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 md:w-8 md:h-8 text-black/10" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
                   ) : null}

@@ -72,7 +72,7 @@ export default function TeamPage() {
   return (
     <div className="w-full">
       {/* Page Header */}
-      <section className="relative w-full h-[calc(100vh-240px)] min-h-[400px] bg-white flex items-center justify-center overflow-hidden">
+      <section className="relative w-full h-[420px] md:h-[calc(100vh-240px)] md:min-h-[400px] bg-white flex items-center justify-center overflow-hidden">
         <TeamHeroBackground 
           photos={team.map(m => m.photo_url).filter((url): url is string => !!url)} 
         />
@@ -105,15 +105,15 @@ export default function TeamPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex justify-center mb-16"
           >
-            <div className="flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar max-w-full">
+            <div className="flex flex-wrap justify-center md:flex-nowrap items-center gap-1.5 md:gap-1 md:p-1 md:bg-white md:border md:border-gray-200 md:rounded-[16px] md:shadow-sm overflow-x-auto no-scrollbar max-w-full">
               {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => handleFilterClick(category)}
-                  className={`px-5 py-2 rounded-[12px] text-[13px] font-semibold transition-colors whitespace-nowrap ${
+                  className={`px-3 md:px-5 py-1.5 md:py-2 rounded-[12px] text-[12px] md:text-[13px] font-semibold transition-colors whitespace-nowrap ${
                     activeFilter === category
                       ? "bg-black text-white"
-                      : "text-gray-500 hover:text-black"
+                      : "bg-white border border-gray-200 text-gray-600 md:bg-transparent md:border-transparent md:text-gray-500 hover:text-black"
                   }`}
                 >
                   {category}

@@ -59,6 +59,7 @@ export default function EventsPage() {
   const [activeStatus, setActiveStatus] = useState("Upcoming");
   const [activeYear, setActiveYear] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const categories = ["All", "Hackathon", "Competition", "Workshop", "Seminar"];
 
@@ -235,74 +236,135 @@ export default function EventsPage() {
           transition={{ duration: 0.5 }}
           className="mb-8 md:mb-10 w-full"
         >
-          <div className="flex items-center gap-1 p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar w-full">
-            {/* Categories */}
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => handleFilterClick(category)}
-                className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
-                  activeCategory === category
-                    ? "bg-black text-white shadow-md"
-                    : "text-gray-500 hover:text-black hover:bg-gray-50"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-1 p-1.5 md:p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-x-auto no-scrollbar w-full">
+              {/* Desktop Categories */}
+              <div className="hidden md:flex items-center gap-1 flex-shrink-0">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => handleFilterClick(category)}
+                    className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
+                      activeCategory === category
+                        ? "bg-black text-white shadow-md"
+                        : "text-gray-500 hover:text-black hover:bg-gray-50"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
 
-            {/* Divider */}
-            <div className="w-px h-6 bg-gray-200 mx-1 flex-shrink-0 hidden md:block"></div>
+              {/* Mobile Category Dropdown */}
+              <div className="md:hidden relative flex-shrink-0">
+                <select 
+                  value={activeCategory}
+                  onChange={(e) => handleFilterClick(e.target.value)}
+                  className="appearance-none bg-black text-white border-none rounded-[10px] md:rounded-[12px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold outline-none hover:bg-gray-800 transition-colors cursor-pointer h-[36px] md:h-[40px]"
+                >
+                  {categories.map((category) => (
+                    <option key={category} value={category} className="bg-white text-black">{category}</option>
+                  ))}
+                </select>
+                <div className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/70">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+              </div>
 
-            {/* Status Toggle */}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {["Upcoming", "Past"].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => {
-                    setActiveStatus(status as "Upcoming" | "Past");
+              {/* Divider (Desktop) */}
+              <div className="w-px h-6 bg-gray-200 mx-1 flex-shrink-0 hidden md:block"></div>
+
+              {/* Status Toggle (Desktop) */}
+              <div className="hidden md:flex items-center gap-1 flex-shrink-0">
+                {["Upcoming", "Past"].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => {
+                      setActiveStatus(status as "Upcoming" | "Past");
+                      setTimeout(() => filterBarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                    }}
+                    className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold transition-all whitespace-nowrap ${
+                      activeStatus === status
+                        ? "bg-black text-white shadow-md"
+                        : "text-gray-500 hover:text-black hover:bg-gray-50"
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+
+              {/* Mobile Status Dropdown */}
+              <div className="md:hidden relative flex-shrink-0">
+                <select 
+                  value={activeStatus}
+                  onChange={(e) => {
+                    setActiveStatus(e.target.value as "Upcoming" | "Past");
                     setTimeout(() => filterBarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
                   }}
-                  className={`px-4 py-2 rounded-[12px] text-[13px] font-semibold transition-all whitespace-nowrap ${
-                    activeStatus === status
-                      ? "bg-black text-white shadow-md"
-                      : "text-gray-500 hover:text-black hover:bg-gray-50"
-                  }`}
+                  className="appearance-none bg-transparent border-none rounded-[10px] md:rounded-[12px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold text-gray-700 outline-none hover:bg-gray-50 transition-colors cursor-pointer h-[36px] md:h-[40px]"
                 >
-                  {status}
-                </button>
-              ))}
-            </div>
-
-            {/* Dropdown (Year/Type) */}
-            <div className="relative flex-shrink-0 ml-1">
-              <select 
-                value={activeYear}
-                onChange={(e) => setActiveYear(e.target.value)}
-                className="appearance-none bg-white border border-gray-200 rounded-[8px] px-4 py-2 pr-8 text-[13px] font-semibold text-gray-500 outline-none hover:text-black focus:border-gray-300 transition-colors cursor-pointer h-[40px]"
-              >
-                <option value="All">All</option>
-                <option value="2026">2026</option>
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
-                <option value="2023">2023</option>
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <option value="Upcoming">Upcoming</option>
+                  <option value="Past">Past</option>
+                </select>
+                <div className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
               </div>
+
+              {/* Dropdown (Year/Type) */}
+              <div className="relative flex-shrink-0">
+                <select 
+                  value={activeYear}
+                  onChange={(e) => setActiveYear(e.target.value)}
+                  className="appearance-none bg-transparent md:bg-white border-none md:border md:border-gray-200 rounded-[10px] md:rounded-[8px] px-3 py-1.5 pr-7 md:px-4 md:py-2 md:pr-8 text-[12px] md:text-[13px] font-semibold text-gray-700 md:text-gray-500 outline-none hover:text-black focus:border-gray-300 transition-colors cursor-pointer h-[36px] md:h-[40px]"
+                >
+                  <option value="All">All</option>
+                  <option value="2026">2026</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                  <option value="2023">2023</option>
+                </select>
+                <div className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+              </div>
+
+              {/* Desktop Search Bar */}
+              <div className="hidden md:flex flex-1 items-center gap-2 px-3 py-1.5 bg-white rounded-[8px] border border-gray-200 focus-within:border-gray-400 transition-colors min-w-[200px] ml-1 h-[40px]">
+                <Search className="w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search events"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-transparent text-[13px] font-semibold placeholder:text-gray-400 outline-none w-full"
+                />
+              </div>
+
+              {/* Mobile Search Button */}
+              <button 
+                className="md:hidden flex items-center justify-center w-[36px] h-[36px] rounded-[10px] hover:bg-gray-50 transition-colors text-gray-500 flex-shrink-0"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+              >
+                <Search className="w-4 h-4" />
+              </button>
             </div>
 
-            {/* Search Bar */}
-            <div className="flex flex-1 items-center gap-2 px-3 py-1.5 bg-white rounded-[8px] border border-gray-200 focus-within:border-gray-400 transition-colors min-w-[200px] ml-1 h-[40px]">
-              <Search className="w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search events"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent text-[13px] font-semibold placeholder:text-gray-400 outline-none w-full"
-              />
-            </div>
+            {/* Mobile Search Bar Dropdown */}
+            {isSearchOpen && (
+              <div className="md:hidden flex items-center gap-2 px-4 py-2 bg-white rounded-[16px] border border-gray-200 shadow-sm h-[48px] animate-in slide-in-from-top-2 opacity-100 transition-all">
+                <Search className="w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search events..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-transparent text-[14px] font-semibold placeholder:text-gray-400 outline-none w-full"
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -382,16 +444,14 @@ export default function EventsPage() {
                       Starts In
                     </span>
                     
-                    <div className="flex items-center gap-2 sm:gap-3 mb-8">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-8 lg:mb-10">
                       <CountdownBlock label="Days" value={timeLeft.days} />
                       <CountdownBlock label="Hours" value={timeLeft.hours} />
                       <CountdownBlock label="Minutes" value={timeLeft.minutes} />
                       <CountdownBlock label="Seconds" value={timeLeft.seconds} />
                     </div>
                     
-                    <div className="w-full h-px bg-white/10 mb-6"></div>
-                    
-                    <div className="flex justify-between items-end mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 sm:gap-0 mt-auto">
                       {flagshipEvent.prizes && flagshipEvent.prizes.length > 0 ? (
                         <div>
                           <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest block mb-1">Prize Pool</span>
@@ -406,7 +466,7 @@ export default function EventsPage() {
                         </div>
                       )}
 
-                      <div className="text-right">
+                      <div className="text-left sm:text-right">
                         <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest block mb-1">Teams / Capacity</span>
                         <span className="text-xl sm:text-2xl font-black text-white">
                           {flagshipEvent.capacity ? `${flagshipEvent.capacity}+ Spots` : "Open to All"}
@@ -414,7 +474,7 @@ export default function EventsPage() {
                       </div>
                     </div>
 
-                    <p className="text-[10px] text-white/40 font-medium">
+                    <p className="mt-6 pt-5 border-t border-white/10 text-[10px] md:text-xs text-white/40 font-medium">
                       {flagshipEvent.is_team_event ? `${flagshipEvent.min_team_size}-${flagshipEvent.max_team_size} members per team.` : "Individual participation."} 
                       {flagshipEvent.is_open_to_external ? " Open to CU students and external participants." : " Exclusive to CU students."}
                     </p>
