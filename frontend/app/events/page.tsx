@@ -115,10 +115,7 @@ export default function EventsPage() {
   const filteredEvents = useMemo(() => {
     let list = events.filter(matchesFilters);
     
-    // Filter Flagship out of the grid ONLY if it is displayed above
-    if (isFlagshipDisplayed && flagshipEvent) {
-      list = list.filter((e) => e.id !== flagshipEvent.id);
-    }
+    // The flagship event will now be shown in the grid as well.
     
     return list;
   }, [events, matchesFilters, isFlagshipDisplayed, flagshipEvent]);
@@ -313,7 +310,7 @@ export default function EventsPage() {
               </div>
 
               {/* Dropdown (Year/Type) */}
-              <div className="relative flex-1 min-w-0 md:flex-shrink-0">
+              <div className="relative flex-1 min-w-0 md:flex-none md:w-[110px]">
                 <select 
                   value={activeYear}
                   onChange={(e) => setActiveYear(e.target.value)}
