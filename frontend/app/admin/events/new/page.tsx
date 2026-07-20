@@ -528,7 +528,7 @@ export default function NewEventPage() {
                   required
                   min="0"
                   value={form.points}
-                  onChange={(e) => setForm({ ...form, points: e.target.value === "" ? "" : parseInt(e.target.value, 10) })}
+                  onChange={(e) => setForm({ ...form, points: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) })}
                   className={inputClass}
                 />
                 <p className="text-sm text-gray-500 mt-2">Points awarded to users upon check-in.</p>
@@ -541,7 +541,7 @@ export default function NewEventPage() {
                   required
                   min="0"
                   value={form.registration_fee}
-                  onChange={(e) => setForm({ ...form, registration_fee: e.target.value === "" ? "" : parseInt(e.target.value, 10) })}
+                  onChange={(e) => setForm({ ...form, registration_fee: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) })}
                   className={inputClass}
                 />
                 <p className="text-sm text-gray-500 mt-2">Enter 0 for free events.</p>
