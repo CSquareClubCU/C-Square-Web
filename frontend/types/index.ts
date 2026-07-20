@@ -98,6 +98,7 @@ export interface Event {
   faqs: { question: string; answer: string }[] | null;
   requires_approval: boolean;
   registration_fee: number;
+  is_continuous?: boolean;
 }
 
 export interface PastEvent {

@@ -484,6 +484,7 @@ export interface EventCreateData {
   is_flagship?: boolean;
   points?: number;
   registration_fee?: number;
+  is_continuous?: boolean;
 }
 
 /**

@@ -435,6 +435,7 @@ export default function AdminEventDetailPage() {
       is_flagship: event.is_flagship,
       points: event.points,
       registration_fee: event.registration_fee,
+      is_continuous: event.is_continuous ?? true,
     });
     setEditError(null);
     setEditOpen(true);
@@ -1231,6 +1232,22 @@ export default function AdminEventDetailPage() {
                       type="checkbox" 
                       checked={editForm.is_team_event}
                       onChange={(e) => setEditForm(p => ({ ...p, is_team_event: e.target.checked }))}
+                      className="sr-only peer" 
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-between border border-[var(--c-border)] p-4 rounded-xl mt-4">
+                  <div>
+                    <div className="font-semibold text-sm">Continuous / Overnight Event</div>
+                    <div className="text-xs text-[var(--c-muted-text)]">Uncheck if event requires check-in on every day</div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={editForm.is_continuous ?? true}
+                      onChange={(e) => setEditForm(p => ({ ...p, is_continuous: e.target.checked }))}
                       className="sr-only peer" 
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
