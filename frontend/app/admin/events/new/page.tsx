@@ -86,6 +86,7 @@ export default function NewEventPage() {
     requires_approval: true,
     is_flagship: false,
     points: 100,
+    registration_fee: 0,
   });
 
   const handlePrizeChange = (index: number, field: string, value: string) => {
@@ -518,19 +519,34 @@ export default function NewEventPage() {
               </label>
             </div>
 
-            <FieldGroup label="Club Points" htmlFor="points" required>
-              <input
-                id="points"
-                name="points"
-                type="number"
-                required
-                min="0"
-                value={form.points}
-                onChange={(e) => setForm({ ...form, points: parseInt(e.target.value, 10) || 0 })}
-                className={inputClass}
-              />
-              <p className="text-sm text-gray-500 mt-2">Points awarded to users upon check-in.</p>
-            </FieldGroup>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <FieldGroup label="Club Points" htmlFor="points" required>
+                <input
+                  id="points"
+                  name="points"
+                  type="number"
+                  required
+                  min="0"
+                  value={form.points}
+                  onChange={(e) => setForm({ ...form, points: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) })}
+                  className={inputClass}
+                />
+                <p className="text-sm text-gray-500 mt-2">Points awarded to users upon check-in.</p>
+              </FieldGroup>
+              <FieldGroup label="Registration Fee (₹)" htmlFor="registration_fee" required>
+                <input
+                  id="registration_fee"
+                  name="registration_fee"
+                  type="number"
+                  required
+                  min="0"
+                  value={form.registration_fee}
+                  onChange={(e) => setForm({ ...form, registration_fee: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) })}
+                  className={inputClass}
+                />
+                <p className="text-sm text-gray-500 mt-2">Enter 0 for free events.</p>
+              </FieldGroup>
+            </div>
           </div>
 
           {/* Attendance Settings */}

@@ -35,6 +35,7 @@ type MemberForm = {
   category: string;
   photo_url: string;
   display_order: string;
+  show_on_homepage: boolean;
   user_id: string;
 };
 
@@ -44,6 +45,7 @@ const emptyForm: MemberForm = {
   category: "Volunteers",
   photo_url: "",
   display_order: "0",
+  show_on_homepage: false,
   user_id: "",
 };
 
@@ -114,6 +116,7 @@ export default function AdminTeamPage() {
       category: member.category || "Volunteers",
       photo_url: member.photo_url || "",
       display_order: String(member.display_order),
+      show_on_homepage: member.show_on_homepage || false,
       user_id: member.user || "",
     });
     setPhotoFile(null);
@@ -145,6 +148,7 @@ export default function AdminTeamPage() {
         designation: form.designation.trim(),
         category: form.category,
         display_order: parseInt(form.display_order, 10) || 0,
+        show_on_homepage: form.show_on_homepage,
         user_id: form.user_id || null,
       };
       
@@ -327,11 +331,18 @@ export default function AdminTeamPage() {
                   )}
 
                   {/* Inactive badge */}
-                  {!member.is_active && (
-                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full mb-2">
-                      Hidden
-                    </span>
-                  )}
+                  <div className="flex gap-2 mb-2">
+                    {!member.is_active && (
+                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                        Hidden
+                      </span>
+                    )}
+                    {member.show_on_homepage && (
+                      <span className="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full font-medium">
+                        Homepage
+                      </span>
+                    )}
+                  </div>
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 mt-2 lg:mt-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
@@ -501,12 +512,26 @@ export default function AdminTeamPage() {
                     </label>
                     <input
                       type="number"
+                      min="0"
                       value={form.display_order}
                       onChange={(e) => setForm({ ...form, display_order: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] bg-white focus:outline-hidden focus:border-black transition-colors text-[15px]"
                       placeholder="0"
                     />
                     <p className="text-xs text-gray-500 mt-1">Lower numbers appear first.</p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="show_on_homepage"
+                      checked={form.show_on_homepage}
+                      onChange={(e) => setForm({ ...form, show_on_homepage: e.target.checked })}
+                      className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
+                    />
+                    <label htmlFor="show_on_homepage" className="text-sm font-medium text-black">
+                      Show on Homepage (Max 5 members)
+                    </label>
                   </div>
 
                   <div className="pt-4 border-t border-black/[0.04]">

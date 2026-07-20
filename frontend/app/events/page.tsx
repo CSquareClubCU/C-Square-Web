@@ -237,7 +237,7 @@ export default function EventsPage() {
           className="mb-8 md:mb-10 w-full"
         >
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-1 p-1.5 md:p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm w-full">
+            <div className="flex items-center justify-between gap-1 p-1.5 md:p-1 bg-white border border-gray-200 rounded-[16px] shadow-sm w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {/* Desktop Categories */}
               <div className="hidden md:flex items-center gap-1 flex-shrink-0">
                 {categories.map((category) => (

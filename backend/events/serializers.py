@@ -44,6 +44,7 @@ class EventListSerializer(serializers.ModelSerializer):
             'contact_email',
             'is_registration_open',
             'is_checkin_active',
+            'registration_fee',
         ]
         read_only_fields = fields
 
@@ -96,6 +97,7 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'is_registration_open',
             'is_checkin_active',
             'requires_approval',
+            'registration_fee',
             'created_at',
         ]
         read_only_fields = fields
@@ -139,6 +141,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'is_registration_open',
             'is_checkin_active',
             'requires_approval',
+            'registration_fee',
         ]
 
     def validate(self, data):
@@ -241,3 +244,8 @@ class PastEventSerializer(serializers.ModelSerializer):
         model = PastEvent
         fields = ['id', 'title', 'logo_url', 'order', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate_order(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Order cannot be negative.")
+        return value

@@ -483,6 +483,7 @@ export interface EventCreateData {
   requires_approval?: boolean;
   is_flagship?: boolean;
   points?: number;
+  registration_fee?: number;
 }
 
 /**

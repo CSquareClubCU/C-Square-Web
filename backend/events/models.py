@@ -81,6 +81,10 @@ class Event(BaseModel):
         default=True,
         help_text="If True, registrations require admin approval. If False, they are automatically Approved (unless capacity is full)."
     )
+    registration_fee = models.PositiveIntegerField(
+        default=0,
+        help_text="Registration fee in INR. 0 means free."
+    )
 
     # Status
     status = models.CharField(
@@ -210,7 +214,7 @@ class PastEvent(BaseModel):
 # Storage cleanup signals
 # ---------------------------------------------------------------------------
 
-from django.db.models.signals import post_delete, pre_save
+from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch import receiver
 from django.db import transaction
 
@@ -274,3 +278,31 @@ def cleanup_past_event_logo(sender, instance, **kwargs):
                     'Failed to delete logo for past event %s: %s', instance.id, exc
                 )
         transaction.on_commit(_delete)
+
+@receiver(post_delete, sender=PastEvent)
+@receiver(post_save, sender=PastEvent)
+def normalize_past_event_order(sender, instance, **kwargs):
+    """
+    Ensure order has no gaps or duplicates.
+    When a collision occurs, the most recently updated event wins.
+    If order is 0, it is moved to the front.
+    """
+    from django.db import transaction
+
+    def _do_normalize():
+        # Fetch all events
+        events = list(PastEvent.objects.all())
+        # Sort: order directly, then newest updated_at wins tiebreakers
+        events.sort(key=lambda m: (m.order, -m.updated_at.timestamp()))
+        
+        updates = []
+        for index, evt in enumerate(events, start=1):
+            if evt.order != index:
+                evt.order = index
+                updates.append(evt)
+        
+        if updates:
+            # bulk_update avoids recursion since it doesn't trigger save() or signals
+            PastEvent.objects.bulk_update(updates, ['order'])
+
+    transaction.on_commit(_do_normalize)

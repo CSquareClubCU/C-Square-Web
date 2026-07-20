@@ -157,8 +157,8 @@ export default function Home() {
         setHomeEvents(publishedEvents);
       }
       if (teamRes.status === "fulfilled") {
-        // Show at most 6 team members
-        setTeamMembers(teamRes.value.slice(0, 6));
+        // Show at most 5 team members that have show_on_homepage = true
+        setTeamMembers(teamRes.value.filter((m: CoreTeamMemberPublic) => m.show_on_homepage).slice(0, 5));
       }
     });
   }, []);

@@ -12,7 +12,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeamMember
-        fields = ['id', 'full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'github_url', 'linkedin_url']
+        fields = ['id', 'full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'show_on_homepage', 'github_url', 'linkedin_url']
         read_only_fields = fields
 
     def get_photo_url(self, obj):
@@ -28,7 +28,7 @@ class TeamMemberAdminSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeamMember
-        fields = ['id', 'full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'github_url', 'linkedin_url', 'user', 'user_email']
+        fields = ['id', 'full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'show_on_homepage', 'github_url', 'linkedin_url', 'user', 'user_email']
         read_only_fields = fields
 
     def get_photo_url(self, obj):
@@ -43,13 +43,29 @@ class TeamMemberCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TeamMember
-        fields = ['full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'user_id', 'github_url', 'linkedin_url']
+        fields = ['full_name', 'designation', 'category', 'photo_url', 'display_order', 'is_active', 'show_on_homepage', 'user_id', 'github_url', 'linkedin_url']
 
     def validate_user_id(self, value):
         if value:
             from users.models import User
             if not User.objects.filter(id=value).exists():
                 raise serializers.ValidationError("User not found.")
+        return value
+
+    def validate(self, attrs):
+        # Enforce max 5 members on homepage
+        if attrs.get('show_on_homepage'):
+            # Count existing members shown on homepage (excluding this one if updating)
+            query = TeamMember.objects.filter(show_on_homepage=True)
+            if self.instance:
+                query = query.exclude(id=self.instance.id)
+            if query.count() >= 5:
+                raise serializers.ValidationError({"show_on_homepage": "Maximum of 5 team members can be displayed on the homepage."})
+        return attrs
+
+    def validate_display_order(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Display order cannot be negative.")
         return value
 
 
