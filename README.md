@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Django-6.0.6-092E20?logo=django&logoColor=white" />
-  <img src="https://img.shields.io/badge/DRF-3.17.1-A30000?logo=django&logoColor=white" />
-  <img src="https://img.shields.io/badge/Next.js-16.2.9-000000?logo=nextdotjs&logoColor=white" />
-  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white" />
-  <img src="https://img.shields.io/badge/PostgreSQL-Flexible_Server-4169E1?logo=postgresql&logoColor=white" />
-  <img src="https://img.shields.io/badge/Azure-Hosted-0078D4?logo=microsoftazure&logoColor=white" />
-  <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/React-19.2.4-61DAFB?logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/Django-6.0.6-092E20?logo=django&logoColor=white" alt="Django 6.0.6" />
+  <img src="https://img.shields.io/badge/DRF-3.17.1-A30000?logo=django&logoColor=white" alt="DRF 3.17.1" />
+  <img src="https://img.shields.io/badge/Next.js-16.2.9-000000?logo=nextdotjs&logoColor=white" alt="Next.js 16.2.9" />
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white" alt="TypeScript 5.x" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Flexible_Server-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL Flexible Server" />
+  <img src="https://img.shields.io/badge/Azure-Hosted-0078D4?logo=microsoftazure&logoColor=white" alt="Azure Hosted" />
+  <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12" />
+  <img src="https://img.shields.io/badge/React-19.2.4-61DAFB?logo=react&logoColor=black" alt="React 19.2.4" />
 </p>
 
 ---
@@ -38,7 +38,7 @@ C Square Club is a technical club at **Chandigarh University** that hosts coding
 
 ## 🏛️ Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                        Internet                             │
 └───────────────┬─────────────────────────┬───────────────────┘
@@ -74,7 +74,7 @@ The frontend and backend are **completely decoupled** and communicate exclusivel
 
 ## 🗂️ Repository Structure
 
-```
+```text
 C-Square-Web/
 ├── backend/                    # Django REST API
 │   ├── core/                   #   Shared base models, permissions, utilities
@@ -229,6 +229,8 @@ Django Admin is at `http://localhost:8000/django-admin/`.
 
 ### 3. Frontend Setup
 
+Open a **new terminal** from the repository root (keep the backend server running):
+
 ```bash
 cd frontend
 
@@ -265,30 +267,14 @@ The frontend will be available at `http://localhost:3000`.
 
 ---
 
-## 🔌 API Endpoints
 
-All endpoints are documented in [`Docs/API_SPEC.md`](Docs/API_SPEC.md). Key namespaces:
 
-| Prefix | Description |
-|---|---|
-| `POST /api/auth/magic-link/` | Request magic link login email |
-| `GET /api/auth/verify/` | Verify magic link token |
-| `GET /api/users/me/` | Current user profile |
-| `GET /api/events/` | Public event listing |
-| `POST /api/registrations/` | Register for an event |
-| `GET /api/registrations/me/` | Student's own registrations |
-| `POST /api/attendance/checkin/` | QR code check-in |
-| `GET /api/attendance/{eventId}/list/` | Attendance list for an event |
-| `GET /api/team/` | Public team members |
-| `GET /api/stats/` | Public platform statistics |
-
----
 
 ## 🗄️ Database Schema
 
 The database consists of 8 main tables. Full documentation in [`Docs/DB_SCHEMA.md`](Docs/DB_SCHEMA.md).
 
-```
+```text
 users_user ─────────────── registrations_registration ─── attendance_attendancerecord
      │                              │
      ├── events_volunteerassignment │
