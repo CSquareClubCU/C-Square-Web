@@ -494,8 +494,15 @@ export default function Home() {
             </div>
           </FadeUp>
 
-          <StaggerContainer key={eventFilter} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(() => {
+          {!statsLoaded ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-[400px] rounded-[24px] bg-gray-100/60 animate-pulse"></div>
+              ))}
+            </div>
+          ) : (
+            <StaggerContainer key={eventFilter} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {(() => {
               const filteredEvents = homeEvents.filter(e => eventFilter === "All" || e.event_type === eventFilter.toLowerCase()).slice(0, 6);
               if (filteredEvents.length > 0) {
                 return filteredEvents.map((event) => {
@@ -580,6 +587,7 @@ export default function Home() {
               }
             })()}
             </StaggerContainer>
+          )}
 
             <div className="mt-8 text-center sm:hidden">
               <Link href="/events">
