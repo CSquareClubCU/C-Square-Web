@@ -310,7 +310,7 @@ export default function EventsPage() {
               </div>
 
               {/* Dropdown (Year/Type) */}
-              <div className="relative flex-1 min-w-0 md:flex-shrink-0">
+              <div className="relative flex-1 min-w-0 md:flex-none md:w-[110px]">
                 <select 
                   value={activeYear}
                   onChange={(e) => setActiveYear(e.target.value)}
