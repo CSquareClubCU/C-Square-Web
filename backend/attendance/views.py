@@ -114,11 +114,16 @@ class ManualCheckinView(APIView):
         return Response(_build_checkin_response(record, was_already))
 
     def delete(self, request, registration_id):
-        target_date_str = request.query_params.get('date')
         target_date = None
-        if target_date_str:
+        if 'date' in request.query_params:
+            target_date_str = request.query_params.get('date', '').strip()
+            if not target_date_str:
+                raise AppError('BAD_REQUEST', 'Date parameter cannot be empty.', 400)
+                
             from django.utils.dateparse import parse_date
             target_date = parse_date(target_date_str)
+            if target_date is None:
+                raise AppError('BAD_REQUEST', 'Invalid date format. Use YYYY-MM-DD.', 400)
             
         record = services.revoke_checkin(
             registration_id=registration_id,
