@@ -45,10 +45,13 @@ def student_user(db):
 
 @pytest.fixture
 def volunteer_user(db):
-    return User.objects.create_user(
+    user = User.objects.create_user(
         email='volunteer@cuchd.in', full_name='Volunteer User',
         role=UserRole.VOLUNTEER, is_cu_student=True,
     )
+    from team.models import TeamMember
+    TeamMember.objects.create(user=user, full_name='Volunteer User', designation='Volunteer', is_active=True)
+    return user
 
 
 def make_event(created_by, **kwargs):
@@ -236,7 +239,7 @@ class TestAssignVolunteer:
     def test_non_volunteer_user_raises_error(self, published_event, student_user, admin_user):
         with pytest.raises(AppError) as exc_info:
             services.assign_volunteer(published_event, student_user.id, admin_user)
-        assert exc_info.value.code == 'NOT_A_VOLUNTEER'
+        assert exc_info.value.code == 'NOT_CORE_TEAM'
 
     def test_nonexistent_user_raises_404(self, published_event, admin_user):
         with pytest.raises(AppError) as exc_info:
@@ -497,7 +500,7 @@ class TestEventVolunteersView:
             format='json',
         )
         assert response.status_code == 400
-        assert response.data['error']['code'] == 'NOT_A_VOLUNTEER'
+        assert response.data['error']['code'] == 'NOT_CORE_TEAM'
 
     def test_duplicate_assignment_returns_409(
         self, api_client, admin_user, published_event, volunteer_user, volunteer_assignment

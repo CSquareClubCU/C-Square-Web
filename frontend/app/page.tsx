@@ -342,9 +342,16 @@ export default function Home() {
         
         const prizePool = flagship.prizes && flagship.prizes.length > 0 ? flagship.prizes[0].award : "TBA";
         const isPast = flagship.end_datetime ? new Date(flagship.end_datetime) < new Date() : new Date(flagship.start_datetime) < new Date();
-        const durationText = flagship.end_datetime 
-          ? `${Math.max(1, Math.floor((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60)))} hours` 
-          : "TBA";
+        let durationText = "TBA";
+        if (flagship.end_datetime) {
+          if (flagship.is_continuous === false) {
+            const days = Math.ceil((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60 * 24));
+            durationText = `${Math.max(1, days)} days`;
+          } else {
+            const hours = Math.floor((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60));
+            durationText = `${Math.max(1, hours)} hours`;
+          }
+        }
         return (
       <section className="w-full bg-white pt-6 pb-12 md:pt-8 md:pb-16">
         <div className="max-w-[1200px] w-full mx-auto px-5 md:px-10">

@@ -3,7 +3,13 @@ Attendance app serializers.
 """
 
 from rest_framework import serializers
-from attendance.models import AttendanceRecord
+from attendance.models import AttendanceRecord, DailyCheckIn
+
+
+class DailyCheckInSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailyCheckIn
+        fields = ['date', 'checked_in_at', 'check_in_method']
 
 
 class AttendanceRecordSerializer(serializers.ModelSerializer):
@@ -15,6 +21,7 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
     user_student_uid = serializers.CharField(source='user.student_uid', read_only=True)
     registration_id = serializers.UUIDField(source='registration.id', read_only=True)
     marked_by_email = serializers.SerializerMethodField()
+    daily_checkins = DailyCheckInSerializer(many=True, read_only=True)
 
     class Meta:
         model = AttendanceRecord
@@ -28,6 +35,7 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
             'checked_in_at',
             'check_in_method',
             'marked_by_email',
+            'daily_checkins',
         ]
         read_only_fields = fields
 

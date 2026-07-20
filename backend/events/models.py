@@ -85,6 +85,10 @@ class Event(BaseModel):
         default=0,
         help_text="Registration fee in INR. 0 means free."
     )
+    is_continuous = models.BooleanField(
+        default=True,
+        help_text="If checked, check-in is required only once. If unchecked, check-in is required on each individual day."
+    )
 
     # Status
     status = models.CharField(

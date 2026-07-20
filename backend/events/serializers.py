@@ -45,6 +45,7 @@ class EventListSerializer(serializers.ModelSerializer):
             'is_registration_open',
             'is_checkin_active',
             'registration_fee',
+            'is_continuous',
         ]
         read_only_fields = fields
 
@@ -98,6 +99,7 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'is_checkin_active',
             'requires_approval',
             'registration_fee',
+            'is_continuous',
             'created_at',
         ]
         read_only_fields = fields
@@ -142,6 +144,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'is_checkin_active',
             'requires_approval',
             'registration_fee',
+            'is_continuous',
         ]
 
     def validate(self, data):

@@ -70,3 +70,45 @@ class AttendanceRecord(BaseModel):
     def __str__(self):
         status = 'checked in' if self.is_checked_in else 'not checked in'
         return f'{self.user.email} @ {self.event.title} — {status}'
+
+
+class DailyCheckIn(BaseModel):
+    """
+    Tracks daily check-ins for non-continuous multi-day events.
+    """
+    attendance_record = models.ForeignKey(
+        AttendanceRecord,
+        on_delete=models.CASCADE,
+        related_name='daily_checkins',
+        db_index=True,
+    )
+    date = models.DateField(db_index=True)
+    checked_in_at = models.DateTimeField(auto_now_add=True)
+    check_in_method = models.CharField(
+        max_length=10,
+        choices=CheckInMethod.choices,
+        null=True,
+        blank=True,
+    )
+    marked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='marked_daily_checkins',
+    )
+
+    class Meta:
+        db_table = 'attendance_dailycheckin'
+        ordering = ['-date', '-checked_in_at']
+        verbose_name = 'Daily Check In'
+        verbose_name_plural = 'Daily Check Ins'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['attendance_record', 'date'],
+                name='unique_daily_checkin',
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.attendance_record.user.email} on {self.date}"

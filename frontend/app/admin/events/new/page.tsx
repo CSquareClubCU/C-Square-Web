@@ -87,6 +87,7 @@ export default function NewEventPage() {
     is_flagship: false,
     points: 100,
     registration_fee: 0,
+    is_continuous: true,
   });
 
   const handlePrizeChange = (index: number, field: string, value: string) => {
@@ -598,6 +599,22 @@ export default function NewEventPage() {
                   <p className="font-medium text-sm">Open to external participants</p>
                   <p className="text-xs text-[var(--c-muted-text)]">
                     Allow registrations from non-CU students
+                  </p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  name="is_continuous"
+                  checked={form.is_continuous}
+                  onChange={handleChange}
+                  className="mt-0.5 w-4 h-4 rounded border-[var(--c-border)] accent-black"
+                />
+                <div>
+                  <p className="font-medium text-sm">Continuous / Overnight Event</p>
+                  <p className="text-xs text-[var(--c-muted-text)]">
+                    If checked, users only check in once. If unchecked, check-in is required on every day.
                   </p>
                 </div>
               </label>
