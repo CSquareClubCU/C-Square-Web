@@ -502,10 +502,14 @@ export default function Home() {
                           <div className={`h-full flex flex-col rounded-[24px] border border-gray-100 bg-white overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all duration-500 ${eventDate < new Date() ? 'opacity-60 grayscale' : 'hover:shadow-xl'}`}>
                             
                             {/* Banner */}
-                            <div className={`h-48 relative overflow-hidden bg-gradient-to-br ${gradient} p-4`}>
+                            <div className={`h-48 relative overflow-hidden bg-gradient-to-br ${gradient} p-4 flex items-center justify-center`}>
                               {event.banner_image_url && (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={event.banner_image_url} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
+                                <>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={event.banner_image_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50 blur-xl scale-110" />
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={event.banner_image_url} alt={event.title} className="relative z-0 h-full w-auto object-contain drop-shadow-lg rounded-[8px]" />
+                                </>
                               )}
                               
                               {/* Type Badge */}
