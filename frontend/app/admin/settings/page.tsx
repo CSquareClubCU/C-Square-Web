@@ -228,6 +228,7 @@ export default function AdminSettingsPage() {
                 <input
                   required
                   type="number"
+                  min="0"
                   value={order}
                   onChange={(e) => {
                     const val = e.target.value;

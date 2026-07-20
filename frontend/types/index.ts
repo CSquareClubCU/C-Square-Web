@@ -97,6 +97,7 @@ export interface Event {
   points: number;
   faqs: { question: string; answer: string }[] | null;
   requires_approval: boolean;
+  registration_fee: number;
 }
 
 export interface PastEvent {
@@ -262,6 +263,7 @@ export interface TeamMember {
   photo_url: string | null;
   display_order: number;
   is_active: boolean;
+  show_on_homepage: boolean;
   user: string | null; // UUID
   user_email?: string | null;
   github_url: string | null;

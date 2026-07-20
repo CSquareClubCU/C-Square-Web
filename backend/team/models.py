@@ -32,6 +32,7 @@ class TeamMember(BaseModel):
     photo_url = models.CharField(max_length=500, null=True, blank=True)
     display_order = models.IntegerField(default=0, db_index=True)
     is_active = models.BooleanField(default=True, db_index=True)
+    show_on_homepage = models.BooleanField(default=False, db_index=True)
 
     # User relation (optional, allows linking Core Team card to an actual account for volunteer access, etc.)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='team_profile')
@@ -105,8 +106,8 @@ def normalize_team_display_order(sender, instance, **kwargs):
     def _do_normalize():
         # Fetch all members
         members = list(TeamMember.objects.all())
-        # Sort: display_order > 0 first, then newest updated_at wins tiebreakers
-        members.sort(key=lambda m: (m.display_order if m.display_order > 0 else 999999, -m.updated_at.timestamp()))
+        # Sort: display_order directly, then newest updated_at wins tiebreakers
+        members.sort(key=lambda m: (m.display_order, -m.updated_at.timestamp()))
         
         updates = []
         for index, member in enumerate(members, start=1):

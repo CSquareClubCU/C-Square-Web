@@ -189,17 +189,11 @@ export default function EventDetailPage() {
           {/* Left Column - Content */}
           <div className="flex-1 min-w-0 order-2 lg:order-1">
             <FadeUp>
-              {/* Banner */}
-              <div className="hidden lg:block w-full aspect-[2/1] rounded-[12px] overflow-hidden bg-gradient-to-br from-blue-900 to-red-900 mb-6 shadow-sm">
-                {event.banner_image_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={event.banner_image_url} alt="Banner" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon className="w-12 h-12 text-white/30" />
-                  </div>
-                )}
-              </div>
+
+              {/* Event Title (Left Column) */}
+              <h1 className="text-[32px] md:text-[40px] font-semibold tracking-tight text-[#111111] mb-8">
+                {event.title}
+              </h1>
 
               {/* Overview White Card */}
               <div id="overview" className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] p-8 md:p-10 mb-12 shadow-sm">
@@ -275,7 +269,9 @@ export default function EventDetailPage() {
                   {/* Registration Costs Card */}
                   <div className="bg-[#ffffff] border border-[#e5e7eb] rounded-[12px] p-6 shadow-sm flex flex-col justify-between">
                     <h4 className="font-semibold text-[#111111] text-[15px]">Registration costs?</h4>
-                    <p className="text-[#374151] mt-6 text-[15px]">Free for all students.</p>
+                    <p className="text-[#374151] mt-6 text-[15px]">
+                      {event.registration_fee && event.registration_fee > 0 ? `₹${event.registration_fee} per person` : 'Free for all students.'}
+                    </p>
                   </div>
                 </div>
 
@@ -315,14 +311,14 @@ export default function EventDetailPage() {
             </FadeUp>
           </div>
 
-          {/* Right Column - Sticky Sidebar */}
-          <div className={`w-full lg:w-[340px] xl:w-[380px] shrink-0 h-fit self-start order-1 lg:order-2 ${showTeamSection ? '' : 'lg:sticky lg:top-[120px]'}`}>
+          {/* Right Column */}
+          <div className="w-full lg:w-[340px] xl:w-[380px] shrink-0 flex flex-col self-stretch order-1 lg:order-2">
             
-            {/* Mobile Banner */}
-            <div className="block lg:hidden w-full aspect-[2/1] rounded-[12px] overflow-hidden bg-gradient-to-br from-blue-900 to-red-900 mb-6 shadow-sm">
+            {/* Event Poster */}
+            <div className="w-full aspect-square rounded-[12px] overflow-hidden bg-gradient-to-br from-blue-900 to-red-900 mb-6 shadow-sm">
               {event.banner_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={event.banner_image_url} alt="Banner" className="w-full h-full object-cover" />
+                <img src={event.banner_image_url} alt="Event Poster" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <ImageIcon className="w-12 h-12 text-white/30" />
@@ -330,7 +326,7 @@ export default function EventDetailPage() {
               )}
             </div>
 
-            <div className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] shadow-sm p-6 md:p-8">
+            <div className={`bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] shadow-sm p-6 md:p-8 ${showTeamSection ? '' : 'lg:sticky lg:top-[120px] mb-12'}`}>
                   
                   <h1 className="text-[24px] font-semibold tracking-tight text-[#111111] mb-8">
                     {event.title}

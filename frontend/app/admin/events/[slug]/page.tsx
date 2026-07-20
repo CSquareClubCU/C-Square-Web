@@ -1157,7 +1157,7 @@ export default function AdminEventDetailPage() {
                   <div className="flex items-center justify-between border border-[var(--c-border)] p-4 rounded-xl mt-4">
                     <div>
                       <div className="font-semibold text-sm">Event Banner</div>
-                      <div className="text-xs text-[var(--c-muted-text)]">Max size 5MB, JPG/PNG/WEBP only. Recommended: 1920x1080px (16:9).</div>
+                      <div className="text-xs text-[var(--c-muted-text)]">Max size 5MB, JPG/PNG/WEBP only. Recommended: 1080x1080px (1:1).</div>
                     </div>
                     <label className="cursor-pointer group relative">
                       <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp" onChange={handleBannerUpload} disabled={bannerLoading} />
@@ -1193,6 +1193,17 @@ export default function AdminEventDetailPage() {
                       onChange={(e) => setEditForm((p) => ({ ...p, points: parseInt(e.target.value, 10) || 0 }))}
                       className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
                     />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-registration_fee" className="block text-sm font-medium mb-1.5">Registration Fee (₹)</label>
+                    <input
+                      id="edit-registration_fee"
+                      type="number"
+                      value={editForm.registration_fee ?? 0}
+                      onChange={(e) => setEditForm((p) => ({ ...p, registration_fee: parseInt(e.target.value, 10) || 0 }))}
+                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Enter 0 for free events.</p>
                   </div>
 
                 <div>
