@@ -57,7 +57,8 @@ def _do_checkin(record: AttendanceRecord, method: str, marked_by) -> AttendanceR
                 return record
                 
             if current_date < start_dt.date():
-                raise AppError('CHECKIN_EARLY', 'Check-in is not allowed before the event date.', 400)
+                if not is_admin:
+                    raise AppError('CHECKIN_EARLY', 'Check-in is not allowed before the event date.', 400)
                 
             if not is_admin:
                 if not record.event.is_checkin_active:
@@ -193,7 +194,7 @@ def checkin_manual(registration_id: uuid.UUID, marked_by) -> AttendanceRecord:
     return _do_checkin(record, CheckInMethod.MANUAL, marked_by)
 
 
-def revoke_checkin(registration_id: uuid.UUID, revoked_by) -> AttendanceRecord:
+def revoke_checkin(registration_id: uuid.UUID, revoked_by, target_date=None) -> AttendanceRecord:
     """
     Revokes a check-in by registration ID.
     Deducts the club points previously awarded.
@@ -232,7 +233,10 @@ def revoke_checkin(registration_id: uuid.UUID, revoked_by) -> AttendanceRecord:
                 club_points=Greatest(F('club_points') - record.event.points, Value(0))
             )
         else:
-            current_date = timezone.localtime().date()
+            if target_date:
+                current_date = target_date
+            else:
+                current_date = timezone.localtime().date()
             daily_checkins = DailyCheckIn.objects.filter(attendance_record=record, date=current_date)
             
             if not daily_checkins.exists():
@@ -349,7 +353,7 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
                 _sanitize_csv_value(record.user.phone),
                 record.registration.status,
                 'Yes' if record.is_checked_in else 'No',
-                record.checked_in_at.strftime('%Y-%m-%d %H:%M:%S') if record.checked_in_at else '',
+                timezone.localtime(record.checked_in_at).strftime('%Y-%m-%d %H:%M:%S') if record.checked_in_at else '',
                 record.check_in_method or '',
             ])
     else:
@@ -384,11 +388,12 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
             for d in event_dates:
                 if d in user_checkins:
                     dc = user_checkins[d]
-                    row.append(f"Yes ({dc.checked_in_at.strftime('%H:%M')} via {dc.check_in_method})")
+                    row.append(f"Yes ({timezone.localtime(dc.checked_in_at).strftime('%H:%M')} via {dc.check_in_method})")
                 else:
                     row.append("No")
                     
-            row.append(str(len(user_checkins)))
+            attended_count = sum(1 for d in event_dates if d in user_checkins)
+            row.append(str(attended_count))
             writer.writerow(row)
 
     buffer.seek(0)

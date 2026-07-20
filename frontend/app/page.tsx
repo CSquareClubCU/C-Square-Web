@@ -345,11 +345,13 @@ export default function Home() {
         let durationText = "TBA";
         if (flagship.end_datetime) {
           if (flagship.is_continuous === false) {
-            const days = Math.ceil((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60 * 24));
-            durationText = `${Math.max(1, days)} days`;
+            const calculatedDays = Math.ceil((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60 * 24));
+            const days = Math.max(1, calculatedDays);
+            durationText = `${days} day${days === 1 ? '' : 's'}`;
           } else {
-            const hours = Math.floor((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60));
-            durationText = `${Math.max(1, hours)} hours`;
+            const calculatedHours = Math.round((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60));
+            const hours = Math.max(1, calculatedHours);
+            durationText = `${hours} hour${hours === 1 ? '' : 's'}`;
           }
         }
         return (

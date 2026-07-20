@@ -114,9 +114,16 @@ class ManualCheckinView(APIView):
         return Response(_build_checkin_response(record, was_already))
 
     def delete(self, request, registration_id):
+        target_date_str = request.query_params.get('date')
+        target_date = None
+        if target_date_str:
+            from django.utils.dateparse import parse_date
+            target_date = parse_date(target_date_str)
+            
         record = services.revoke_checkin(
             registration_id=registration_id,
             revoked_by=request.user,
+            target_date=target_date,
         )
         return Response({'success': True, 'message': 'Check-in revoked.', 'is_checked_in': record.is_checked_in})
 
