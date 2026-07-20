@@ -214,7 +214,7 @@ class PastEvent(BaseModel):
 # Storage cleanup signals
 # ---------------------------------------------------------------------------
 
-from django.db.models.signals import post_delete, pre_save
+from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch import receiver
 from django.db import transaction
 

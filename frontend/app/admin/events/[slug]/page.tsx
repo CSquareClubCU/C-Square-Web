@@ -434,6 +434,7 @@ export default function AdminEventDetailPage() {
       requires_approval: event.requires_approval,
       is_flagship: event.is_flagship,
       points: event.points,
+      registration_fee: event.registration_fee,
     });
     setEditError(null);
     setEditOpen(true);
@@ -1190,7 +1191,7 @@ export default function AdminEventDetailPage() {
                       id="edit-points"
                       type="number"
                       value={editForm.points ?? 100}
-                      onChange={(e) => setEditForm((p) => ({ ...p, points: parseInt(e.target.value, 10) || 0 }))}
+                      onChange={(e) => setEditForm((p) => ({ ...p, points: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) }))}
                       className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
                     />
                   </div>
@@ -1200,7 +1201,7 @@ export default function AdminEventDetailPage() {
                       id="edit-registration_fee"
                       type="number"
                       value={editForm.registration_fee ?? 0}
-                      onChange={(e) => setEditForm((p) => ({ ...p, registration_fee: parseInt(e.target.value, 10) || 0 }))}
+                      onChange={(e) => setEditForm((p) => ({ ...p, registration_fee: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) }))}
                       className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
                     />
                     <p className="text-xs text-gray-500 mt-1">Enter 0 for free events.</p>
