@@ -345,11 +345,13 @@ export default function Home() {
         let durationText = "TBA";
         if (flagship.end_datetime) {
           if (flagship.is_continuous === false) {
-            const days = Math.ceil((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60 * 24));
-            durationText = `${Math.max(1, days)} days`;
+            const calculatedDays = Math.ceil((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60 * 24));
+            const days = Math.max(1, calculatedDays);
+            durationText = `${days} day${days === 1 ? '' : 's'}`;
           } else {
-            const hours = Math.floor((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60));
-            durationText = `${Math.max(1, hours)} hours`;
+            const calculatedHours = Math.round((new Date(flagship.end_datetime).getTime() - new Date(flagship.start_datetime).getTime()) / (1000 * 60 * 60));
+            const hours = Math.max(1, calculatedHours);
+            durationText = `${hours} hour${hours === 1 ? '' : 's'}`;
           }
         }
         return (
@@ -494,8 +496,15 @@ export default function Home() {
             </div>
           </FadeUp>
 
-          <StaggerContainer key={eventFilter} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {(() => {
+          {!statsLoaded ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-[400px] rounded-[24px] bg-gray-100/60 animate-pulse"></div>
+              ))}
+            </div>
+          ) : (
+            <StaggerContainer key={eventFilter} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {(() => {
               const filteredEvents = homeEvents.filter(e => eventFilter === "All" || e.event_type === eventFilter.toLowerCase()).slice(0, 6);
               if (filteredEvents.length > 0) {
                 return filteredEvents.map((event) => {
@@ -580,6 +589,7 @@ export default function Home() {
               }
             })()}
             </StaggerContainer>
+          )}
 
             <div className="mt-8 text-center sm:hidden">
               <Link href="/events">

@@ -118,7 +118,7 @@ export default function EventsPage() {
     // The flagship event will now be shown in the grid as well.
     
     return list;
-  }, [events, matchesFilters, isFlagshipDisplayed, flagshipEvent]);
+  }, [events, matchesFilters]);
 
 
 
