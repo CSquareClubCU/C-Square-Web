@@ -1,7 +1,7 @@
 """
 Tests for the events app.
 Covers models, all service functions, and all 10 API endpoints.
-Follows Arrange → Act → Assert pattern.
+Follows Arrange -> Act -> Assert pattern.
 """
 
 import uuid
@@ -145,7 +145,7 @@ class TestEventModel:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — create_event
+# Service Tests - create_event
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -180,7 +180,7 @@ class TestCreateEvent:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — update_event
+# Service Tests - update_event
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -203,7 +203,7 @@ class TestUpdateEvent:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — delete_event
+# Service Tests - delete_event
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -226,7 +226,7 @@ class TestDeleteEvent:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — assign_volunteer
+# Service Tests - assign_volunteer
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -258,7 +258,7 @@ class TestAssignVolunteer:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — remove_volunteer
+# Service Tests - remove_volunteer
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -283,7 +283,7 @@ class TestRemoveVolunteer:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — get_checkin_stats
+# Service Tests - get_checkin_stats
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -309,7 +309,7 @@ class TestGetCheckinStats:
 
 
 # ---------------------------------------------------------------------------
-# View Tests — Public Event List
+# View Tests - Public Event List
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -413,7 +413,7 @@ class TestEventListView:
 
 
 # ---------------------------------------------------------------------------
-# View Tests — Event Detail
+# View Tests - Event Detail
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -465,7 +465,7 @@ class TestEventDetailView:
 
 
 # ---------------------------------------------------------------------------
-# View Tests — Volunteer Assignment
+# View Tests - Volunteer Assignment
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -533,7 +533,7 @@ class TestEventVolunteersView:
 
 
 # ---------------------------------------------------------------------------
-# View Tests — Check-in Stats
+# View Tests - Check-in Stats
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db

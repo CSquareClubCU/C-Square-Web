@@ -69,7 +69,7 @@ class AttendanceRecord(BaseModel):
 
     def __str__(self):
         status = 'checked in' if self.is_checked_in else 'not checked in'
-        return f'{self.user.email} @ {self.event.title} — {status}'
+        return f'{self.user.email} @ {self.event.title} - {status}'
 
 
 class DailyCheckIn(BaseModel):

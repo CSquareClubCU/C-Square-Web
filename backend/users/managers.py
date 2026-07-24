@@ -27,7 +27,7 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email: str, full_name: str = '', password=None, **extra_fields):
         """
         Creates a Django superuser for admin access.
-        Used for the initial admin seed — sets role=admin and is_staff=True.
+        Used for the initial admin seed - sets role=admin and is_staff=True.
         """
         extra_fields.setdefault('role', 'admin')
         extra_fields.setdefault('is_staff', True)

@@ -4,7 +4,7 @@ Custom DRF permission classes.
 These are the building blocks used across all apps.
 Each view sets permission_classes = [IsAdmin] or [IsAdminOrVolunteer] etc.
 
-Role enforcement lives here — never in views or serializers.
+Role enforcement lives here - never in views or serializers.
 Frontend middleware.ts provides UX protection; these classes are the real security gate.
 """
 
@@ -30,7 +30,7 @@ class IsAdmin(BasePermission):
 class IsVolunteer(BasePermission):
     """
     Allows access only to users with role='volunteer'.
-    Note: volunteers have scoped event access via VolunteerAssignment —
+    Note: volunteers have scoped event access via VolunteerAssignment -
     this class only checks the role, not the event assignment.
     Event-level scoping is enforced in the attendance service layer.
     """

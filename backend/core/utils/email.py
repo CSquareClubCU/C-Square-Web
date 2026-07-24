@@ -84,7 +84,7 @@ def send_email(
 
 
 # ---------------------------------------------------------------------------
-# Specific email senders — one function per email type
+# Specific email senders - one function per email type
 # ---------------------------------------------------------------------------
 
 def send_magic_link_email(to: str, magic_link_url: str) -> None:
@@ -109,7 +109,7 @@ def send_registration_submitted_email(to: str, event_title: str) -> None:
     })
     send_email(
         to=to,
-        subject=f'Registration received — {event_title}',
+        subject=f'Registration received - {event_title}',
         html_body=html_body,
     )
 
@@ -133,7 +133,7 @@ def send_registration_approved_email(
     })
     send_email(
         to=to,
-        subject=f'You\'re in! — {event_title}',
+        subject=f'You\'re in! - {event_title}',
         html_body=html_body,
     )
 
@@ -153,7 +153,7 @@ def send_registration_rejected_email(
     })
     send_email(
         to=to,
-        subject=f'Registration update — {event_title}',
+        subject=f'Registration update - {event_title}',
         html_body=html_body,
     )
 
@@ -168,7 +168,7 @@ def send_waitlist_email(to: str, full_name: str, event_title: str, position: int
     })
     send_email(
         to=to,
-        subject=f'Waitlist position — {event_title}',
+        subject=f'Waitlist position - {event_title}',
         html_body=html_body,
     )
 
@@ -182,7 +182,7 @@ def send_off_waitlist_email(to: str, full_name: str, event_title: str) -> None:
     })
     send_email(
         to=to,
-        subject=f'A spot opened up — {event_title}',
+        subject=f'A spot opened up - {event_title}',
         html_body=html_body,
     )
 
@@ -204,6 +204,6 @@ def send_teammate_invite_email(
     })
     send_email(
         to=to,
-        subject=f'You\'ve been invited to join {team_name} — {event_title}',
+        subject=f'You\'ve been invited to join {team_name} - {event_title}',
         html_body=html_body,
     )

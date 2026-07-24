@@ -1,7 +1,7 @@
 """
 Events app serializers.
 
-Rules: validate and transform only — no business logic.
+Rules: validate and transform only - no business logic.
 Business logic lives in events/services.py.
 """
 
@@ -14,7 +14,7 @@ from users.serializers import UserSerializer
 class EventListSerializer(serializers.ModelSerializer):
     """
     Compact event representation for GET /events/ list.
-    No description — reduces payload size on listing pages.
+    No description - reduces payload size on listing pages.
     registered_count is computed from approved registrations.
     """
     registered_count = serializers.SerializerMethodField()
@@ -194,7 +194,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class EventBannerSerializer(serializers.Serializer):
-    """Validates banner image upload — type and size only."""
+    """Validates banner image upload - type and size only."""
     banner = serializers.ImageField()
 
     def validate_banner(self, file):
@@ -223,7 +223,7 @@ class VolunteerUserSerializer(serializers.Serializer):
 
 class VolunteerAssignmentSerializer(serializers.ModelSerializer):
     """
-    Full volunteer assignment — used in GET /events/{id}/volunteers/ response.
+    Full volunteer assignment - used in GET /events/{id}/volunteers/ response.
     """
     user = serializers.SerializerMethodField()
 
@@ -240,7 +240,7 @@ class VolunteerAssignmentSerializer(serializers.ModelSerializer):
 
 
 class AssignVolunteerSerializer(serializers.Serializer):
-    """Validates POST /events/{id}/volunteers/ — just a user_id."""
+    """Validates POST /events/{id}/volunteers/ - just a user_id."""
     user_id = serializers.UUIDField()
 
 

@@ -1,5 +1,5 @@
 """
-Django settings — Base configuration.
+Django settings - Base configuration.
 Shared across all environments. Never import this directly in production.
 Environment-specific settings live in local.py and production.py.
 """
@@ -119,7 +119,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # ---------------------------------------------------------------------------
-# Default primary key — overridden per model to UUID, but set globally
+# Default primary key - overridden per model to UUID, but set globally
 # ---------------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -139,7 +139,7 @@ REST_FRAMEWORK = {
 }
 
 # ---------------------------------------------------------------------------
-# CORS — configured per environment
+# CORS - configured per environment
 # ---------------------------------------------------------------------------
 CORS_ALLOW_CREDENTIALS = True
 

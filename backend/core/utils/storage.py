@@ -1,7 +1,7 @@
 """
 Azure Blob Storage utility.
 
-All file uploads go through this module — validate first in views/services,
+All file uploads go through this module - validate first in views/services,
 then call upload_to_blob() here.
 
 Blob containers used:

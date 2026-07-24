@@ -2,8 +2,8 @@
 Events app models.
 
 Tables:
-- events_event           — all club events
-- events_volunteerassignment — links volunteers to specific events
+- events_event           - all club events
+- events_volunteerassignment - links volunteers to specific events
 """
 
 from django.conf import settings
@@ -29,7 +29,7 @@ class EventStatus(models.TextChoices):
 
 class Event(BaseModel):
     """
-    Stores all club events — hackathons, competitions, workshops, seminars.
+    Stores all club events - hackathons, competitions, workshops, seminars.
 
     Only 'published' events appear on the public listing.
     'capacity' counts approved registrations only.
@@ -163,7 +163,7 @@ class VolunteerAssignment(BaseModel):
 
     A volunteer can ONLY access check-in for events they are assigned to.
     This is checked on every attendance API request.
-    UNIQUE constraint on (event, volunteer) — one assignment per volunteer per event.
+    UNIQUE constraint on (event, volunteer) - one assignment per volunteer per event.
     """
 
     event = models.ForeignKey(

@@ -1,4 +1,4 @@
-"""Team URL patterns — mounted at /api/team/"""
+"""Team URL patterns - mounted at /api/team/"""
 
 from django.urls import path
 from team.views import TeamMemberDetailView, TeamMemberListView, TeamMemberPhotoView

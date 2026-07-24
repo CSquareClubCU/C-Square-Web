@@ -1,7 +1,7 @@
 """
 Events app views.
 
-HTTP handling only — all logic delegated to events/services.py.
+HTTP handling only - all logic delegated to events/services.py.
 
 Public endpoints (no auth):
 - GET  /api/events/          EventListView
@@ -47,13 +47,13 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Public + Admin — Event list and create
+# Public + Admin - Event list and create
 # ---------------------------------------------------------------------------
 
 class EventListView(APIView):
     """
-    GET  /api/events/  — Public: list published events
-    POST /api/events/  — Admin: create a new event
+    GET  /api/events/  - Public: list published events
+    POST /api/events/  - Admin: create a new event
     """
 
     def get_permissions(self):
@@ -65,12 +65,13 @@ class EventListView(APIView):
         """
         List events. Publicly returns only published by default.
         Supports ?status=, ?event_type=, ?upcoming= query params.
+        """
         from django.db.models import Count, Q
         qs = Event.objects.annotate(
             approved_registrations_count=Count('registrations', filter=Q(registrations__status='approved'))
         )
 
-        # Status filter — only allow admins to filter by status, default to PUBLISHED otherwise
+        # Status filter - only allow admins to filter by status, default to PUBLISHED otherwise
         is_admin = (
             request.user
             and request.user.is_authenticated
@@ -91,7 +92,7 @@ class EventListView(APIView):
         if event_type:
             qs = qs.filter(event_type=event_type)
 
-        # Upcoming filter — only future events
+        # Upcoming filter - only future events
         if request.query_params.get('upcoming') == 'true':
             from django.utils import timezone
             qs = qs.filter(start_datetime__gte=timezone.now())
@@ -128,14 +129,14 @@ class EventListView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# Public + Admin — Event detail, update, delete (by slug)
+# Public + Admin - Event detail, update, delete (by slug)
 # ---------------------------------------------------------------------------
 
 class EventDetailView(APIView):
     """
-    GET    /api/events/{slug}/ — Public: get published event details
-    PATCH  /api/events/{slug}/ — Admin: update event
-    DELETE /api/events/{slug}/ — Admin: delete draft event
+    GET    /api/events/{slug}/ - Public: get published event details
+    PATCH  /api/events/{slug}/ - Admin: update event
+    DELETE /api/events/{slug}/ - Admin: delete draft event
     """
 
     def get_permissions(self):
@@ -178,7 +179,7 @@ class EventDetailView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# Admin — Banner upload (by UUID for stability)
+# Admin - Banner upload (by UUID for stability)
 # ---------------------------------------------------------------------------
 
 class EventBannerView(APIView):
@@ -208,13 +209,13 @@ class EventBannerView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# Admin — Volunteer assignment (by UUID for stability)
+# Admin - Volunteer assignment (by UUID for stability)
 # ---------------------------------------------------------------------------
 
 class EventVolunteersView(APIView):
     """
-    GET  /api/events/{id}/volunteers/ — List assigned volunteers. Admin only.
-    POST /api/events/{id}/volunteers/ — Assign a volunteer. Admin only.
+    GET  /api/events/{id}/volunteers/ - List assigned volunteers. Admin only.
+    POST /api/events/{id}/volunteers/ - Assign a volunteer. Admin only.
     """
     permission_classes = [IsAdmin]
 
@@ -274,7 +275,7 @@ class EventVolunteerDetailView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# Admin + Volunteer — Live check-in stats (by UUID for stability)
+# Admin + Volunteer - Live check-in stats (by UUID for stability)
 # ---------------------------------------------------------------------------
 
 class EventCheckinStatsView(APIView):
@@ -296,8 +297,8 @@ class EventCheckinStatsView(APIView):
 
 class PastEventListView(APIView):
     """
-    GET /api/events/past/ — List all past events (public).
-    POST /api/events/past/ — Create a new past event (Admin only).
+    GET /api/events/past/ - List all past events (public).
+    POST /api/events/past/ - Create a new past event (Admin only).
     """
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -320,8 +321,8 @@ class PastEventListView(APIView):
 
 class PastEventDetailView(APIView):
     """
-    PUT /api/events/past/{id}/ — Update past event (Admin only).
-    DELETE /api/events/past/{id}/ — Delete past event (Admin only).
+    PUT /api/events/past/{id}/ - Update past event (Admin only).
+    DELETE /api/events/past/{id}/ - Delete past event (Admin only).
     """
     permission_classes = [IsAdmin]
 
@@ -350,7 +351,7 @@ class PastEventDetailView(APIView):
 
 class PastEventLogoUploadView(APIView):
     """
-    POST /api/events/past/{id}/logo/ — Upload a logo for a past event (Admin only).
+    POST /api/events/past/{id}/logo/ - Upload a logo for a past event (Admin only).
     """
     permission_classes = [IsAdmin]
     parser_classes = [MultiPartParser, FormParser]

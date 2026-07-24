@@ -2,7 +2,7 @@
 Team app models.
 
 Table: team_teammember
-Public club team page listing. No relation to the volunteer system — purely for display.
+Public club team page listing. No relation to the volunteer system - purely for display.
 Managed through Django Admin.
 """
 
@@ -48,7 +48,7 @@ class TeamMember(BaseModel):
         verbose_name_plural = 'Team Members'
 
     def __str__(self):
-        return f'{self.full_name} — {self.designation}'
+        return f'{self.full_name} - {self.designation}'
 
     def save(self, *args, **kwargs):
         # Auto-fetch socials from the linked user profile if they aren't set

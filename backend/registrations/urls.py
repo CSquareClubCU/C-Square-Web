@@ -1,5 +1,5 @@
 """
-Registrations URL patterns — mounted at /api/registrations/
+Registrations URL patterns - mounted at /api/registrations/
 """
 
 from django.urls import path

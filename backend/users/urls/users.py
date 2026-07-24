@@ -1,5 +1,5 @@
 """
-User management URL patterns — mounted at /api/users/
+User management URL patterns - mounted at /api/users/
 """
 
 from django.urls import path

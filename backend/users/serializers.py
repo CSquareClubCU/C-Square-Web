@@ -2,7 +2,7 @@
 Users app serializers.
 
 Rules (from CONVENTIONS.md):
-- Serializers validate and transform only — no business logic here
+- Serializers validate and transform only - no business logic here
 - Business logic lives exclusively in services.py
 """
 
@@ -26,7 +26,7 @@ class MagicLinkRequestSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """
-    Full user profile — returned by /auth/me/ and /auth/verify/.
+    Full user profile - returned by /auth/me/ and /auth/verify/.
     Used for the currently authenticated user.
     """
     club_rank = serializers.SerializerMethodField()
@@ -92,7 +92,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             check_val = normalized[1:] if normalized.startswith('+') else normalized
             if not check_val.isdigit() or len(check_val) < 7 or len(check_val) > 15:
                 raise serializers.ValidationError(
-                    'Enter a valid phone number (7–15 digits).'
+                    'Enter a valid phone number (7-15 digits).'
                 )
             return normalized
         return value
@@ -100,7 +100,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
 class UserListSerializer(serializers.ModelSerializer):
     """
-    Compact user representation — returned by admin's GET /users/ list.
+    Compact user representation - returned by admin's GET /users/ list.
     """
 
     class Meta:

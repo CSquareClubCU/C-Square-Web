@@ -2,17 +2,17 @@
 Users app services.
 
 All business logic for authentication and user management lives here.
-Views call these functions — never put logic in views or serializers.
+Views call these functions - never put logic in views or serializers.
 
 Functions:
-- send_magic_link(email)        → creates/gets user, sends magic link email
-- verify_magic_link(token)      → validates sesame token, returns user
-- update_user_profile(user, data) → updates mutable profile fields
-- change_user_role(user, role)  → changes a user's role (admin only action)
+- send_magic_link(email)        -> creates/gets user, sends magic link email
+- verify_magic_link(token)      -> validates sesame token, returns user
+- update_user_profile(user, data) -> updates mutable profile fields
+- change_user_role(user, role)  -> changes a user's role (admin only action)
 
 CU domain detection:
-- @cuchd.in and @cumail.in → is_cu_student = True
-- Everything else          → is_cu_student = False
+- @cuchd.in and @cumail.in -> is_cu_student = True
+- Everything else          -> is_cu_student = False
 """
 
 import logging
@@ -79,7 +79,7 @@ def send_magic_link(email: str) -> None:
     query_string = urlencode({'token': token})
     verify_url = f'{settings.FRONTEND_URL}/auth/verify?{query_string}'
 
-    # Send the email — stubs if Azure not configured locally
+    # Send the email - stubs if Azure not configured locally
     send_magic_link_email(to=email, magic_link_url=verify_url)
 
 
@@ -131,7 +131,7 @@ def verify_magic_link(token: str) -> User:
 
         logger.info('New user created via magic link verification: User ID %s', user.id)
 
-    # Sync is_staff and is_superuser with role — admin users need is_staff=True and is_superuser=True for Django Admin
+    # Sync is_staff and is_superuser with role - admin users need is_staff=True and is_superuser=True for Django Admin
     if user.role == UserRole.ADMIN and (not user.is_staff or not user.is_superuser):
         User.objects.filter(pk=user.pk).update(is_staff=True, is_superuser=True)
         user.is_staff = True
@@ -175,7 +175,7 @@ def update_user_profile(user: User, validated_data: dict) -> User:
 
 def change_user_role(target_user: User, new_role: str, changed_by: User) -> User:
     """
-    Change a user's role. Admin-only action — enforced by view permissions.
+    Change a user's role. Admin-only action - enforced by view permissions.
 
     Syncs is_staff when changing to/from admin role.
 
@@ -213,7 +213,7 @@ def change_user_role(target_user: User, new_role: str, changed_by: User) -> User
 def get_user_list(role: str | None = None, search: str | None = None):
     """
     Return a queryset of all users, optionally filtered.
-    Admin-only — permission enforced by view.
+    Admin-only - permission enforced by view.
     """
     from django.db.models import F, Window
     from django.db.models.functions import Rank

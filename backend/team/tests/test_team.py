@@ -157,7 +157,7 @@ class TestTeamMemberDetailView:
         response = api_client.delete(f'/api/team/{member.id}/')
         assert response.status_code == 204
         member.refresh_from_db()
-        assert member.is_active is False  # soft delete — still in DB
+        assert member.is_active is False  # soft delete - still in DB
 
     def test_student_cannot_delete(self, api_client, student, member):
         api_client.force_authenticate(user=student)

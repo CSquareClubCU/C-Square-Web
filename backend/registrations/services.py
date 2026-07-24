@@ -236,7 +236,7 @@ def create_team_from_registration(registration_id: uuid.UUID, team_name: str, us
                 join_code=join_code
             )
         except IntegrityError:
-            # Very rare collision at DB level — retry with a new code
+            # Very rare collision at DB level - retry with a new code
             join_code = get_random_string(length=8, allowed_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
             team = Team.objects.create(
                 event=event,
