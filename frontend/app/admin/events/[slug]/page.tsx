@@ -1442,17 +1442,7 @@ export default function AdminEventDetailPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="edit-registration_open"
-                      checked={editForm.is_registration_open ?? true}
-                      onChange={(e) => setEditForm((p) => ({ ...p, is_registration_open: e.target.checked }))}
-                      className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
-                    />
-                    <label htmlFor="edit-registration_open" className="text-sm font-medium">Registrations Open</label>
-                  </div>
+                <div className="space-y-4">
                   <div className="space-y-1.5">
                     <label htmlFor="edit-external_registration_url" className="text-sm font-medium">
                       External Registration Redirect URL (Optional)
@@ -1470,15 +1460,27 @@ export default function AdminEventDetailPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="edit-requires_approval"
-                      checked={editForm.requires_approval ?? true}
-                      onChange={(e) => setEditForm((p) => ({ ...p, requires_approval: e.target.checked }))}
-                      className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
-                    />
-                    <label htmlFor="edit-requires_approval" className="text-sm font-medium">Requires Approval (Waitlist)</label>
+                  <div className="flex flex-wrap items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="edit-registration_open"
+                        checked={editForm.is_registration_open ?? true}
+                        onChange={(e) => setEditForm((p) => ({ ...p, is_registration_open: e.target.checked }))}
+                        className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
+                      />
+                      <label htmlFor="edit-registration_open" className="text-sm font-medium">Registrations Open</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="edit-requires_approval"
+                        checked={editForm.requires_approval ?? true}
+                        onChange={(e) => setEditForm((p) => ({ ...p, requires_approval: e.target.checked }))}
+                        className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
+                      />
+                      <label htmlFor="edit-requires_approval" className="text-sm font-medium">Requires Approval (Waitlist)</label>
+                    </div>
                   </div>
                 </div>
 

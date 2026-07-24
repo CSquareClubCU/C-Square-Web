@@ -65,8 +65,10 @@ class EventListView(APIView):
         """
         List events. Publicly returns only published by default.
         Supports ?status=, ?event_type=, ?upcoming= query params.
-        """
-        qs = Event.objects.all()
+        from django.db.models import Count, Q
+        qs = Event.objects.annotate(
+            approved_registrations_count=Count('registrations', filter=Q(registrations__status='approved'))
+        )
 
         # Status filter — only allow admins to filter by status, default to PUBLISHED otherwise
         is_admin = (

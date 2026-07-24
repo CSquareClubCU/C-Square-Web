@@ -51,11 +51,8 @@ class EventListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_registered_count(self, obj):
-        """
-        Count approved registrations for this event.
-        Uses the reverse FK from registrations app (wired up in Step 5).
-        Returns 0 gracefully if the relation doesn't exist yet.
-        """
+        if hasattr(obj, 'approved_registrations_count'):
+            return obj.approved_registrations_count
         try:
             return obj.registrations.filter(status='approved').count()
         except Exception:
@@ -107,6 +104,8 @@ class EventDetailSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_registered_count(self, obj):
+        if hasattr(obj, 'approved_registrations_count'):
+            return obj.approved_registrations_count
         try:
             return obj.registrations.filter(status='approved').count()
         except Exception:
