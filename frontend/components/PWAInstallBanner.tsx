@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Download } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -17,6 +18,7 @@ export function PWAInstallBanner() {
     useState<BeforeInstallPromptEvent | null>(null);
   const [show, setShow] = useState(false);
   const [installing, setInstalling] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
     // Only show on mobile/tablet devices
@@ -32,21 +34,21 @@ export function PWAInstallBanner() {
     // Don't show if already running as a standalone PWA
     if (window.matchMedia("(display-mode: standalone)").matches) return;
 
-    // Always show the banner after a short delay (works in dev + prod)
-    const showTimer = setTimeout(() => setShow(true), 1500);
+    const isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    setIsIOS(isIosDevice);
 
-    // Also listen for the native install prompt — if captured, wire it up
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener("beforeinstallprompt", handler);
-
-    return () => {
-      clearTimeout(showTimer);
-      window.removeEventListener("beforeinstallprompt", handler);
-    };
+    if (isIosDevice) {
+      const showTimer = setTimeout(() => setShow(true), 1500);
+      return () => clearTimeout(showTimer);
+    } else {
+      const handler = (e: Event) => {
+        e.preventDefault();
+        setDeferredPrompt(e as BeforeInstallPromptEvent);
+        setTimeout(() => setShow(true), 1000);
+      };
+      window.addEventListener("beforeinstallprompt", handler);
+      return () => window.removeEventListener("beforeinstallprompt", handler);
+    }
   }, []);
 
   async function handleInstall() {
@@ -73,33 +75,34 @@ export function PWAInstallBanner() {
   }
 
   return (
-    <AnimatePresence>
-      {show && (
-        <>
-          {/* Scrim */}
-          <motion.div
-            key="pwa-scrim"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[99] bg-black/30 backdrop-blur-[2px]"
-            onClick={handleDismiss}
-          />
+    <Dialog.Root open={show} onOpenChange={(open) => { if (!open) handleDismiss(); }}>
+      <AnimatePresence>
+        {show && (
+          <Dialog.Portal forceMount>
+            {/* Scrim */}
+            <Dialog.Overlay asChild forceMount>
+              <motion.div
+                key="pwa-scrim"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="fixed inset-0 z-[99] bg-black/30 backdrop-blur-[2px]"
+                onClick={handleDismiss}
+              />
+            </Dialog.Overlay>
 
-          {/* Card — slides up from bottom */}
-          <motion.div
-            key="pwa-card"
-            initial={{ opacity: 0, y: 80, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 80, scale: 0.96 }}
-            transition={{ type: "spring", stiffness: 340, damping: 30 }}
-            className="fixed bottom-0 left-0 right-0 z-[100] p-4 pb-8"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Install C Square Club app"
-          >
-            <div className="max-w-sm mx-auto bg-white rounded-[24px] border border-[#EAEAEA] shadow-[0_8px_40px_rgba(0,0,0,0.14)] overflow-hidden">
+            {/* Card — slides up from bottom */}
+            <Dialog.Content asChild forceMount onPointerDownOutside={handleDismiss} onEscapeKeyDown={handleDismiss}>
+              <motion.div
+                key="pwa-card"
+                initial={{ opacity: 0, y: 80, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 80, scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 340, damping: 30 }}
+                className="fixed bottom-0 left-0 right-0 z-[100] p-4 pb-8 outline-none"
+              >
+                <div className="max-w-sm mx-auto bg-white rounded-[24px] border border-[#EAEAEA] shadow-[0_8px_40px_rgba(0,0,0,0.14)] overflow-hidden">
               {/* Top accent bar */}
               <div className="h-1 w-full bg-black" />
 
@@ -155,32 +158,48 @@ export function PWAInstallBanner() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleInstall}
-                    disabled={installing}
-                    id="pwa-install-btn"
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-black text-white text-[13.5px] font-semibold rounded-[12px] shadow-[inset_0_2px_0_0_rgba(255,255,255,0.15)] hover:bg-[#222] active:scale-[0.98] transition-all disabled:opacity-60"
-                  >
-                    {installing ? (
-                      <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <Download size={14} strokeWidth={2.5} />
-                    )}
-                    {installing ? "Installing…" : "Install App"}
-                  </button>
-                  <button
-                    onClick={handleDismiss}
-                    className="py-2.5 px-4 text-[13px] font-medium text-[#666] hover:text-[#111] border border-[#E8E8E8] rounded-[12px] hover:bg-[#F5F5F5] active:scale-[0.98] transition-all"
-                  >
-                    Not now
-                  </button>
-                </div>
+                {isIOS ? (
+                  <div className="flex flex-col gap-2 text-center">
+                    <div className="bg-[#F8F8F8] p-3 rounded-[12px] border border-[#EAEAEA] text-[13px] text-[#333]">
+                      Tap <span className="font-semibold">Share</span> in your browser menu<br/>and select <span className="font-semibold">Add to Home Screen</span>
+                    </div>
+                    <button
+                      onClick={handleDismiss}
+                      className="py-2.5 px-4 text-[13px] font-medium text-[#666] hover:text-[#111] transition-all"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleInstall}
+                      disabled={installing || !deferredPrompt}
+                      id="pwa-install-btn"
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-black text-white text-[13.5px] font-semibold rounded-[12px] shadow-[inset_0_2px_0_0_rgba(255,255,255,0.15)] hover:bg-[#222] active:scale-[0.98] transition-all disabled:opacity-60"
+                    >
+                      {installing ? (
+                        <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <Download size={14} strokeWidth={2.5} />
+                      )}
+                      {installing ? "Installing…" : "Install App"}
+                    </button>
+                    <button
+                      onClick={handleDismiss}
+                      className="py-2.5 px-4 text-[13px] font-medium text-[#666] hover:text-[#111] border border-[#E8E8E8] rounded-[12px] hover:bg-[#F5F5F5] active:scale-[0.98] transition-all"
+                    >
+                      Not now
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        </Dialog.Content>
+      </Dialog.Portal>
+    )}
+  </AnimatePresence>
+</Dialog.Root>
   );
 }
