@@ -4,7 +4,7 @@ core/views.py
 Public utility endpoints.
 
 Endpoints:
-- GET /api/stats/  — Public aggregate stats for the homepage
+- GET /api/stats/  - Public aggregate stats for the homepage
 """
 
 from rest_framework.permissions import AllowAny

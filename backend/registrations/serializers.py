@@ -29,7 +29,7 @@ class EventSummarySerializer(serializers.Serializer):
 
 class RegistrationMyListSerializer(serializers.ModelSerializer):
     """
-    Compact registration for GET /registrations/me/ — student's own list.
+    Compact registration for GET /registrations/me/ - student's own list.
     Nests the full event summary inline.
     """
     event = EventSummarySerializer(read_only=True)
@@ -59,7 +59,7 @@ class RegistrationMyListSerializer(serializers.ModelSerializer):
 
 class RegistrationDetailSerializer(serializers.ModelSerializer):
     """
-    Full registration detail — for GET /registrations/{id}/.
+    Full registration detail - for GET /registrations/{id}/.
     Visible to owner, admin, or assigned volunteer.
     """
     event = EventSummarySerializer(read_only=True)
@@ -97,7 +97,7 @@ class RegistrationDetailSerializer(serializers.ModelSerializer):
 class RegistrationAdminListSerializer(serializers.ModelSerializer):
     """
     Full registration representation for admin views.
-    GET /registrations/event/{event_id}/ — paginated, with user and event data.
+    GET /registrations/event/{event_id}/ - paginated, with user and event data.
     """
     event_title = serializers.CharField(source='event.title', read_only=True)
     event_type = serializers.CharField(source='event.event_type', read_only=True)

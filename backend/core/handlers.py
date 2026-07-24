@@ -2,7 +2,7 @@
 Global exception handler.
 
 Registered in settings.py as REST_FRAMEWORK['EXCEPTION_HANDLER'].
-Converts ALL exceptions — AppError, DRF ValidationError, authentication errors —
+Converts ALL exceptions - AppError, DRF ValidationError, authentication errors -
 into the standard project error shape:
 
     {
@@ -53,7 +53,7 @@ def custom_exception_handler(exc, context):
         # Reformat DRF's default response into our standard shape
         error_data = response.data
 
-        # DRF ValidationError — field-level errors are a dict or list
+        # DRF ValidationError - field-level errors are a dict or list
         if isinstance(error_data, dict):
             # Check if it looks like DRF field errors (keys are field names with list values)
             fields = {}
@@ -94,7 +94,7 @@ def custom_exception_handler(exc, context):
 
         return response
 
-    # 3. Unhandled exception — log it and return a generic 500
+    # 3. Unhandled exception - log it and return a generic 500
     logger.exception('Unhandled exception in API view: %s', exc)
     return Response(
         {

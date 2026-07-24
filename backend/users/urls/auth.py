@@ -1,5 +1,5 @@
 """
-Auth URL patterns — mounted at /api/auth/
+Auth URL patterns - mounted at /api/auth/
 """
 
 from django.urls import path

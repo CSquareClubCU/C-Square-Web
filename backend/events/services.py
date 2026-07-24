@@ -2,7 +2,7 @@
 Events app services.
 
 All business logic for event management and volunteer assignment lives here.
-Views call these functions — no logic in views or serializers.
+Views call these functions - no logic in views or serializers.
 
 Functions:
 - create_event(data, created_by)
@@ -225,7 +225,7 @@ def get_checkin_stats(event: Event, requesting_user) -> dict:
     Raises:
         AppError(NOT_ASSIGNED, 403): Volunteer not assigned to this event.
     """
-    # Volunteer access gate — check assignment
+    # Volunteer access gate - check assignment
     if requesting_user.role == 'volunteer':
         is_assigned = VolunteerAssignment.objects.filter(
             event=event,
@@ -291,7 +291,7 @@ def get_event_for_public(slug: str) -> Event:
 
 def get_event_or_404(slug: str) -> Event:
     """
-    Get any event by slug (for admin use — not status-filtered).
+    Get any event by slug (for admin use - not status-filtered).
 
     Raises:
         AppError(NOT_FOUND, 404): Event does not exist.

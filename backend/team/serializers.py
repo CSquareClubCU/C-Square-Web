@@ -70,7 +70,7 @@ class TeamMemberCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class TeamPhotoSerializer(serializers.Serializer):
-    """Validates photo upload — type and size."""
+    """Validates photo upload - type and size."""
     photo = serializers.ImageField()
 
     def validate_photo(self, file):

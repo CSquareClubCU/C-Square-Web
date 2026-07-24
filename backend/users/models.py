@@ -2,7 +2,7 @@
 Custom User model.
 
 Extends AbstractBaseUser for full control over the field set.
-email is the USERNAME_FIELD — required by django-sesame for magic link lookup.
+email is the USERNAME_FIELD - required by django-sesame for magic link lookup.
 role controls what the user can do in the system.
 is_cu_student is set automatically from the email domain on first login.
 """
@@ -25,11 +25,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     Custom user model for C Square Club.
 
     All person who log in via magic link get a record here.
-    UUID primary key — never auto-increment.
-    No username field — email is the unique identifier.
+    UUID primary key - never auto-increment.
+    No username field - email is the unique identifier.
     """
 
-    # Primary key — UUID v4 as required by CONVENTIONS.md
+    # Primary key - UUID v4 as required by CONVENTIONS.md
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -44,7 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     full_name = models.CharField(max_length=255)
 
-    # Role — controls access level
+    # Role - controls access level
     role = models.CharField(
         max_length=20,
         choices=UserRole.choices,
@@ -52,10 +52,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         db_index=True,
     )
 
-    # CU vs external distinction — set from email domain at first login
+    # CU vs external distinction - set from email domain at first login
     is_cu_student = models.BooleanField(default=False)
 
-    # Student profile fields — NULL on first login, filled at first registration
+    # Student profile fields - NULL on first login, filled at first registration
     student_uid = models.CharField(max_length=20, null=True, blank=True, db_index=True)
     batch = models.CharField(max_length=20, null=True, blank=True)
     phone = models.CharField(max_length=15, null=True, blank=True)

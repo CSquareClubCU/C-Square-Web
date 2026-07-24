@@ -2,7 +2,7 @@ class AppError(Exception):
     """
     Domain-level exception raised by service functions.
 
-    Services raise AppError — views never catch raw exceptions.
+    Services raise AppError - views never catch raw exceptions.
     The custom_exception_handler in core/handlers.py converts these
     into the standard API error response shape:
 

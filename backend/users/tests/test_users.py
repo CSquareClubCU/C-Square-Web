@@ -1,7 +1,7 @@
 """
 Tests for the users app.
 Covers models, services, and views (API endpoints).
-Follows Arrange → Act → Assert pattern throughout.
+Follows Arrange -> Act -> Assert pattern throughout.
 """
 
 import uuid
@@ -88,7 +88,7 @@ class TestUserModel:
         cuchd = User.objects.create_user(email='a@cuchd.in', full_name='A')
         cumail = User.objects.create_user(email='b@cumail.in', full_name='B')
         gmail = User.objects.create_user(email='c@gmail.com', full_name='C')
-        # is_cu_student is set by the service, not the model — model stores what's given
+        # is_cu_student is set by the service, not the model - model stores what's given
         # Test that CU_DOMAINS detection works in the service
         assert services._is_cu_student('a@cuchd.in') is True
         assert services._is_cu_student('b@cumail.in') is True
@@ -118,7 +118,7 @@ class TestUserModel:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — send_magic_link
+# Service Tests - send_magic_link
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -159,7 +159,7 @@ class TestSendMagicLink:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — verify_magic_link
+# Service Tests - verify_magic_link
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -212,7 +212,7 @@ class TestVerifyMagicLink:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — update_user_profile
+# Service Tests - update_user_profile
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -239,7 +239,7 @@ class TestUpdateUserProfile:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — change_user_role
+# Service Tests - change_user_role
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -268,7 +268,7 @@ class TestChangeUserRole:
 
 
 # ---------------------------------------------------------------------------
-# View Tests — Auth endpoints
+# View Tests - Auth endpoints
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db

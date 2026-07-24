@@ -14,7 +14,7 @@ DEBUG = False
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
 
 # ---------------------------------------------------------------------------
-# Database — Azure PostgreSQL Flexible Server via DATABASE_URL
+# Database - Azure PostgreSQL Flexible Server via DATABASE_URL
 # ---------------------------------------------------------------------------
 DATABASES = {
     'default': dj_database_url.config(
@@ -25,7 +25,7 @@ DATABASES = {
 }
 
 # ---------------------------------------------------------------------------
-# CORS — only the live frontend domain
+# CORS - only the live frontend domain
 # ---------------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if os.environ.get('CORS_ALLOWED_ORIGINS') else []
 

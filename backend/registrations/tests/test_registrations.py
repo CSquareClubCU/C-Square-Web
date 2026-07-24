@@ -141,7 +141,7 @@ class TestTeamModel:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — register_individual
+# Service Tests - register_individual
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -203,7 +203,7 @@ class TestRegisterIndividual:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — cancel_registration
+# Service Tests - cancel_registration
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -237,7 +237,7 @@ class TestCancelRegistration:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — approve_registration
+# Service Tests - approve_registration
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -265,7 +265,7 @@ class TestApproveRegistration:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — reject_registration
+# Service Tests - reject_registration
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -286,7 +286,7 @@ class TestRejectRegistration:
 
 
 # ---------------------------------------------------------------------------
-# View Tests — Registration
+# View Tests - Registration
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db

@@ -112,7 +112,7 @@ class TestAttendanceRecordModel:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — checkin_by_qr
+# Service Tests - checkin_by_qr
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -158,7 +158,7 @@ class TestCheckinByQR:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — checkin_manual
+# Service Tests - checkin_manual
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -180,7 +180,7 @@ class TestCheckinManual:
 
 
 # ---------------------------------------------------------------------------
-# Service Tests — export_attendance_csv
+# Service Tests - export_attendance_csv
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -205,7 +205,7 @@ class TestExportCSV:
 
 
 # ---------------------------------------------------------------------------
-# View Tests — QR Check-in
+# View Tests - QR Check-in
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -244,7 +244,7 @@ class TestQRCheckinView:
 
 
 # ---------------------------------------------------------------------------
-# View Tests — Attendance List
+# View Tests - Attendance List
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
@@ -274,7 +274,7 @@ class TestAttendanceListView:
 
 
 # ---------------------------------------------------------------------------
-# View Tests — CSV Export
+# View Tests - CSV Export
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db

@@ -1,5 +1,5 @@
 """
-Attendance URL patterns — mounted at /api/attendance/
+Attendance URL patterns - mounted at /api/attendance/
 """
 
 from django.urls import path

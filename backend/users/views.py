@@ -2,7 +2,7 @@
 Users app views.
 
 Rules (from CONVENTIONS.md):
-- Views handle HTTP only — request parsing, permission checks, response formatting
+- Views handle HTTP only - request parsing, permission checks, response formatting
 - All business logic is delegated to users/services.py
 - Never put logic in views
 """
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Auth views — /api/auth/
+# Auth views - /api/auth/
 # ---------------------------------------------------------------------------
 
 class MagicLinkView(APIView):
@@ -52,7 +52,7 @@ class MagicLinkView(APIView):
         email = serializer.validated_data['email']
         services.send_magic_link(email)
 
-        # Always return 200 — never reveal whether email exists (per API spec)
+        # Always return 200 - never reveal whether email exists (per API spec)
         return Response(
             {
                 'message': 'Magic link sent. Check your email.',
@@ -112,7 +112,7 @@ class CSRFTokenView(APIView):
     """
     GET /api/auth/csrf/
     Returns the CSRF cookie so the frontend can include X-CSRFToken on POST/PATCH/DELETE.
-    This endpoint is public — no auth needed.
+    This endpoint is public - no auth needed.
     """
     permission_classes = [AllowAny]
 
@@ -141,7 +141,7 @@ class MeView(APIView):
 
 
 # ---------------------------------------------------------------------------
-# User management views — /api/users/
+# User management views - /api/users/
 # ---------------------------------------------------------------------------
 
 class UserProfileView(APIView):

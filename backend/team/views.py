@@ -30,8 +30,8 @@ from team.serializers import (
 
 class TeamMemberListView(APIView):
     """
-    GET  /api/team/  — Public: list active members ordered by display_order
-    POST /api/team/  — Admin: create a new team member
+    GET  /api/team/  - Public: list active members ordered by display_order
+    POST /api/team/  - Admin: create a new team member
     """
 
     def get_permissions(self):
@@ -63,8 +63,8 @@ class TeamMemberListView(APIView):
 
 class TeamMemberDetailView(APIView):
     """
-    PATCH  /api/team/{id}/  — Admin: partial update
-    DELETE /api/team/{id}/  — Admin: permanent deletion
+    PATCH  /api/team/{id}/  - Admin: partial update
+    DELETE /api/team/{id}/  - Admin: permanent deletion
     """
     permission_classes = [IsAdmin]
 
@@ -84,7 +84,7 @@ class TeamMemberDetailView(APIView):
 
 class TeamMemberPhotoView(APIView):
     """
-    POST /api/team/{id}/photo/  — Admin: upload or replace photo
+    POST /api/team/{id}/photo/  - Admin: upload or replace photo
     """
     permission_classes = [IsAdmin]
     parser_classes = [MultiPartParser, FormParser]

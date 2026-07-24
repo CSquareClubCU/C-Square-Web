@@ -173,7 +173,7 @@ class RegistrationDetailView(APIView):
     """
     GET /api/registrations/{id}/
     Get details of a specific registration.
-    Auth required: Yes — Owner, Admin, or assigned Volunteer
+    Auth required: Yes - Owner, Admin, or assigned Volunteer
     """
     permission_classes = [IsAuthenticated]
 
@@ -211,7 +211,7 @@ class CancelRegistrationView(APIView):
     """
     POST /api/registrations/{id}/cancel/
     Cancel own registration or admin cancels any.
-    Auth required: Yes — Owner or Admin
+    Auth required: Yes - Owner or Admin
     """
     permission_classes = [IsAuthenticated]
 

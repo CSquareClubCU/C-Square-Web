@@ -36,7 +36,7 @@ def _verify_volunteer_access(event: Event, user):
 def _do_checkin(record: AttendanceRecord, method: str, marked_by) -> AttendanceRecord:
     """
     Internal: mark a single attendance record as checked-in.
-    Idempotent — if already checked in, returns the record without error.
+    Idempotent - if already checked in, returns the record without error.
     """
     from django.db import transaction
     from attendance.models import DailyCheckIn
@@ -143,7 +143,7 @@ def checkin_by_qr(qr_token: str, marked_by) -> AttendanceRecord:
         AppError(INVALID_QR, 400): Token is invalid or malformed.
         AppError(NOT_ASSIGNED, 403): Volunteer not assigned to this event.
     """
-    # Parse the token — be strict
+    # Parse the token - be strict
     try:
         token_uuid = uuid.UUID(str(qr_token))
     except (ValueError, AttributeError):
@@ -314,7 +314,7 @@ def _sanitize_csv_value(val) -> str:
 def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
     """
     Export attendance records as a CSV string buffer.
-    Streamed directly — no file saved to disk.
+    Streamed directly - no file saved to disk.
     """
     _verify_volunteer_access(event, marked_by)
 

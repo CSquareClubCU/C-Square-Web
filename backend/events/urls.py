@@ -1,5 +1,5 @@
 """
-Events URL patterns — mounted at /api/events/
+Events URL patterns - mounted at /api/events/
 """
 
 from django.urls import path
@@ -19,7 +19,7 @@ from events.views import (
 app_name = 'events'
 
 urlpatterns = [
-    # Public + Admin — list and create
+    # Public + Admin - list and create
     path('', EventListView.as_view(), name='event-list'),
     # Past Events (Must be before slug)
     path('past/', PastEventListView.as_view(), name='past-event-list'),
@@ -28,7 +28,7 @@ urlpatterns = [
 
     # Slug-based detail/update/delete
     path('<slug:slug>/', EventDetailView.as_view(), name='event-detail'),
-    # Admin only — sub-resources use UUID for stability (slugs can change)
+    # Admin only - sub-resources use UUID for stability (slugs can change)
     path('<uuid:pk>/banner/', EventBannerView.as_view(), name='event-banner'),
     path('<uuid:pk>/volunteers/', EventVolunteersView.as_view(), name='event-volunteers'),
     path(
