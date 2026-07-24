@@ -485,6 +485,7 @@ export interface EventCreateData {
   points?: number;
   registration_fee?: number;
   is_continuous?: boolean;
+  external_registration_url?: string | null;
 }
 
 /**

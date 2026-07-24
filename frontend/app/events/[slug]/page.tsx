@@ -398,6 +398,23 @@ export default function EventDetailPage() {
                       />
                     )}
                   </>
+                  ) : event.external_registration_url && canRegister ? (
+                    <div className="flex flex-col gap-2">
+                      <a
+                        href={event.external_registration_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full"
+                      >
+                        <Button className="w-full bg-[#111111] text-[#ffffff] hover:bg-[#242424] shadow-sm flex items-center justify-center gap-2">
+                          <span>Register on External Site</span>
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </a>
+                      <p className="text-xs text-[#6b7280] text-center mt-1">
+                        Registrations for this event are managed externally.
+                      </p>
+                    </div>
                   ) : (
                     <div className="flex flex-col gap-2">
                       {isLoggedIn ? (

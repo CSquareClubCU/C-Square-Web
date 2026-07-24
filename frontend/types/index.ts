@@ -99,6 +99,7 @@ export interface Event {
   requires_approval: boolean;
   registration_fee: number;
   is_continuous?: boolean;
+  external_registration_url?: string | null;
 }
 
 export interface PastEvent {

@@ -46,15 +46,13 @@ class EventListSerializer(serializers.ModelSerializer):
             'is_checkin_active',
             'registration_fee',
             'is_continuous',
+            'external_registration_url',
         ]
         read_only_fields = fields
 
     def get_registered_count(self, obj):
-        """
-        Count approved registrations for this event.
-        Uses the reverse FK from registrations app (wired up in Step 5).
-        Returns 0 gracefully if the relation doesn't exist yet.
-        """
+        if hasattr(obj, 'approved_registrations_count'):
+            return obj.approved_registrations_count
         try:
             return obj.registrations.filter(status='approved').count()
         except Exception:
@@ -100,11 +98,14 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'requires_approval',
             'registration_fee',
             'is_continuous',
+            'external_registration_url',
             'created_at',
         ]
         read_only_fields = fields
 
     def get_registered_count(self, obj):
+        if hasattr(obj, 'approved_registrations_count'):
+            return obj.approved_registrations_count
         try:
             return obj.registrations.filter(status='approved').count()
         except Exception:
@@ -145,6 +146,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'requires_approval',
             'registration_fee',
             'is_continuous',
+            'external_registration_url',
         ]
 
     def validate(self, data):

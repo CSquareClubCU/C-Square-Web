@@ -436,6 +436,7 @@ export default function AdminEventDetailPage() {
       points: event.points,
       registration_fee: event.registration_fee,
       is_continuous: event.is_continuous ?? true,
+      external_registration_url: event.external_registration_url || "",
     });
     setEditError(null);
     setEditOpen(true);
@@ -1441,26 +1442,45 @@ export default function AdminEventDetailPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="edit-external_registration_url" className="text-sm font-medium">
+                      External Registration Redirect URL (Optional)
+                    </label>
                     <input
-                      type="checkbox"
-                      id="edit-registration_open"
-                      checked={editForm.is_registration_open ?? true}
-                      onChange={(e) => setEditForm((p) => ({ ...p, is_registration_open: e.target.checked }))}
-                      className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
+                      id="edit-external_registration_url"
+                      type="url"
+                      placeholder="https://unstop.com/e/example-event"
+                      value={editForm.external_registration_url || ""}
+                      onChange={(e) => setEditForm((p) => ({ ...p, external_registration_url: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--c-border)] text-sm bg-white focus:outline-none focus:border-black"
                     />
-                    <label htmlFor="edit-registration_open" className="text-sm font-medium">Registrations Open</label>
+                    <p className="text-xs text-[var(--c-muted-text)]">
+                      If provided, users clicking Apply/Register will be redirected to this external website.
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="edit-requires_approval"
-                      checked={editForm.requires_approval ?? true}
-                      onChange={(e) => setEditForm((p) => ({ ...p, requires_approval: e.target.checked }))}
-                      className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
-                    />
-                    <label htmlFor="edit-requires_approval" className="text-sm font-medium">Requires Approval (Waitlist)</label>
+
+                  <div className="flex flex-wrap items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="edit-registration_open"
+                        checked={editForm.is_registration_open ?? true}
+                        onChange={(e) => setEditForm((p) => ({ ...p, is_registration_open: e.target.checked }))}
+                        className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
+                      />
+                      <label htmlFor="edit-registration_open" className="text-sm font-medium">Registrations Open</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="edit-requires_approval"
+                        checked={editForm.requires_approval ?? true}
+                        onChange={(e) => setEditForm((p) => ({ ...p, requires_approval: e.target.checked }))}
+                        className="w-4 h-4 rounded border-[var(--c-border)] accent-black"
+                      />
+                      <label htmlFor="edit-requires_approval" className="text-sm font-medium">Requires Approval (Waitlist)</label>
+                    </div>
                   </div>
                 </div>
 
