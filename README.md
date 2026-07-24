@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/logo-black.png" alt="C Square Club Logo" width="120" />
+  <img src="frontend/public/logo-white.png" alt="C Square Club Logo" width="120" />
 </p>
 
 <h1 align="center">C Square Club — Official Website</h1>

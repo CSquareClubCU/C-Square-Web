@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -10,12 +10,18 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "C Square Club | Chandigarh University",
   description: "Official platform for C Square Club events, registrations, and attendance.",
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
 };
 
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 
 export default function RootLayout({
   children,
@@ -33,6 +39,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans relative">
         <ScrollToTop />
+        <PWAInstallBanner />
         <AuthProvider>
           <Header />
           <main className="flex-1 flex flex-col">{children}</main>

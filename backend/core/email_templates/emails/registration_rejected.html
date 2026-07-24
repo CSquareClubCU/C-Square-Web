@@ -3,12 +3,45 @@
 {% block title %}Registration Update{% endblock %}
 
 {% block content %}
-<h2 style="color: #111; margin-top: 0; font-size: 24px;">Registration Update</h2>
-<p style="color: #444;">Hi {{ full_name }}, we regret to inform you that your registration for <strong>{{ event_title }}</strong> was not approved.</p>
+<h2 style="margin: 0 0 8px 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 26px; font-weight: 800; color: #111111; letter-spacing: -0.03em; line-height: 1.2;">Registration Update</h2>
+
+<!-- Status badge -->
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 0 28px 0;">
+  <tr>
+    <td style="background-color: #FEF2F2; border: 1px solid #FECACA; border-radius: 20px; padding: 6px 16px;">
+      <span style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 700; color: #DC2626; letter-spacing: 0.08em; text-transform: uppercase;">&#10005; Not Approved</span>
+    </td>
+  </tr>
+</table>
+
+<p style="margin: 0 0 24px 0; color: #666666; font-size: 15px; line-height: 1.7;">Hi {{ full_name }}, we regret to inform you that your registration for <strong style="color: #111111;">{{ event_title }}</strong> was not approved.</p>
 
 {% if reason %}
-<div style="margin: 24px 0; padding: 16px; background-color: #f9f9f9; border-left: 4px solid #111; border-radius: 4px;">
-  <p style="color: #444; margin: 0;"><strong>Reason:</strong> {{ reason }}</p>
-</div>
+<!-- Reason card -->
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 28px;">
+  <tr>
+    <td style="background-color: #FEF2F2; border: 1px solid #FECACA; border-radius: 10px; padding: 20px 24px; border-left: 3px solid #EF4444;">
+      <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: 700; color: #888888; text-transform: uppercase; letter-spacing: 0.1em;">Reason</p>
+      <p style="margin: 0; font-size: 14px; color: #666666; line-height: 1.6;">{{ reason }}</p>
+    </td>
+  </tr>
+</table>
 {% endif %}
+
+<p style="margin: 0 0 8px 0; color: #666666; font-size: 15px; line-height: 1.7;">Don't be discouraged — we have more events coming up and we'd love to see you register for them.</p>
+
+<!-- Events button -->
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 24px;">
+  <tr>
+    <td align="center">
+      <table role="presentation" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="background-color: #FFFFFF; border: 1px solid #EAEAEA; border-radius: 10px;">
+            <a href="{{ frontend_url }}/events" target="_blank" style="display: inline-block; padding: 12px 28px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-weight: 600; color: #111111; text-decoration: none;">Browse Upcoming Events</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 {% endblock %}
