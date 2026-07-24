@@ -46,6 +46,7 @@ class EventListSerializer(serializers.ModelSerializer):
             'is_checkin_active',
             'registration_fee',
             'is_continuous',
+            'external_registration_url',
         ]
         read_only_fields = fields
 
@@ -100,6 +101,7 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'requires_approval',
             'registration_fee',
             'is_continuous',
+            'external_registration_url',
             'created_at',
         ]
         read_only_fields = fields
@@ -145,6 +147,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'requires_approval',
             'registration_fee',
             'is_continuous',
+            'external_registration_url',
         ]
 
     def validate(self, data):

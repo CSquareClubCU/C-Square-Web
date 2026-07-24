@@ -89,6 +89,12 @@ class Event(BaseModel):
         default=True,
         help_text="If checked, check-in is required only once. If unchecked, check-in is required on each individual day."
     )
+    external_registration_url = models.URLField(
+        max_length=500,
+        null=True,
+        blank=True,
+        help_text="Redirect URL if registration is hosted externally."
+    )
 
     # Status
     status = models.CharField(

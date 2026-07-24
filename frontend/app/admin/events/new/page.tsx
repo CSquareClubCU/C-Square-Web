@@ -88,6 +88,7 @@ export default function NewEventPage() {
     points: 100,
     registration_fee: 0,
     is_continuous: true,
+    external_registration_url: "",
   });
 
   const handlePrizeChange = (index: number, field: string, value: string) => {
@@ -553,6 +554,21 @@ export default function NewEventPage() {
           {/* Attendance Settings */}
           <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)] mt-8">
             <h2 className="font-semibold text-lg mb-4">Attendance Settings</h2>
+
+            <FieldGroup label="External Registration Redirect URL (Optional)" htmlFor="external_registration_url">
+              <input
+                id="external_registration_url"
+                name="external_registration_url"
+                type="url"
+                placeholder="https://unstop.com/e/example-event"
+                value={form.external_registration_url || ""}
+                onChange={handleChange}
+                className={inputClass}
+              />
+              <p className="text-xs text-[var(--c-muted-text)] mt-1">
+                If provided, users clicking Apply/Register will be redirected to this external website.
+              </p>
+            </FieldGroup>
 
             <div className="space-y-3">
               <label className="flex items-start gap-3 cursor-pointer group">

@@ -436,6 +436,7 @@ export default function AdminEventDetailPage() {
       points: event.points,
       registration_fee: event.registration_fee,
       is_continuous: event.is_continuous ?? true,
+      external_registration_url: event.external_registration_url || "",
     });
     setEditError(null);
     setEditOpen(true);
@@ -1452,6 +1453,23 @@ export default function AdminEventDetailPage() {
                     />
                     <label htmlFor="edit-registration_open" className="text-sm font-medium">Registrations Open</label>
                   </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="edit-external_registration_url" className="text-sm font-medium">
+                      External Registration Redirect URL (Optional)
+                    </label>
+                    <input
+                      id="edit-external_registration_url"
+                      type="url"
+                      placeholder="https://unstop.com/e/example-event"
+                      value={editForm.external_registration_url || ""}
+                      onChange={(e) => setEditForm((p) => ({ ...p, external_registration_url: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-[var(--c-border)] text-sm bg-white focus:outline-none focus:border-black"
+                    />
+                    <p className="text-xs text-[var(--c-muted-text)]">
+                      If provided, users clicking Apply/Register will be redirected to this external website.
+                    </p>
+                  </div>
+
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
