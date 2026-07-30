@@ -17,7 +17,7 @@ django-cors-headers==4.7.0
 qrcode[pil]==8.1
 
 # Image Processing
-Pillow==12.2.0
+Pillow==12.3.0
 
 # Azure Services
 azure-storage-blob==12.25.1
