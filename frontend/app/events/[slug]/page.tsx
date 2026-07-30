@@ -326,7 +326,7 @@ export default function EventDetailPage() {
               )}
             </div>
 
-            <div className={`bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] shadow-sm p-6 md:p-8 ${showTeamSection ? '' : 'lg:sticky lg:top-[120px] mb-12'}`}>
+            <div className={`bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] shadow-sm p-6 md:p-8 ${showTeamSection ? '' : 'lg:sticky lg:top-[120px] lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto mb-12'}`}>
                   
                   <h1 className="text-[24px] font-semibold tracking-tight text-[#111111] mb-8">
                     {event.title}
