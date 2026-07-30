@@ -449,6 +449,15 @@ export default function EventDetailPage() {
                     </div>
                   )}
 
+                  {/* Sponsors Section */}
+                  <div className="mt-8 pt-6 border-t border-[#e5e7eb]">
+                    <p className="text-[11px] font-semibold text-[#898989] uppercase tracking-widest mb-4 text-center">Supported By</p>
+                    <div className="flex items-center justify-center gap-6">
+                      <img src="/ieeee%20comp%20society%20logo.PNG" alt="IEEE Computer Society" className="h-12 w-auto object-contain" />
+                      <img src="/CTSOC.png" alt="IEEE CTSoc" className="h-12 w-auto object-contain" />
+                    </div>
+                  </div>
+
                 </div>
             </div>
           </div>
