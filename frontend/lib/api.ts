@@ -484,7 +484,6 @@ export interface EventCreateData {
   is_flagship?: boolean;
   points?: number;
   registration_fee?: number;
-  is_fee_per_team?: boolean;
   is_continuous?: boolean;
   external_registration_url?: string | null;
 }

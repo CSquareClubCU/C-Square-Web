@@ -45,7 +45,6 @@ class EventListSerializer(serializers.ModelSerializer):
             'is_registration_open',
             'is_checkin_active',
             'registration_fee',
-            'is_fee_per_team',
             'is_continuous',
             'external_registration_url',
         ]
@@ -98,7 +97,6 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'is_checkin_active',
             'requires_approval',
             'registration_fee',
-            'is_fee_per_team',
             'is_continuous',
             'external_registration_url',
             'created_at',
@@ -147,7 +145,6 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'is_checkin_active',
             'requires_approval',
             'registration_fee',
-            'is_fee_per_team',
             'is_continuous',
             'external_registration_url',
         ]
