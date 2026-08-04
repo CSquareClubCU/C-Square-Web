@@ -216,6 +216,72 @@ export default function EventDetailPage() {
                 </div>
               )}
 
+              {/* Judges */}
+              <div id="judges" className="mb-12 pt-4">
+                <div className="flex items-center gap-6 mb-6">
+                  <h2 className="text-[28px] font-semibold tracking-tight text-[#111111]">Judges</h2>
+                  <div className="flex-1 h-[1px] bg-[#e5e7eb]"></div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[
+                    {
+                      name: "Navdeep Singh",
+                      role: "Product leader",
+                      company: "Walmart Inc.",
+                      image: "/judge/Navdeep Singh.jpeg",
+                    },
+                    {
+                      name: "Satyasri Akula",
+                      role: "AI Architect | Agentic AI & Intelligent Systems Leader | Digital Transformation Strategist",
+                      company: "TruGlobal",
+                      image: "/judge/Satyasri Akula.jpeg",
+                    },
+                    {
+                      name: "Anjani Haritha Sannidhanam",
+                      role: "Software Dev Engineer II",
+                      company: "Amazon.com Services LLC",
+                      image: "/judge/Anjani Haritha.jpeg",
+                    },
+                    {
+                      name: "Venkata Krishna Bharadwaj Parasaram",
+                      role: "Senior Project Manager",
+                      company: "Thermo Fisher Scientific",
+                      image: "/judge/venkata krishna bharadwaj.jpeg",
+                    },
+                    {
+                      name: "Saugat Nayak",
+                      role: "Data Science & Risk Analytics Specialist | Machine Learning Researcher",
+                      company: "Independent Researcher & Industry Practitioner",
+                      image: "/judge/Saugat Nayak.jpeg",
+                    }
+                  ].map((judge, idx) => (
+                    <div key={idx} className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] overflow-hidden shadow-sm flex flex-col hover:border-[#111111]/20 transition-colors">
+                      <div className="h-56 w-full relative bg-[#f9fafb]">
+                        <img src={judge.image} alt={judge.name} className="w-full h-full object-cover object-top" />
+                      </div>
+                      <div className="p-5 flex-1 flex flex-col">
+                        <h4 className="font-semibold text-[#111111] text-[16px] mb-1">{judge.name}</h4>
+                        <p className="text-[13px] text-[#374151] font-medium mb-1 line-clamp-2" title={judge.role}>{judge.role}</p>
+                        <p className="text-[12px] text-[#6b7280] mt-auto pt-2">{judge.company}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sponsors */}
+              <div id="sponsors" className="mb-12 pt-4">
+                <div className="flex items-center gap-6 mb-6">
+                  <h2 className="text-[28px] font-semibold tracking-tight text-[#111111]">Sponsors</h2>
+                  <div className="flex-1 h-[1px] bg-[#e5e7eb]"></div>
+                </div>
+                <div className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] p-8 flex items-center justify-center gap-8 md:gap-12 flex-wrap shadow-sm">
+                  <img src="/ieeee%20comp%20society%20logo.PNG" alt="IEEE Computer Society" className="h-20 w-auto object-contain scale-125" />
+                  <img src="/CTSOC.png" alt="IEEE CTSoc" className="h-16 w-auto object-contain" />
+                  <img src="/Orion_Global_Hackathon_Logo.svg" alt="Orion Global" className="h-16 w-auto object-contain" />
+                </div>
+              </div>
+
               {/* Prizes */}
               {event.prizes && event.prizes.length > 0 && (
                 <div id="prizes" className="mb-12 pt-4">
@@ -449,14 +515,7 @@ export default function EventDetailPage() {
                     </div>
                   )}
 
-                  {/* Sponsors Section */}
-                  <div className="mt-8 pt-6 border-t border-[#e5e7eb]">
-                    <p className="text-[11px] font-semibold text-[#898989] uppercase tracking-widest mb-4 text-center">Sponsors</p>
-                    <div className="flex items-center justify-center gap-6">
-                      <img src="/ieeee%20comp%20society%20logo.PNG" alt="IEEE Computer Society" className="h-20 w-auto object-contain scale-125" />
-                      <img src="/CTSOC.png" alt="IEEE CTSoc" className="h-14 w-auto object-contain" />
-                    </div>
-                  </div>
+
 
                 </div>
             </div>
