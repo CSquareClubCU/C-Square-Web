@@ -253,6 +253,18 @@ export default function EventDetailPage() {
                       role: "Data Science & Risk Analytics Specialist | Machine Learning Researcher",
                       company: "Independent Researcher & Industry Practitioner",
                       image: "/judge/Saugat Nayak.jpeg",
+                    },
+                    {
+                      name: "Gayathri Balakumar",
+                      role: "Lead Data Engineer",
+                      company: "Capital One",
+                      image: "/judge/Gayathri Balakumar.jpeg",
+                    },
+                    {
+                      name: "Mukesh Aurangabadkar",
+                      role: "Principal Engineer",
+                      company: "Spectrum",
+                      image: "/judge/Mukesh Aurangabadkar.jpeg",
                     }
                   ].map((judge, idx) => (
                     <div key={idx} className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] overflow-hidden shadow-sm flex flex-col hover:border-[#111111]/20 transition-colors">

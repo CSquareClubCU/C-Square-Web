@@ -103,6 +103,7 @@ async function get<T>(path: string): Promise<T> {
   const url = `${BASE_URL}${path}`;
   const res = await fetch(url, {
     credentials: "include",
+    cache: "no-store",
   });
   if (!res.ok) {
     throw await parseError(res);
