@@ -87,6 +87,7 @@ export default function NewEventPage() {
     is_flagship: false,
     points: 100,
     registration_fee: 0,
+    is_fee_per_team: false,
     is_continuous: true,
     external_registration_url: "",
   });
@@ -536,16 +537,28 @@ export default function NewEventPage() {
                 <p className="text-sm text-gray-500 mt-2">Points awarded to users upon check-in.</p>
               </FieldGroup>
               <FieldGroup label="Registration Fee (₹)" htmlFor="registration_fee" required>
-                <input
-                  id="registration_fee"
-                  name="registration_fee"
-                  type="number"
-                  required
-                  min="0"
-                  value={form.registration_fee}
-                  onChange={(e) => setForm({ ...form, registration_fee: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) })}
-                  className={inputClass}
-                />
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    id="registration_fee"
+                    name="registration_fee"
+                    type="number"
+                    required
+                    min="0"
+                    value={form.registration_fee}
+                    onChange={(e) => setForm({ ...form, registration_fee: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) })}
+                    className={`${inputClass} flex-1`}
+                  />
+                  {form.is_team_event && (
+                    <select
+                      value={form.is_fee_per_team ? "team" : "person"}
+                      onChange={(e) => setForm({ ...form, is_fee_per_team: e.target.value === "team" })}
+                      className={`${inputClass} sm:w-48`}
+                    >
+                      <option value="person">Per Person</option>
+                      <option value="team">Per Team</option>
+                    </select>
+                  )}
+                </div>
                 <p className="text-sm text-gray-500 mt-2">Enter 0 for free events.</p>
               </FieldGroup>
             </div>
