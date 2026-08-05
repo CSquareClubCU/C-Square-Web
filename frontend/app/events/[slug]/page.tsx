@@ -265,6 +265,12 @@ export default function EventDetailPage() {
                       role: "Principal Engineer",
                       company: "Spectrum",
                       image: "/judge/Mukesh Aurangabadkar.jpeg",
+                    },
+                    {
+                      name: "Sai Raghu Ram Gummadidala",
+                      role: "Senior Network Engineer",
+                      company: "iSolve Technology Inc",
+                      image: "/judge/Sai Raghu Ram.jpeg",
                     }
                   ].map((judge, idx) => (
                     <div key={idx} className="bg-[#ffffff] rounded-[12px] border border-[#e5e7eb] overflow-hidden shadow-sm flex flex-col hover:border-[#111111]/20 transition-colors">
