@@ -476,6 +476,8 @@ export interface EventCreateData {
   // Enhancements
   prizes?: { position: string; award: string; description: string }[] | null;
   faqs?: { question: string; answer: string }[] | null;
+  judges?: { name: string; role: string; company: string; image: string }[] | null;
+  sponsors?: { name: string; image: string; className?: string }[] | null;
   rules?: string | null;
   contact_name?: string | null;
   contact_email?: string | null;
@@ -547,6 +549,28 @@ export async function uploadEventBanner(id: string, file: File): Promise<Event> 
   formData.append("banner", file);
 
   const res = await fetch(`${BASE_URL}/events/${id}/banner/`, {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": token,
+    },
+    body: formData,
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw await parseError(res);
+  }
+  return res.json();
+}
+
+/**
+ * POST /api/events/upload-image/
+ */
+export async function uploadGenericImage(file: File): Promise<{ image_url: string }> {
+  const token = await getCsrfToken();
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await fetch(`${BASE_URL}/events/upload-image/`, {
     method: "POST",
     headers: {
       "X-CSRFToken": token,

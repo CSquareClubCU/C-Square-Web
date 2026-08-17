@@ -40,6 +40,8 @@ class EventListSerializer(serializers.ModelSerializer):
             'registered_count',
             'prizes',
             'rules',
+            'judges',
+            'sponsors',
             'contact_name',
             'contact_email',
             'is_registration_open',
@@ -91,6 +93,8 @@ class EventDetailSerializer(serializers.ModelSerializer):
             'prizes',
             'rules',
             'faqs',
+            'judges',
+            'sponsors',
             'contact_name',
             'contact_email',
             'is_registration_open',
@@ -139,6 +143,8 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'prizes',
             'rules',
             'faqs',
+            'judges',
+            'sponsors',
             'contact_name',
             'contact_email',
             'is_registration_open',
@@ -206,11 +212,26 @@ class EventBannerSerializer(serializers.Serializer):
                 'File must be jpg, png, or webp.'
             )
         # Validate file size (max 5MB)
+        # Validate file size (max 5MB)
         max_size = 5 * 1024 * 1024
         if file.size > max_size:
             raise serializers.ValidationError(
                 'File size must be under 5MB.'
             )
+        return file
+
+
+class GenericImageUploadSerializer(serializers.Serializer):
+    """Validates generic image uploads for things like judges/sponsors."""
+    image = serializers.ImageField()
+
+    def validate_image(self, file):
+        allowed_types = ['image/jpeg', 'image/png', 'image/webp']
+        content_type = getattr(file, 'content_type', '')
+        if content_type not in allowed_types:
+            raise serializers.ValidationError('File must be jpg, png, or webp.')
+        if file.size > 5 * 1024 * 1024:
+            raise serializers.ValidationError('File size must be under 5MB.')
         return file
 
 
