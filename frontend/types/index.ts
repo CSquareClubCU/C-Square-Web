@@ -89,6 +89,8 @@ export interface Event {
   // Enhancements
   prizes: Prize[] | null;
   rules: string | null;
+  judges?: any[] | null;
+  sponsors?: any[] | null;
   contact_name: string | null;
   contact_email: string | null;
   is_registration_open: boolean;

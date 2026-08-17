@@ -14,6 +14,7 @@ from events.views import (
     PastEventListView,
     PastEventDetailView,
     PastEventLogoUploadView,
+    GenericImageUploadView,
 )
 
 app_name = 'events'
@@ -25,6 +26,8 @@ urlpatterns = [
     path('past/', PastEventListView.as_view(), name='past-event-list'),
     path('past/<uuid:pk>/', PastEventDetailView.as_view(), name='past-event-detail'),
     path('past/<uuid:pk>/logo/', PastEventLogoUploadView.as_view(), name='past-event-logo'),
+    
+    path('upload-image/', GenericImageUploadView.as_view(), name='upload-image'),
 
     # Slug-based detail/update/delete
     path('<slug:slug>/', EventDetailView.as_view(), name='event-detail'),

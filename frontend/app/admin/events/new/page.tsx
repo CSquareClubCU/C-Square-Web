@@ -12,7 +12,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowLeft, CalendarDays, Loader2, CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { createEvent } from "@/lib/api";
+import { createEvent, uploadGenericImage } from "@/lib/api";
 import type { EventCreateData } from "@/lib/api";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import ReactMarkdown from "react-markdown";
@@ -79,6 +79,8 @@ export default function NewEventPage() {
       { question: "Who can attend?", answer: "This event is open to all university students." },
       { question: "Is there a registration fee?", answer: "No, the event is completely free!" },
     ],
+    judges: [],
+    sponsors: [],
     rules: "",
     contact_name: "",
     contact_email: "",
@@ -134,6 +136,67 @@ export default function NewEventPage() {
       const newFaqs = [...(prev.faqs || [])];
       newFaqs.splice(index, 1);
       return { ...prev, faqs: newFaqs };
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number, type: "judge" | "sponsor") => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    try {
+      const res = await uploadGenericImage(file);
+      if (type === "judge") {
+        handleJudgeChange(index, "image", res.image_url);
+      } else {
+        handleSponsorChange(index, "image", res.image_url);
+      }
+    } catch (err: any) {
+      alert("Image upload failed: " + err.message);
+    }
+  };
+
+  const handleJudgeChange = (index: number, field: string, value: string) => {
+    setForm((prev) => {
+      const newJudges = [...(prev.judges || [])];
+      newJudges[index] = { ...newJudges[index], [field]: value };
+      return { ...prev, judges: newJudges };
+    });
+  };
+
+  const addJudge = () => {
+    setForm((prev) => ({
+      ...prev,
+      judges: [...(prev.judges || []), { name: "", role: "", company: "", image: "" }],
+    }));
+  };
+
+  const removeJudge = (index: number) => {
+    setForm((prev) => {
+      const newJudges = [...(prev.judges || [])];
+      newJudges.splice(index, 1);
+      return { ...prev, judges: newJudges };
+    });
+  };
+
+  const handleSponsorChange = (index: number, field: string, value: string) => {
+    setForm((prev) => {
+      const newSponsors = [...(prev.sponsors || [])];
+      newSponsors[index] = { ...newSponsors[index], [field]: value };
+      return { ...prev, sponsors: newSponsors };
+    });
+  };
+
+  const addSponsor = () => {
+    setForm((prev) => ({
+      ...prev,
+      sponsors: [...(prev.sponsors || []), { name: "", image: "", className: "" }],
+    }));
+  };
+
+  const removeSponsor = (index: number) => {
+    setForm((prev) => {
+      const newSponsors = [...(prev.sponsors || [])];
+      newSponsors.splice(index, 1);
+      return { ...prev, sponsors: newSponsors };
     });
   };
 
@@ -493,6 +556,136 @@ export default function NewEventPage() {
                       type="button"
                       onClick={() => removeFaq(idx)}
                       className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors mt-0.5"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Enhancements: Judges */}
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-lg">Judges</h2>
+              <Button type="button" variant="outline" size="sm" onClick={addJudge}>
+                <Plus className="w-4 h-4 mr-1" /> Add Judge
+              </Button>
+            </div>
+
+            {(!form.judges || form.judges.length === 0) ? (
+              <p className="text-sm text-[var(--c-muted-text)]">No judges added yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {form.judges.map((judge, idx) => (
+                  <div key={idx} className="flex gap-3 items-center border border-[var(--c-border)] p-4 rounded-xl relative">
+                    <div className="flex-1 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          placeholder="Name"
+                          value={judge.name}
+                          onChange={(e) => handleJudgeChange(idx, "name", e.target.value)}
+                          className={inputClass + " py-2"}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Role (e.g. Lead Engineer)"
+                          value={judge.role}
+                          onChange={(e) => handleJudgeChange(idx, "role", e.target.value)}
+                          className={inputClass + " py-2"}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          placeholder="Company"
+                          value={judge.company}
+                          onChange={(e) => handleJudgeChange(idx, "company", e.target.value)}
+                          className={inputClass + " py-2"}
+                        />
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            placeholder="Image URL"
+                            value={judge.image}
+                            onChange={(e) => handleJudgeChange(idx, "image", e.target.value)}
+                            className={inputClass + " py-2 flex-1"}
+                          />
+                          <label className="cursor-pointer bg-black/[0.04] hover:bg-black/[0.08] text-sm font-medium px-4 py-2 rounded-xl text-black transition-colors whitespace-nowrap">
+                            Upload
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleImageUpload(e, idx, "judge")}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeJudge(idx)}
+                      className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors flex-shrink-0"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Enhancements: Sponsors */}
+          <div className="bg-[#f8f9fa] border border-black/[0.04] rounded-[24px] p-6 md:p-8 space-y-5 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-lg">Sponsors</h2>
+              <Button type="button" variant="outline" size="sm" onClick={addSponsor}>
+                <Plus className="w-4 h-4 mr-1" /> Add Sponsor
+              </Button>
+            </div>
+
+            {(!form.sponsors || form.sponsors.length === 0) ? (
+              <p className="text-sm text-[var(--c-muted-text)]">No sponsors added yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {form.sponsors.map((sponsor, idx) => (
+                  <div key={idx} className="flex gap-3 items-center border border-[var(--c-border)] p-4 rounded-xl relative">
+                    <div className="flex-1 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          placeholder="Name"
+                          value={sponsor.name}
+                          onChange={(e) => handleSponsorChange(idx, "name", e.target.value)}
+                          className={inputClass + " py-2"}
+                        />
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            placeholder="Image URL"
+                            value={sponsor.image}
+                            onChange={(e) => handleSponsorChange(idx, "image", e.target.value)}
+                            className={inputClass + " py-2 flex-1"}
+                          />
+                          <label className="cursor-pointer bg-black/[0.04] hover:bg-black/[0.08] text-sm font-medium px-4 py-2 rounded-xl text-black transition-colors whitespace-nowrap">
+                            Upload
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleImageUpload(e, idx, "sponsor")}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeSponsor(idx)}
+                      className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors flex-shrink-0"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>

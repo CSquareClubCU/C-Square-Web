@@ -209,6 +209,53 @@ class EventBannerView(APIView):
 
 
 # ---------------------------------------------------------------------------
+# Admin - Generic Image Upload (for Judges/Sponsors)
+# ---------------------------------------------------------------------------
+
+class GenericImageUploadView(APIView):
+    """
+    POST /api/events/upload-image/
+    Upload an image (for judges, sponsors, etc.) and get a URL back. Admin only.
+    """
+    permission_classes = [IsAdmin]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        from events.serializers import GenericImageUploadSerializer
+        from core.utils.storage import upload_to_blob
+        import uuid
+
+        serializer = GenericImageUploadSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise AppError(
+                code='INVALID_FILE',
+                message='File must be jpg, png, or webp and under 5MB.',
+                fields=serializer.errors,
+            )
+
+        file = serializer.validated_data['image']
+        
+        ext_map = {
+            'image/jpeg': 'jpg',
+            'image/png': 'png',
+            'image/webp': 'webp',
+        }
+        ext = ext_map.get(file.content_type, 'jpg')
+        # Generate a random path
+        blob_path = f'event-assets/{uuid.uuid4()}/image.{ext}'
+
+        url = upload_to_blob(
+            blob_path=blob_path,
+            file_data=file.read(),
+            content_type=file.content_type,
+        )
+
+        return Response(
+            {'image_url': url},
+            status=status.HTTP_200_OK,
+        )
+
+# ---------------------------------------------------------------------------
 # Admin - Volunteer assignment (by UUID for stability)
 # ---------------------------------------------------------------------------
 

@@ -35,7 +35,7 @@ class EventAdmin(admin.ModelAdmin):
         ('Access', {'fields': ('is_open_to_external', 'is_team_event', 'min_team_size', 'max_team_size')}),
         ('Registration & Check-in', {'fields': ('is_registration_open', 'requires_approval', 'registration_fee', 'is_checkin_active')}),
         ('Engagement & Features', {'fields': ('is_flagship', 'points')}),
-        ('Enhancements', {'fields': ('prizes', 'rules', 'faqs', 'contact_name', 'contact_email')}),
+        ('Enhancements', {'fields': ('prizes', 'rules', 'faqs', 'judges', 'sponsors', 'contact_name', 'contact_email')}),
         ('Media', {'fields': ('banner_image_url',)}),
         ('Meta', {'fields': ('created_by', 'created_at', 'updated_at')}),
     )
