@@ -86,8 +86,14 @@ export default function EventsPage() {
   // Unified predicate to check if an event matches current filters
   const matchesFilters = useCallback((e: Event) => {
     // Status Filter (Upcoming / Past)
-    if (activeStatus === "Upcoming" && e.status !== "published") return false;
-    if (activeStatus === "Past" && e.status !== "completed") return false;
+    const isConcluded = e.end_datetime ? new Date(e.end_datetime) < new Date() : new Date(e.start_datetime) < new Date();
+
+    if (activeStatus === "Upcoming") {
+      if (e.status !== "published" || isConcluded) return false;
+    }
+    if (activeStatus === "Past") {
+      if (e.status !== "completed" && !(e.status === "published" && isConcluded)) return false;
+    }
 
     // Category Filter
     if (activeCategory !== "All" && e.event_type.toLowerCase() !== activeCategory.toLowerCase()) return false;
@@ -118,7 +124,7 @@ export default function EventsPage() {
     // The flagship event will now be shown in the grid as well.
     
     return list;
-  }, [events, matchesFilters]);
+  }, [events, matchesFilters, activeStatus]);
 
 
 
@@ -375,7 +381,7 @@ export default function EventsPage() {
 
           <>
             {/* Split Flagship Event Card */}
-            {flagshipEvent && activeStatus === "Upcoming" && activeCategory === "All" && searchQuery === "" && (
+            {flagshipEvent && isFlagshipDisplayed && activeStatus === "Upcoming" && activeCategory === "All" && searchQuery === "" && (
               <FadeUp className="mb-12">
                 <span className="text-sm md:text-base font-black text-[#111] uppercase tracking-widest block mb-4">
                   Flagship Event

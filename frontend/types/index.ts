@@ -100,6 +100,7 @@ export interface Event {
   faqs: { question: string; answer: string }[] | null;
   requires_approval: boolean;
   registration_fee: number;
+  fee_type?: "per_person" | "per_team";
   is_continuous?: boolean;
   external_registration_url?: string | null;
 }

@@ -322,7 +322,7 @@ export default function EventDetailPage() {
                   <div className="bg-[#ffffff] border border-[#e5e7eb] rounded-[12px] p-6 shadow-sm flex flex-col justify-between">
                     <h4 className="font-semibold text-[#111111] text-[15px]">Registration costs?</h4>
                     <p className="text-[#374151] mt-6 text-[15px]">
-                      {event.registration_fee && event.registration_fee > 0 ? `₹${event.registration_fee} per person` : 'Free for all students.'}
+                      {event.registration_fee && event.registration_fee > 0 ? `₹${event.registration_fee} ${event.fee_type === 'per_team' ? 'per team' : 'per person'}` : 'Free for all students.'}
                     </p>
                   </div>
                 </div>

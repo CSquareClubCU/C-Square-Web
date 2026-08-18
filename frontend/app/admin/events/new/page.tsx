@@ -89,6 +89,7 @@ export default function NewEventPage() {
     is_flagship: false,
     points: 100,
     registration_fee: 0,
+    fee_type: "per_person",
     is_continuous: true,
     external_registration_url: "",
   });
@@ -729,16 +730,28 @@ export default function NewEventPage() {
                 <p className="text-sm text-gray-500 mt-2">Points awarded to users upon check-in.</p>
               </FieldGroup>
               <FieldGroup label="Registration Fee (₹)" htmlFor="registration_fee" required>
-                <input
-                  id="registration_fee"
-                  name="registration_fee"
-                  type="number"
-                  required
-                  min="0"
-                  value={form.registration_fee}
-                  onChange={(e) => setForm({ ...form, registration_fee: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) })}
-                  className={inputClass}
-                />
+                <div className="flex gap-2">
+                  <input
+                    id="registration_fee"
+                    name="registration_fee"
+                    type="number"
+                    required
+                    min="0"
+                    value={form.registration_fee}
+                    onChange={(e) => setForm({ ...form, registration_fee: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) })}
+                    className={inputClass}
+                  />
+                  <select
+                    id="fee_type"
+                    name="fee_type"
+                    value={form.fee_type}
+                    onChange={handleChange}
+                    className={`${selectClass} w-auto min-w-[140px]`}
+                  >
+                    <option value="per_person">Per Person</option>
+                    <option value="per_team">Per Team</option>
+                  </select>
+                </div>
                 <p className="text-sm text-gray-500 mt-2">Enter 0 for free events.</p>
               </FieldGroup>
             </div>

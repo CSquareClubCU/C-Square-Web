@@ -498,6 +498,7 @@ export default function AdminEventDetailPage() {
       is_flagship: event.is_flagship,
       points: event.points,
       registration_fee: event.registration_fee,
+      fee_type: event.fee_type ?? "per_person",
       is_continuous: event.is_continuous ?? true,
       external_registration_url: event.external_registration_url || "",
     });
@@ -1262,13 +1263,24 @@ export default function AdminEventDetailPage() {
                   </div>
                   <div>
                     <label htmlFor="edit-registration_fee" className="block text-sm font-medium mb-1.5">Registration Fee (₹)</label>
-                    <input
-                      id="edit-registration_fee"
-                      type="number"
-                      value={editForm.registration_fee ?? 0}
-                      onChange={(e) => setEditForm((p) => ({ ...p, registration_fee: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) }))}
-                      className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        id="edit-registration_fee"
+                        type="number"
+                        value={editForm.registration_fee ?? 0}
+                        onChange={(e) => setEditForm((p) => ({ ...p, registration_fee: e.target.value === "" ? ("" as any) : parseInt(e.target.value, 10) }))}
+                        className="w-full px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors"
+                      />
+                      <select
+                        id="edit-fee_type"
+                        value={editForm.fee_type ?? "per_person"}
+                        onChange={(e) => setEditForm((p) => ({ ...p, fee_type: e.target.value as "per_person" | "per_team" }))}
+                        className="w-auto min-w-[140px] px-4 py-2.5 rounded-[8px] border border-black/[0.08] text-[15px] focus:outline-none focus:border-black transition-colors bg-white"
+                      >
+                        <option value="per_person">Per Person</option>
+                        <option value="per_team">Per Team</option>
+                      </select>
+                    </div>
                     <p className="text-xs text-gray-500 mt-1">Enter 0 for free events.</p>
                   </div>
 
