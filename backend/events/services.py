@@ -47,6 +47,7 @@ def create_event(validated_data: dict, created_by) -> Event:
 def update_event(event: Event, validated_data: dict) -> Event:
     """
     Partially update an event. Only updates provided fields.
+    Also handles deletion of orphaned judge/sponsor images.
 
     Args:
         event: The Event instance to update.
@@ -55,6 +56,32 @@ def update_event(event: Event, validated_data: dict) -> Event:
     Returns:
         The updated Event instance.
     """
+    from core.utils.storage import delete_blob_from_url
+
+    old_urls = set()
+    new_urls = set()
+
+    if 'judges' in validated_data:
+        for j in (event.judges or []):
+            if isinstance(j, dict) and j.get('image'):
+                old_urls.add(j['image'])
+        for j in (validated_data['judges'] or []):
+            if isinstance(j, dict) and j.get('image'):
+                new_urls.add(j['image'])
+
+    if 'sponsors' in validated_data:
+        for s in (event.sponsors or []):
+            if isinstance(s, dict) and s.get('image'):
+                old_urls.add(s['image'])
+        for s in (validated_data['sponsors'] or []):
+            if isinstance(s, dict) and s.get('image'):
+                new_urls.add(s['image'])
+
+    orphaned_urls = old_urls - new_urls
+    for url in orphaned_urls:
+        if 'event-assets/' in url:
+            delete_blob_from_url(url)
+
     for field, value in validated_data.items():
         setattr(event, field, value)
     event.save(update_fields=list(validated_data.keys()) + ['updated_at'])
@@ -76,6 +103,20 @@ def delete_event(event: Event) -> None:
             status=400,
         )
     event_title = event.title
+    
+    # Cleanup banner
+    from core.utils.storage import delete_blob_from_url
+    if event.banner_image_url:
+        delete_blob_from_url(event.banner_image_url)
+
+    # Cleanup judges and sponsors
+    for j in (event.judges or []):
+        if isinstance(j, dict) and j.get('image') and 'event-assets/' in j['image']:
+            delete_blob_from_url(j['image'])
+    for s in (event.sponsors or []):
+        if isinstance(s, dict) and s.get('image') and 'event-assets/' in s['image']:
+            delete_blob_from_url(s['image'])
+
     event.delete()
     logger.info('Event deleted: "%s"', event_title)
 

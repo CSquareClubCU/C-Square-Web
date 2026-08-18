@@ -19,6 +19,10 @@ class EventType(models.TextChoices):
     WORKSHOP = 'workshop', 'Workshop'
     SEMINAR = 'seminar', 'Seminar'
 
+class FeeType(models.TextChoices):
+    PER_PERSON = 'per_person', 'Per Person'
+    PER_TEAM = 'per_team', 'Per Team'
+
 
 class EventStatus(models.TextChoices):
     DRAFT = 'draft', 'Draft'
@@ -86,6 +90,12 @@ class Event(BaseModel):
     registration_fee = models.PositiveIntegerField(
         default=0,
         help_text="Registration fee in INR. 0 means free."
+    )
+    fee_type = models.CharField(
+        max_length=20,
+        choices=FeeType.choices,
+        default=FeeType.PER_PERSON,
+        help_text="Whether the fee is per person or per team."
     )
     is_continuous = models.BooleanField(
         default=True,
