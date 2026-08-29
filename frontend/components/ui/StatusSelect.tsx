@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export function StatusSelect({
   isCheckedIn,
+  disabled,
   onSelect,
 }: {
   isCheckedIn: boolean;
+  disabled?: boolean;
   onSelect: (status: "pending" | "checked_in") => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -25,15 +27,20 @@ export function StatusSelect({
   return (
     <div className="relative w-full" ref={ref}>
       <button
-        onClick={() => setOpen(!open)}
-        className={`flex items-center justify-between w-full text-[13px] font-medium px-3 py-1.5 rounded-full border outline-none cursor-pointer transition-colors ${
-          isCheckedIn
-            ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-            : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+        disabled={disabled}
+        onClick={() => !disabled && setOpen(!open)}
+        className={`flex items-center justify-between w-full text-[13px] font-medium px-3 py-1.5 rounded-full border outline-none transition-colors ${
+          disabled
+            ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-60"
+            : isCheckedIn
+            ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 cursor-pointer"
+            : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 cursor-pointer"
         }`}
       >
         <span>{isCheckedIn ? "Checked In" : "Pending"}</span>
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+        {!disabled && (
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+        )}
       </button>
 
       <AnimatePresence>

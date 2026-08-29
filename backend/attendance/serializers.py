@@ -44,14 +44,14 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
 
 
 class QRCheckinSerializer(serializers.Serializer):
-    """Validates POST /attendance/checkin/ - just a qr_token."""
+    """Validates POST /attendance/checkin/ - qr_token and optional date."""
     qr_token = serializers.CharField()
+    date = serializers.DateField(required=False, allow_null=True)
 
 
 class ManualCheckinSerializer(serializers.Serializer):
     """Validates POST /attendance/{registration_id}/manual-checkin/"""
-    # No body needed - registration_id is in the URL; marked_by from request.user
-    pass
+    date = serializers.DateField(required=False, allow_null=True)
 
 
 class CheckinResponseSerializer(serializers.Serializer):

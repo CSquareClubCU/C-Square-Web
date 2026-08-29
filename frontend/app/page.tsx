@@ -150,7 +150,7 @@ export default function Home() {
       setStatsLoaded(true);
       if (eventsRes.status === "fulfilled") {
         const publishedEvents = eventsRes.value.results;
-        const flagship = publishedEvents.find((e: Event) => e.is_flagship) || publishedEvents[0] || null;
+        const flagship = publishedEvents.find((e: Event) => e.is_flagship) || null;
         setFlagshipEvent(flagship);
         
         // Store all published events so filtering works correctly
@@ -446,8 +446,8 @@ export default function Home() {
                   <div className="text-3xl md:text-4xl font-bold">{prizePool}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] font-semibold tracking-[0.15em] text-white/50 uppercase mb-2">STUDENTS</div>
-                  <div className="text-3xl md:text-4xl font-bold">{flagship.registered_count || 0}+</div>
+                  <div className="text-[10px] font-semibold tracking-[0.15em] text-white/50 uppercase mb-2">CAPACITY</div>
+                  <div className="text-3xl md:text-4xl font-bold">{flagship.capacity ? `${flagship.capacity}+` : "Open"}</div>
                 </div>
               </div>
               

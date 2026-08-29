@@ -329,12 +329,14 @@ class EventCheckinStatsView(APIView):
     """
     GET /api/events/{id}/checkin-stats/
     Live check-in statistics. Admin always allowed; volunteer only if assigned.
+    Supports optional ?date=YYYY-MM-DD for multi-day events.
     """
     permission_classes = [IsAdminOrVolunteer]
 
     def get(self, request, pk):
         event = services.get_event_by_uuid(pk)
-        stats = services.get_checkin_stats(event, request.user)
+        target_date = request.query_params.get('date')
+        stats = services.get_checkin_stats(event, request.user, target_date=target_date)
         return Response(stats)
 
 

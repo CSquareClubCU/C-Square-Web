@@ -5,9 +5,10 @@
  *
  * Admin attendance overview for a specific event.
  * Shows live stats, full attendance list with check-in times.
+ * Supports multi-day non-continuous event day selection.
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -23,6 +24,7 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FadeUp } from "@/components/animations/MotionElements";
@@ -53,6 +55,7 @@ export default function AdminAttendancePage() {
   const [listLoading, setListLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
 
   // Debounce
   useEffect(() => {
@@ -68,20 +71,65 @@ export default function AdminAttendancePage() {
   // Load event by slug, then use event.id (UUID) for sub-resource API calls
   useEffect(() => {
     fetchEventById(eventSlug)
-      .then(setEvent)
+      .then((evt) => {
+        setEvent(evt);
+        if (!evt.is_continuous) {
+          const start = new Date(evt.start_datetime);
+          const end = new Date(evt.end_datetime);
+          const now = new Date();
+          const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          
+          const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+          const endStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
+
+          if (todayStr >= startStr && todayStr <= endStr) {
+            setSelectedDate(todayStr);
+          } else {
+            setSelectedDate(startStr);
+          }
+        }
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [eventSlug]);
 
-  // Load stats + auto-refresh (uses event UUID)
+  // Calculate event dates for multi-day events
+  const eventDates = useMemo(() => {
+    if (!event || event.is_continuous) return [];
+    const start = new Date(event.start_datetime);
+    const end = new Date(event.end_datetime);
+    const dates: { dateStr: string; label: string; dayNum: number }[] = [];
+
+    const cur = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+    let day = 1;
+    while (cur <= last) {
+      const year = cur.getFullYear();
+      const month = String(cur.getMonth() + 1).padStart(2, "0");
+      const dayStr = String(cur.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${dayStr}`;
+      const monthName = cur.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      dates.push({
+        dateStr,
+        label: `Day ${day} (${monthName})`,
+        dayNum: day,
+      });
+      cur.setDate(cur.getDate() + 1);
+      day++;
+    }
+    return dates;
+  }, [event]);
+
+  // Load stats + auto-refresh (uses event UUID and selectedDate)
   const refreshStats = useCallback(async () => {
     if (!event) return;
     try {
-      const s = await fetchCheckinStats(event.id);
+      const s = await fetchCheckinStats(event.id, selectedDate);
       setStats(s);
       setLastRefresh(new Date());
     } catch (err) { console.error(err); }
-  }, [event]);
+  }, [event, selectedDate]);
 
   useEffect(() => {
     let mounted = true;
@@ -201,6 +249,33 @@ export default function AdminAttendancePage() {
               </div>
             </div>
 
+            {/* Multi-day Date Tabs */}
+            {event && !event.is_continuous && eventDates.length > 1 && (
+              <div className="mt-6">
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-2 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-white/60" /> Filter Stats & Attendance By Date
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {eventDates.map((d) => {
+                    const isSelected = selectedDate === d.dateStr;
+                    return (
+                      <button
+                        key={d.dateStr}
+                        onClick={() => setSelectedDate(d.dateStr)}
+                        className={`px-4 py-2 rounded-[14px] text-sm font-semibold transition-all ${
+                          isSelected
+                            ? "bg-white text-black shadow-md scale-[1.02]"
+                            : "bg-white/10 text-white/70 hover:text-white hover:bg-white/15 border border-white/10"
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Stats */}
             {stats && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
@@ -253,6 +328,7 @@ export default function AdminAttendancePage() {
 
         <p className="text-sm text-[var(--c-muted-text)]">
           {total} attendance record{total !== 1 ? "s" : ""}
+          {selectedDate && !event?.is_continuous ? ` (Viewing ${selectedDate})` : ""}
         </p>
 
         {/* Table */}
@@ -278,43 +354,56 @@ export default function AdminAttendancePage() {
                 <span>Checked In At</span>
               </div>
               <div className="divide-y divide-[var(--c-border)]">
-                {records.map((rec) => (
-                  <div
-                    key={rec.id}
-                    className={`px-5 py-4 flex flex-col sm:grid sm:grid-cols-[1fr_1fr_120px_150px] sm:items-center gap-2 hover:bg-gray-50 transition-colors ${
-                      rec.is_checked_in ? "" : "opacity-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-2 h-2 rounded-full shrink-0 ${
-                          rec.is_checked_in ? "bg-emerald-400" : "bg-gray-300"
-                        }`}
-                      />
-                      <span className="font-medium text-sm">{rec.user_full_name}</span>
+                {records.map((rec) => {
+                  let isCheckedIn = rec.is_checked_in;
+                  let checkinMethod = rec.check_in_method;
+                  let checkinTime = rec.checked_in_at;
+
+                  if (event && !event.is_continuous && selectedDate) {
+                    const daily = rec.daily_checkins?.find((d) => d.date === selectedDate);
+                    isCheckedIn = Boolean(daily);
+                    checkinMethod = daily?.check_in_method || null;
+                    checkinTime = daily?.checked_in_at || null;
+                  }
+
+                  return (
+                    <div
+                      key={rec.id}
+                      className={`px-5 py-4 flex flex-col sm:grid sm:grid-cols-[1fr_1fr_120px_150px] sm:items-center gap-2 hover:bg-gray-50 transition-colors ${
+                        isCheckedIn ? "" : "opacity-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-2 h-2 rounded-full shrink-0 ${
+                            isCheckedIn ? "bg-emerald-400" : "bg-gray-300"
+                          }`}
+                        />
+                        <span className="font-medium text-sm">{rec.user_full_name}</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-[var(--c-muted-text)] truncate">{rec.user_email}</p>
+                        {rec.user_student_uid && (
+                          <p className="text-xs text-[var(--c-muted-text)]">{rec.user_student_uid}</p>
+                        )}
+                      </div>
+                      <div>
+                        {checkinMethod ? (
+                          <span className="text-xs px-2 py-1 rounded-full bg-gray-100 border border-[var(--c-border)] capitalize">
+                            {checkinMethod}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-[var(--c-muted-text)]">—</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-[var(--c-muted-text)]">
+                        {checkinTime
+                          ? new Date(checkinTime).toLocaleTimeString()
+                          : "Not checked in"}
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-[var(--c-muted-text)] truncate">{rec.user_email}</p>
-                      {rec.user_student_uid && (
-                        <p className="text-xs text-[var(--c-muted-text)]">{rec.user_student_uid}</p>
-                      )}
-                    </div>
-                    <div>
-                      {rec.check_in_method ? (
-                        <span className="text-xs px-2 py-1 rounded-full bg-gray-100 border border-[var(--c-border)] capitalize">
-                          {rec.check_in_method}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-[var(--c-muted-text)]">—</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-[var(--c-muted-text)]">
-                      {rec.checked_in_at
-                        ? new Date(rec.checked_in_at).toLocaleTimeString()
-                        : "Not checked in"}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}

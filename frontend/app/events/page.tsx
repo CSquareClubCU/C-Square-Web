@@ -129,8 +129,11 @@ export default function EventsPage() {
 
 
   const EventCard = ({ event, isPast = false }: { event: Event, isPast?: boolean }) => {
+    const isConcluded = event.end_datetime ? new Date(event.end_datetime) < new Date() : new Date(event.start_datetime) < new Date();
+    const isEventPast = isPast || isConcluded;
+
     return (
-      <div className={`flex flex-col h-full bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${isPast ? 'opacity-70 hover:opacity-100 transition-opacity grayscale-[30%]' : ''}`}>
+      <div className={`flex flex-col h-full bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${isEventPast ? 'opacity-70 hover:opacity-100 transition-opacity grayscale-[30%]' : ''}`}>
         <Link href={`/events/${event.slug}`} className="flex flex-col h-full relative z-10 block">
           
           {/* Top Section */}
@@ -149,8 +152,8 @@ export default function EventsPage() {
             </div>
           </div>
           
-          {/* Middle Section (Details & Stats) */}
-          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Middle Section (Details) */}
+          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-6 flex items-center justify-between">
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
                 Details
@@ -164,18 +167,6 @@ export default function EventsPage() {
                 </span>
               </div>
             </div>
-            
-            <div className="flex items-center">
-              {/* Fake Avatars */}
-              <div className="flex -space-x-2 mr-3">
-                <div className="w-7 h-7 rounded-full border-2 border-gray-50 bg-gradient-to-br from-blue-400 to-indigo-500"></div>
-                <div className="w-7 h-7 rounded-full border-2 border-gray-50 bg-gradient-to-br from-purple-400 to-pink-500"></div>
-                <div className="w-7 h-7 rounded-full border-2 border-gray-50 bg-gradient-to-br from-emerald-400 to-teal-500"></div>
-              </div>
-              <span className="text-[13px] font-bold text-emerald-600">
-                +{event.registered_count} participating
-              </span>
-            </div>
           </div>
 
           {/* Bottom Section (Badges + Action) */}
@@ -184,17 +175,19 @@ export default function EventsPage() {
               <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-xl text-[11px] font-bold uppercase tracking-wider">
                 Offline
               </span>
-              <span className={`px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider ${isPast ? 'bg-gray-100 text-gray-500' : 'bg-green-50 text-emerald-700'}`}>
-                {isPast ? "Closed" : "Open"}
+              <span className={`px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider ${isEventPast ? 'bg-gray-100 text-gray-500' : 'bg-green-50 text-emerald-700'}`}>
+                {isEventPast ? "Closed" : "Open"}
               </span>
               <span className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-xl text-[11px] font-bold uppercase tracking-wider">
-                Starts {formatDate(event.start_datetime)}
+                {isEventPast ? "Concluded" : "Starts"} {formatDate(event.start_datetime)}
               </span>
             </div>
-            <div className="px-6 py-2 bg-[#0A0A0A] text-white rounded-[8px] text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors flex-shrink-0 h-[40px]">
-              Apply now
-              <ArrowRight className="w-4 h-4" />
-            </div>
+            {!isEventPast && (
+              <div className="px-6 py-2 bg-[#0A0A0A] text-white rounded-[8px] text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors flex-shrink-0 h-[40px]">
+                Apply now
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            )}
           </div>
 
         </Link>

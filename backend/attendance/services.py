@@ -33,20 +33,20 @@ def _verify_volunteer_access(event: Event, user):
             raise AppError('NOT_ASSIGNED', 'You are not assigned to this event.', 403)
 
 
-def _do_checkin(record: AttendanceRecord, method: str, marked_by) -> AttendanceRecord:
+def _do_checkin(record: AttendanceRecord, method: str, marked_by, target_date=None) -> AttendanceRecord:
     """
     Internal: mark a single attendance record as checked-in.
     Idempotent - if already checked in, returns the record without error.
     """
     from django.db import transaction
     from attendance.models import DailyCheckIn
+    import datetime
     
     with transaction.atomic():
         record = AttendanceRecord.objects.select_for_update().select_related('event', 'user').get(id=record.id)
         
         current_dt = timezone.localtime()
         current_date = current_dt.date()
-        current_time = current_dt.time()
         start_dt = timezone.localtime(record.event.start_datetime)
         end_dt = timezone.localtime(record.event.end_datetime)
         
@@ -82,19 +82,24 @@ def _do_checkin(record: AttendanceRecord, method: str, marked_by) -> AttendanceR
             )
         else:
             # Non-continuous logic
-            if current_date < start_dt.date() or current_date > end_dt.date():
+            checkin_date = target_date if target_date else current_date
+            if isinstance(checkin_date, str):
+                from django.utils.dateparse import parse_date
+                checkin_date = parse_date(checkin_date)
+                if not checkin_date:
+                    raise AppError('BAD_REQUEST', 'Invalid target date format.', 400)
+
+            if checkin_date < start_dt.date() or checkin_date > end_dt.date():
                 if not is_admin:
                     raise AppError('CHECKIN_OUT_OF_BOUNDS', 'Check-in is only allowed on event days.', 400)
             
             if not is_admin:
                 if not record.event.is_checkin_active:
                     raise AppError('CHECKIN_CLOSED', 'Check-in is currently closed for this event.', 400)
-                if current_time < start_dt.time() or current_time > end_dt.time():
-                    raise AppError('CHECKIN_LATE', 'Check-in is not allowed outside daily event hours.', 400)
                     
             daily_checkin, created = DailyCheckIn.objects.get_or_create(
                 attendance_record=record,
-                date=current_date,
+                date=checkin_date,
                 defaults={
                     'check_in_method': method,
                     'marked_by': marked_by,
@@ -102,7 +107,7 @@ def _do_checkin(record: AttendanceRecord, method: str, marked_by) -> AttendanceR
             )
             
             if not created:
-                return record # already checked in today
+                return record # already checked in on this day
                 
             # Set top-level checked in to True if this is first time
             if not record.is_checked_in:
@@ -128,13 +133,14 @@ def _do_checkin(record: AttendanceRecord, method: str, marked_by) -> AttendanceR
     return record
 
 
-def checkin_by_qr(qr_token: str, marked_by) -> AttendanceRecord:
+def checkin_by_qr(qr_token: str, marked_by, target_date=None) -> AttendanceRecord:
     """
     QR check-in. Looks up registration by qr_token UUID.
 
     Args:
         qr_token: The token string scanned from the QR code.
         marked_by: The admin or volunteer performing the check-in.
+        target_date: Optional target date for non-continuous events.
 
     Returns:
         The updated AttendanceRecord.
@@ -164,10 +170,10 @@ def checkin_by_qr(qr_token: str, marked_by) -> AttendanceRecord:
         raise AppError('NO_RECORD', 'Attendance record not found for this registration.', 500)
 
     _verify_volunteer_access(record.event, marked_by)
-    return _do_checkin(record, CheckInMethod.QR, marked_by)
+    return _do_checkin(record, CheckInMethod.QR, marked_by, target_date=target_date)
 
 
-def checkin_manual(registration_id: uuid.UUID, marked_by) -> AttendanceRecord:
+def checkin_manual(registration_id: uuid.UUID, marked_by, target_date=None) -> AttendanceRecord:
     """
     Manual check-in by registration ID.
     Used for the searchable name-list fallback on event day.
@@ -175,6 +181,7 @@ def checkin_manual(registration_id: uuid.UUID, marked_by) -> AttendanceRecord:
     Args:
         registration_id: The UUID of the registration.
         marked_by: The admin or volunteer performing the check-in.
+        target_date: Optional target date for non-continuous events.
 
     Returns:
         The updated AttendanceRecord.
@@ -191,7 +198,7 @@ def checkin_manual(registration_id: uuid.UUID, marked_by) -> AttendanceRecord:
         raise AppError('NOT_FOUND', 'Attendance record not found.', 404)
 
     _verify_volunteer_access(record.event, marked_by)
-    return _do_checkin(record, CheckInMethod.MANUAL, marked_by)
+    return _do_checkin(record, CheckInMethod.MANUAL, marked_by, target_date=target_date)
 
 
 def revoke_checkin(registration_id: uuid.UUID, revoked_by, target_date=None) -> AttendanceRecord:
@@ -315,11 +322,13 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
     """
     Export attendance records as a CSV string buffer.
     Streamed directly - no file saved to disk.
+    For non-continuous multi-day events, includes columns for each day (Day 1 (Date), Day 2 (Date), etc.)
+    showing check-in timestamp and method.
     """
     _verify_volunteer_access(event, marked_by)
 
     records = AttendanceRecord.objects.filter(event=event).select_related(
-        'user', 'registration'
+        'user', 'registration', 'registration__team'
     ).prefetch_related('daily_checkins').order_by('user__full_name')
 
     buffer = io.StringIO()
@@ -334,15 +343,18 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
         'Graduation Year',
         'Batch',
         'Phone',
-        'Registration Status',
     ]
+    if event.is_team_event:
+        base_headers.append('Team Name')
+    base_headers.append('Registration Status')
 
     if event.is_continuous:
         headers = base_headers + ['Checked In', 'Checked In At', 'Check-In Method']
         writer.writerow(headers)
         
         for record in records:
-            writer.writerow([
+            team_name = record.registration.team.name if (record.registration and record.registration.team) else ''
+            row = [
                 _sanitize_csv_value(record.user.full_name),
                 _sanitize_csv_value(record.user.email),
                 _sanitize_csv_value(record.user.student_uid),
@@ -351,11 +363,16 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
                 _sanitize_csv_value(record.user.graduation_year),
                 _sanitize_csv_value(record.user.batch),
                 _sanitize_csv_value(record.user.phone),
+            ]
+            if event.is_team_event:
+                row.append(_sanitize_csv_value(team_name))
+            row.extend([
                 record.registration.status,
                 'Yes' if record.is_checked_in else 'No',
                 timezone.localtime(record.checked_in_at).strftime('%Y-%m-%d %H:%M:%S') if record.checked_in_at else '',
                 record.check_in_method or '',
             ])
+            writer.writerow(row)
     else:
         import datetime
         start_d = timezone.localtime(event.start_datetime).date()
@@ -367,10 +384,11 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
             event_dates.append(current_d)
             current_d += datetime.timedelta(days=1)
             
-        headers = base_headers + [f"Day: {d.strftime('%b %d')}" for d in event_dates] + ['Total Days Attended']
+        headers = base_headers + [f"Day {i+1} ({d.strftime('%b %d')})" for i, d in enumerate(event_dates)] + ['Total Days Attended']
         writer.writerow(headers)
         
         for record in records:
+            team_name = record.registration.team.name if (record.registration and record.registration.team) else ''
             row = [
                 _sanitize_csv_value(record.user.full_name),
                 _sanitize_csv_value(record.user.email),
@@ -380,15 +398,19 @@ def export_attendance_csv(event: Event, marked_by) -> io.StringIO:
                 _sanitize_csv_value(record.user.graduation_year),
                 _sanitize_csv_value(record.user.batch),
                 _sanitize_csv_value(record.user.phone),
-                record.registration.status,
             ]
+            if event.is_team_event:
+                row.append(_sanitize_csv_value(team_name))
+            row.append(record.registration.status)
             
             user_checkins = {dc.date: dc for dc in record.daily_checkins.all()}
             
             for d in event_dates:
                 if d in user_checkins:
                     dc = user_checkins[d]
-                    row.append(f"Yes ({timezone.localtime(dc.checked_in_at).strftime('%H:%M')} via {dc.check_in_method})")
+                    time_str = timezone.localtime(dc.checked_in_at).strftime('%Y-%m-%d %H:%M:%S') if dc.checked_in_at else ''
+                    method_str = f" via {dc.check_in_method}" if dc.check_in_method else ""
+                    row.append(f"Yes ({time_str}{method_str})")
                 else:
                     row.append("No")
                     
