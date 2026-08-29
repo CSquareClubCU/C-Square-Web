@@ -19,7 +19,7 @@
 <!-- Event details card -->
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 28px;">
   <tr>
-    <td style="background-color: #F8F8F8; border-radius: 10px; padding: 24px; border: 1px solid #EAEAEA;">
+    <td style="background-color: #F8F8F8; border-radius: 10px; padding: 20px; border: 1px solid #EAEAEA;">
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
         <!-- Event name -->
         <tr>
@@ -33,11 +33,13 @@
           <td style="padding: 16px 0; border-bottom: 1px solid #EAEAEA;">
             <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
               <tr>
-                <td width="50%" style="vertical-align: top;">
+                <td style="vertical-align: top; padding-bottom: 16px;">
                   <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: 600; color: #888888; text-transform: uppercase; letter-spacing: 0.1em;">&#128197; Date &amp; Time</p>
                   <p style="margin: 0; font-size: 14px; font-weight: 600; color: #111111;">{{ event_start }}</p>
                 </td>
-                <td width="50%" style="vertical-align: top;">
+              </tr>
+              <tr>
+                <td style="vertical-align: top;">
                   <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: 600; color: #888888; text-transform: uppercase; letter-spacing: 0.1em;">&#128205; Venue</p>
                   <p style="margin: 0; font-size: 14px; font-weight: 600; color: #111111;">{{ event_venue }}</p>
                 </td>
@@ -50,7 +52,7 @@
           <td style="padding-top: 20px; text-align: center;">
             <p style="margin: 0 0 12px 0; font-size: 11px; font-weight: 600; color: #888888; text-transform: uppercase; letter-spacing: 0.1em;">Your Entry Pass</p>
             <div style="display: inline-block; background-color: #FFFFFF; border-radius: 12px; padding: 12px; border: 1px solid #EAEAEA;">
-              <img src="{{ qr_image_url }}" alt="Your QR Code" width="180" height="180" style="display: block; width: 180px; height: 180px; border-radius: 4px;">
+              <img src="{{ qr_image_url }}" alt="Your QR Code" width="220" height="220" style="display: block; width: 220px; height: 220px; border-radius: 4px;">
             </div>
             <p style="margin: 12px 0 0 0; font-size: 12px; color: #888888;">Show this QR code at the entrance on event day</p>
           </td>

@@ -14,7 +14,13 @@ from django.contrib.auth import get_user_model
 import qrcode
 
 from core.exceptions import AppError
-from core.utils.email import send_email
+from core.utils.email import (
+    send_registration_approved_email,
+    send_registration_rejected_email,
+    send_registration_submitted_email,
+    send_waitlist_email,
+    send_off_waitlist_email,
+)
 from core.utils.storage import upload_to_blob
 from events.models import Event, EventStatus
 from registrations.models import (
@@ -125,12 +131,11 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
     # Outside transaction: Email and QR generation
     try:
         if registration.status == RegistrationStatus.WAITLISTED:
-            from django.utils.html import escape
-            html_content = f"<p>You are on the waitlist for {escape(event.title)}. Your position is {waitlist_position}.</p>"
-            send_email(
-                to_email=user.email,
-                subject=f"Waitlisted: {escape(event.title)}",
-                html_content=html_content
+            send_waitlist_email(
+                to=user.email,
+                full_name=user.full_name,
+                event_title=event.title,
+                position=waitlist_position
             )
         elif needs_auto_approve:
             # Generate QR Image
@@ -149,28 +154,27 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
             registration.qr_image_url = qr_url
             registration.save(update_fields=['qr_image_url', 'updated_at'])
 
-            html_content = f"""
-            <p>Your registration for {event.title} is approved!</p>
-            <p>Your QR code is below. Present this at the event for check-in.</p>
-            <img src="{qr_url}" alt="QR Code" />
-            """
-            send_email(
-                to_email=user.email,
-                subject=f"Approved: {event.title}",
-                html_content=html_content
+            send_registration_approved_email(
+                to=user.email,
+                full_name=user.full_name,
+                event_title=event.title,
+                event_start=event.start_date.strftime('%B %d, %Y %I:%M %p') if getattr(event, 'start_date', None) else 'TBD',
+                event_venue=event.venue or 'TBD',
+                qr_image_url=qr_url
             )
         else:
             _send_pending_email(user, event)
     except Exception as e:
         logger.error("Failed to send registration email/QR for %s: %s", registration.id, str(e))
         if needs_auto_approve and not registration.qr_image_url:
-            from django.utils.html import escape
-            html_content = f"<p>Your registration for {escape(event.title)} is approved!</p><p>We experienced a slight delay generating your QR code. It will be available on your dashboard shortly.</p>"
             try:
-                send_email(
-                    to_email=user.email,
-                    subject=f"Approved: {escape(event.title)}",
-                    html_content=html_content
+                send_registration_approved_email(
+                    to=user.email,
+                    full_name=user.full_name,
+                    event_title=event.title,
+                    event_start=event.start_date.strftime('%B %d, %Y %I:%M %p') if getattr(event, 'start_date', None) else 'TBD',
+                    event_venue=event.venue or 'TBD',
+                    qr_image_url=''
                 )
             except Exception as email_err:
                 logger.error("Failed to send approval fallback email: %s", str(email_err))
@@ -178,13 +182,7 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
     return registration
 
 def _send_pending_email(user, event):
-    from django.utils.html import escape
-    html_content = f"<p>Your registration for {escape(event.title)} is pending approval.</p>"
-    send_email(
-        to_email=user.email,
-        subject=f"Registration Pending: {event.title}",
-        html_content=html_content
-    )
+    send_registration_submitted_email(to=user.email, event_title=event.title)
 
 
 from django.utils.crypto import get_random_string
@@ -537,15 +535,13 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
             reg.save(update_fields=['qr_image_url', 'updated_at'])
 
             # Send Email directly
-            html_content = f"""
-            <p>Your registration for {reg.event.title} is approved!</p>
-            <p>Your QR code is below. Present this at the event for check-in.</p>
-            <img src="{qr_url}" alt="QR Code" />
-            """
-            send_email(
-                to_email=reg.user.email,
-                subject=f"Approved: {reg.event.title}",
-                html_content=html_content
+            send_registration_approved_email(
+                to=reg.user.email,
+                full_name=reg.user.full_name,
+                event_title=reg.event.title,
+                event_start=reg.event.start_date.strftime('%B %d, %Y %I:%M %p') if getattr(reg.event, 'start_date', None) else 'TBD',
+                event_venue=reg.event.venue or 'TBD',
+                qr_image_url=qr_url
             )
         except Exception as e:
             logger.error("Failed post-approval tasks for registration %s: %s", reg.id, str(e))
@@ -630,15 +626,13 @@ def approve_team(team_id: uuid.UUID, admin_user) -> Team:
             reg.qr_image_url = qr_url
             reg.save(update_fields=['qr_image_url', 'updated_at'])
 
-            html_content = f"""
-            <p>Your team registration for {reg.event.title} is approved!</p>
-            <p>Your QR code is below. Present this at the event for check-in.</p>
-            <img src="{qr_url}" alt="QR Code" />
-            """
-            send_email(
-                to_email=reg.user.email,
-                subject=f"Team Approved: {reg.event.title}",
-                html_content=html_content
+            send_registration_approved_email(
+                to=reg.user.email,
+                full_name=reg.user.full_name,
+                event_title=reg.event.title,
+                event_start=reg.event.start_date.strftime('%B %d, %Y %I:%M %p') if getattr(reg.event, 'start_date', None) else 'TBD',
+                event_venue=reg.event.venue or 'TBD',
+                qr_image_url=qr_url
             )
         except Exception as e:
             logger.error("Failed post-approval tasks for team member %s: %s", reg.id, str(e))
@@ -672,14 +666,11 @@ def reject_team(team_id: uuid.UUID, reason: str, admin_user) -> Team:
     # Outside transaction: send email
     for reg in regs_to_reject:
         try:
-            html_content = f"""
-            <p>We're sorry, but your team registration for {reg.event.title} was not approved.</p>
-            <p>Reason provided: {reason}</p>
-            """
-            send_email(
-                to_email=reg.user.email,
-                subject=f"Update on your registration for {reg.event.title}",
-                html_content=html_content
+            send_registration_rejected_email(
+                to=reg.user.email,
+                full_name=reg.user.full_name,
+                event_title=reg.event.title,
+                reason=reason
             )
         except Exception as e:
             logger.error("Failed to send rejection email to team member %s: %s", reg.id, str(e))
@@ -725,15 +716,11 @@ def reject_registration(registration_id: uuid.UUID, reason: str, admin_user) -> 
     # Outside transaction: send email
     for reg in regs_to_reject:
         try:
-            from django.utils.html import escape
-            html_content = f"""
-            <p>Your registration for {escape(reg.event.title)} has been rejected.</p>
-            <p>Reason: {escape(reason)}</p>
-            """
-            send_email(
-                to_email=reg.user.email,
-                subject=f"Registration Rejected: {reg.event.title}",
-                html_content=html_content
+            send_registration_rejected_email(
+                to=reg.user.email,
+                full_name=reg.user.full_name,
+                event_title=reg.event.title,
+                reason=reason
             )
         except Exception as e:
             logger.error("Failed to send rejection email: %s", str(e))
@@ -766,11 +753,10 @@ def promote_waitlist(event: Event):
         logger.info('Registration %s promoted from waitlist for event "%s"', next_reg.id, event.title)
         
         try:
-            html_content = f"<p>A spot opened up! Your registration for {event.title} is now pending approval.</p>"
-            send_email(
-                to_email=next_reg.user.email,
-                subject=f"Waitlist Promotion: {event.title}",
-                html_content=html_content
+            send_off_waitlist_email(
+                to=next_reg.user.email,
+                full_name=next_reg.user.full_name,
+                event_title=event.title
             )
         except Exception as e:
             logger.error("Failed to send waitlist promotion email: %s", str(e))
