@@ -133,7 +133,7 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
         if registration.status == RegistrationStatus.WAITLISTED:
             send_waitlist_email(
                 to=user.email,
-                full_name=user.get_full_name(),
+                full_name=user.full_name,
                 event_title=event.title,
                 position=waitlist_position
             )
@@ -156,7 +156,7 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
 
             send_registration_approved_email(
                 to=user.email,
-                full_name=user.get_full_name(),
+                full_name=user.full_name,
                 event_title=event.title,
                 event_start=event.start_date.strftime('%B %d, %Y %I:%M %p') if getattr(event, 'start_date', None) else 'TBD',
                 event_venue=event.venue or 'TBD',
@@ -170,7 +170,7 @@ def register_individual(event_id: uuid.UUID, user) -> Registration:
             try:
                 send_registration_approved_email(
                     to=user.email,
-                    full_name=user.get_full_name(),
+                    full_name=user.full_name,
                     event_title=event.title,
                     event_start=event.start_date.strftime('%B %d, %Y %I:%M %p') if getattr(event, 'start_date', None) else 'TBD',
                     event_venue=event.venue or 'TBD',
@@ -537,7 +537,7 @@ def approve_registration(registration_id: uuid.UUID, admin_user) -> Registration
             # Send Email directly
             send_registration_approved_email(
                 to=reg.user.email,
-                full_name=reg.user.get_full_name(),
+                full_name=reg.user.full_name,
                 event_title=reg.event.title,
                 event_start=reg.event.start_date.strftime('%B %d, %Y %I:%M %p') if getattr(reg.event, 'start_date', None) else 'TBD',
                 event_venue=reg.event.venue or 'TBD',
@@ -628,7 +628,7 @@ def approve_team(team_id: uuid.UUID, admin_user) -> Team:
 
             send_registration_approved_email(
                 to=reg.user.email,
-                full_name=reg.user.get_full_name(),
+                full_name=reg.user.full_name,
                 event_title=reg.event.title,
                 event_start=reg.event.start_date.strftime('%B %d, %Y %I:%M %p') if getattr(reg.event, 'start_date', None) else 'TBD',
                 event_venue=reg.event.venue or 'TBD',
@@ -668,7 +668,7 @@ def reject_team(team_id: uuid.UUID, reason: str, admin_user) -> Team:
         try:
             send_registration_rejected_email(
                 to=reg.user.email,
-                full_name=reg.user.get_full_name(),
+                full_name=reg.user.full_name,
                 event_title=reg.event.title,
                 reason=reason
             )
@@ -718,7 +718,7 @@ def reject_registration(registration_id: uuid.UUID, reason: str, admin_user) -> 
         try:
             send_registration_rejected_email(
                 to=reg.user.email,
-                full_name=reg.user.get_full_name(),
+                full_name=reg.user.full_name,
                 event_title=reg.event.title,
                 reason=reason
             )
@@ -755,7 +755,7 @@ def promote_waitlist(event: Event):
         try:
             send_off_waitlist_email(
                 to=next_reg.user.email,
-                full_name=next_reg.user.get_full_name(),
+                full_name=next_reg.user.full_name,
                 event_title=event.title
             )
         except Exception as e:
