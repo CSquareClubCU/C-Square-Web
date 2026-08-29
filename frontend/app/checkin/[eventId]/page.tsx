@@ -8,10 +8,11 @@
  * 1. QR Scanner  — uses the browser camera to scan QR codes
  * 2. Manual List — searchable attendance list with manual check-in
  *
+ * Supports multi-day non-continuous event day selection.
  * Live stats auto-refresh every 5 seconds.
  */
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,6 +30,8 @@ import {
   Clock,
   Camera,
   CameraOff,
+  AlertTriangle,
+  Calendar,
 } from "lucide-react";
 
 import {
@@ -43,6 +46,7 @@ import { formatDate, formatTime } from "@/lib/utils";
 import type { Event, CheckinStats, AttendanceRecord } from "@/types";
 import { StatusSelect } from "@/components/ui/StatusSelect";
 import { ConfirmAlert } from "@/components/ui/ConfirmAlert";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 type Mode = "qr" | "manual";
 
@@ -56,7 +60,7 @@ type CheckinFeedback = {
 // QR Scanner component — uses jsQR via canvas
 // ─────────────────────────────────────────────────────────────────────────────
 
-function QRScanner({ onScan }: { onScan: (token: string) => void }) {
+function QRScanner({ onScan, disabled }: { onScan: (token: string) => void; disabled?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCamera, setHasCamera] = useState<boolean | null>(null);
@@ -65,6 +69,7 @@ function QRScanner({ onScan }: { onScan: (token: string) => void }) {
   const animRef = useRef<number>(0);
 
   useEffect(() => {
+    if (disabled) return;
     let stream: MediaStream | null = null;
 
     async function startCamera() {
@@ -90,11 +95,11 @@ function QRScanner({ onScan }: { onScan: (token: string) => void }) {
       cancelAnimationFrame(animRef.current);
       stream?.getTracks().forEach((t) => t.stop());
     };
-  }, []);
+  }, [disabled]);
 
   // Scan loop using jsQR dynamically loaded
   useEffect(() => {
-    if (!scanning) return;
+    if (!scanning || disabled) return;
 
     let jsQR: ((data: Uint8ClampedArray, width: number, height: number) => { data: string } | null) | null = null;
 
@@ -132,7 +137,19 @@ function QRScanner({ onScan }: { onScan: (token: string) => void }) {
     }
 
     return () => { cancelAnimationFrame(animRef.current); };
-  }, [scanning, onScan]);
+  }, [scanning, onScan, disabled]);
+
+  if (disabled) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-[24px] border border-gray-200">
+        <CameraOff className="w-12 h-12 text-gray-400 mb-4" />
+        <p className="font-semibold text-gray-700">Scanner Inactive</p>
+        <p className="text-sm text-gray-500 mt-1">
+          Check-in is currently inactive. Scanner is disabled.
+        </p>
+      </div>
+    );
+  }
 
   if (hasCamera === false) {
     return (
@@ -186,6 +203,7 @@ function QRScanner({ onScan }: { onScan: (token: string) => void }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function CheckinPage() {
+  const { user } = useRequireAuth({ role: "volunteer" });
   const params = useParams();
   const eventId = params.eventId as string;
 
@@ -199,7 +217,7 @@ export default function CheckinPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [manualLoading, setManualLoading] = useState<string | null>(null);
   const [listLoading, setListLoading] = useState(false);
-  const [qrLoading, setQrLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
 
   // Debounce list search
@@ -211,15 +229,60 @@ export default function CheckinPage() {
   // Load event
   useEffect(() => {
     fetchEventById(eventId)
-      .then(setEvent)
+      .then((evt) => {
+        setEvent(evt);
+        if (!evt.is_continuous) {
+          const start = new Date(evt.start_datetime);
+          const end = new Date(evt.end_datetime);
+          const now = new Date();
+          const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          
+          const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+          const endStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
+
+          if (todayStr >= startStr && todayStr <= endStr) {
+            setSelectedDate(todayStr);
+          } else {
+            setSelectedDate(startStr);
+          }
+        }
+      })
       .catch((err: any) => setError(err.message || "Failed to load event."));
   }, [eventId]);
+
+  // Calculate event dates for multi-day events
+  const eventDates = useMemo(() => {
+    if (!event || event.is_continuous) return [];
+    const start = new Date(event.start_datetime);
+    const end = new Date(event.end_datetime);
+    const dates: { dateStr: string; label: string; dayNum: number }[] = [];
+
+    const cur = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+    let day = 1;
+    while (cur <= last) {
+      const year = cur.getFullYear();
+      const month = String(cur.getMonth() + 1).padStart(2, "0");
+      const dayStr = String(cur.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${dayStr}`;
+      const monthName = cur.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      dates.push({
+        dateStr,
+        label: `Day ${day} (${monthName})`,
+        dayNum: day,
+      });
+      cur.setDate(cur.getDate() + 1);
+      day++;
+    }
+    return dates;
+  }, [event]);
 
   // Load stats + poll every 5s
   const refreshStats = useCallback(async () => {
     if (!event?.id) return;
     try {
-      const data = await fetchCheckinStats(event.id);
+      const data = await fetchCheckinStats(event.id, selectedDate);
       setStats(data);
       setError(null);
     } catch (err: any) {
@@ -229,7 +292,7 @@ export default function CheckinPage() {
         console.error(err);
       }
     }
-  }, [event?.id]);
+  }, [event?.id, selectedDate]);
 
   useEffect(() => {
     let mounted = true;
@@ -287,13 +350,16 @@ export default function CheckinPage() {
     if (qrLoadingRef.current) return;
     qrLoadingRef.current = true;
     try {
-      const result = await checkinByQR(token);
+      const result = await checkinByQR(token, selectedDate);
       showFeedback({
         type: result.already_checked_in ? "already" : "success",
         name: result.student.full_name,
         message: result.message,
       });
       refreshStats();
+      if (mode === "manual") {
+        loadList();
+      }
     } catch (err: unknown) {
       showFeedback({
         type: "error",
@@ -303,13 +369,13 @@ export default function CheckinPage() {
     } finally {
       setTimeout(() => { qrLoadingRef.current = false; }, 1500); // 1.5s cooldown
     }
-  }, [refreshStats]);
+  }, [refreshStats, selectedDate, mode, loadList]);
 
   // Handle manual check-in
   async function handleManualCheckin(registrationId: string) {
     setManualLoading(registrationId);
     try {
-      const result = await manualCheckin(registrationId);
+      const result = await manualCheckin(registrationId, selectedDate);
       showFeedback({
         type: result.already_checked_in ? "already" : "success",
         name: result.student.full_name,
@@ -332,7 +398,7 @@ export default function CheckinPage() {
   async function handleRevokeCheckin(registrationId: string) {
     setManualLoading(registrationId);
     try {
-      await revokeCheckin(registrationId);
+      await revokeCheckin(registrationId, selectedDate);
       showFeedback({
         type: "success",
         name: "",
@@ -350,6 +416,19 @@ export default function CheckinPage() {
       setManualLoading(null);
     }
   }
+
+  // Check if a specific record is checked in for the active context (continuous vs selected day)
+  const isRecordCheckedIn = (record: AttendanceRecord): boolean => {
+    if (event?.is_continuous !== false) {
+      return record.is_checked_in;
+    }
+    if (!selectedDate) return record.is_checked_in;
+    return record.daily_checkins?.some((dc) => dc.date === selectedDate) ?? false;
+  };
+
+  const isCheckinDisabledForVolunteer = Boolean(
+    user?.role === "volunteer" && event && !event.is_checkin_active
+  );
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -379,6 +458,45 @@ export default function CheckinPage() {
               <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{formatDate(event.start_datetime)}</span>
               <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />{event.venue}</span>
             </p>
+          )}
+
+          {/* Inactive check-in notice */}
+          {event && !event.is_checkin_active && (
+            <div className="mt-4 p-3.5 rounded-[16px] bg-amber-50 border border-amber-200 flex items-center gap-3 text-amber-800 text-sm">
+              <AlertTriangle className="w-5 h-5 shrink-0 text-amber-600" />
+              <span>
+                {user?.role === "volunteer"
+                  ? "Check-in is currently inactive for volunteers. An admin must enable check-in for this event."
+                  : "Check-in is currently closed for volunteers. As an admin, you can still perform check-ins."}
+              </span>
+            </div>
+          )}
+
+          {/* Multi-day Date Tabs */}
+          {event && !event.is_continuous && eventDates.length > 1 && (
+            <div className="mt-6">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5" /> Select Check-In Date
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {eventDates.map((d) => {
+                  const isSelected = selectedDate === d.dateStr;
+                  return (
+                    <button
+                      key={d.dateStr}
+                      onClick={() => setSelectedDate(d.dateStr)}
+                      className={`px-4 py-2 rounded-[14px] text-sm font-semibold transition-all ${
+                        isSelected
+                          ? "bg-black text-white shadow-md scale-[1.02]"
+                          : "bg-[#f8f9fa] text-gray-600 hover:text-black hover:bg-gray-100 border border-black/[0.04]"
+                      }`}
+                    >
+                      {d.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
           {/* Mode Toggle */}
@@ -460,9 +578,11 @@ export default function CheckinPage() {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-sm mx-auto pt-4"
           >
-            <QRScanner onScan={handleQRScan} />
+            <QRScanner onScan={handleQRScan} disabled={isCheckinDisabledForVolunteer} />
             <p className="text-center text-sm text-gray-400 mt-6">
-              Point camera at student QR code.
+              {isCheckinDisabledForVolunteer
+                ? "Check-in disabled until activated by an admin."
+                : `Point camera at student QR code${selectedDate ? ` for ${selectedDate}` : ""}.`}
             </p>
           </motion.div>
         )}
@@ -500,59 +620,63 @@ export default function CheckinPage() {
                     <span>Status</span>
                   </div>
                   <div className="divide-y divide-[#e5e7eb]">
-                    {attendanceList.map((record) => (
-                      <div
-                        key={record.id}
-                        className={`flex flex-col sm:grid sm:grid-cols-[1fr_1fr_130px] sm:items-center gap-4 px-6 py-5 hover:bg-gray-50 transition-colors last:rounded-b-[24px] ${
-                          record.is_checked_in ? "" : "opacity-70"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          {/* Check-in status indicator */}
-                          <div
-                            className={`w-2 h-2 rounded-full shrink-0 ${
-                              record.is_checked_in ? "bg-[#10b981]" : "bg-gray-300"
-                            }`}
-                          />
-                          <p className="font-semibold text-[15px] text-[#111111] truncate">
-                            {record.user_full_name || record.user_email.split('@')[0]}
-                          </p>
-                        </div>
-                        
-                        <div className="min-w-0">
-                          <p className="text-[14px] text-[#6b7280] truncate">
-                            {record.user_email}
-                          </p>
-                        </div>
-
-                        <div className="shrink-0 flex items-center">
-                          {manualLoading === record.registration_id ? (
-                            <div className="px-4 py-1.5 flex items-center justify-center">
-                              <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-                            </div>
-                          ) : (
-                            <StatusSelect
-                              isCheckedIn={record.is_checked_in}
-                              onSelect={(newStatus) => {
-                                if (newStatus === "checked_in" && !record.is_checked_in) {
-                                  setConfirmAction({
-                                    type: "checkin",
-                                    recordId: record.registration_id,
-                                    recordName: record.user_full_name || record.user_email.split('@')[0]
-                                  });
-                                } else if (newStatus === "pending" && record.is_checked_in) {
-                                  setConfirmAction({
-                                    type: "revoke",
-                                    recordId: record.registration_id,
-                                    recordName: record.user_full_name || record.user_email.split('@')[0]
-                                  });
-                                }
-                              }}
+                    {attendanceList.map((record) => {
+                      const checkedInToday = isRecordCheckedIn(record);
+                      return (
+                        <div
+                          key={record.id}
+                          className={`flex flex-col sm:grid sm:grid-cols-[1fr_1fr_130px] sm:items-center gap-4 px-6 py-5 hover:bg-gray-50 transition-colors last:rounded-b-[24px] ${
+                            checkedInToday ? "" : "opacity-70"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Check-in status indicator */}
+                            <div
+                              className={`w-2 h-2 rounded-full shrink-0 ${
+                                checkedInToday ? "bg-[#10b981]" : "bg-gray-300"
+                              }`}
                             />
-                          )}
+                            <p className="font-semibold text-[15px] text-[#111111] truncate">
+                              {record.user_full_name || record.user_email.split("@")[0]}
+                            </p>
+                          </div>
+                          
+                          <div className="min-w-0">
+                            <p className="text-[14px] text-[#6b7280] truncate">
+                              {record.user_email}
+                            </p>
+                          </div>
+
+                          <div className="shrink-0 flex items-center">
+                            {manualLoading === record.registration_id ? (
+                              <div className="px-4 py-1.5 flex items-center justify-center">
+                                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                              </div>
+                            ) : (
+                              <StatusSelect
+                                isCheckedIn={checkedInToday}
+                                disabled={isCheckinDisabledForVolunteer}
+                                onSelect={(newStatus) => {
+                                  if (newStatus === "checked_in" && !checkedInToday) {
+                                    setConfirmAction({
+                                      type: "checkin",
+                                      recordId: record.registration_id,
+                                      recordName: record.user_full_name || record.user_email.split("@")[0],
+                                    });
+                                  } else if (newStatus === "pending" && checkedInToday) {
+                                    setConfirmAction({
+                                      type: "revoke",
+                                      recordId: record.registration_id,
+                                      recordName: record.user_full_name || record.user_email.split("@")[0],
+                                    });
+                                  }
+                                }}
+                              />
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </>
               )}
@@ -560,7 +684,7 @@ export default function CheckinPage() {
 
             <p className="text-[13px] text-center text-gray-500 mt-4">
               Showing approved registrations only. 
-              <span className="text-emerald-600 font-semibold"> {attendanceList.filter(r => r.is_checked_in).length}</span> of {attendanceList.length} checked in.
+              <span className="text-emerald-600 font-semibold"> {attendanceList.filter((r) => isRecordCheckedIn(r)).length}</span> of {attendanceList.length} checked in{selectedDate ? ` on ${selectedDate}` : ""}.
             </p>
           </motion.div>
         )}
@@ -573,7 +697,8 @@ export default function CheckinPage() {
         message={
           <>
             Are you sure you want to {confirmAction?.type === "checkin" ? "check in" : "revoke check-in for"}{" "}
-            <span className="font-semibold text-black">{confirmAction?.recordName}</span>?
+            <span className="font-semibold text-black">{confirmAction?.recordName}</span>
+            {selectedDate && !event?.is_continuous ? ` for ${selectedDate}` : ""}?
           </>
         }
         confirmText={confirmAction?.type === "checkin" ? "Check In" : "Revoke"}
@@ -592,3 +717,4 @@ export default function CheckinPage() {
     </div>
   );
 }
+

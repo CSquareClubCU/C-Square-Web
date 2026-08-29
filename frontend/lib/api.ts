@@ -596,9 +596,11 @@ export async function deleteEvent(id: string): Promise<void> {
 /**
  * GET /api/events/{id}/checkin-stats/
  * Admin + Volunteer: get live check-in stats for an event.
+ * Supports optional date query parameter for multi-day events.
  */
-export async function fetchCheckinStats(eventId: string): Promise<CheckinStats> {
-  return get<CheckinStats>(`/events/${eventId}/checkin-stats/`);
+export async function fetchCheckinStats(eventId: string, date?: string): Promise<CheckinStats> {
+  const query = date ? `?date=${encodeURIComponent(date)}` : "";
+  return get<CheckinStats>(`/events/${eventId}/checkin-stats/${query}`);
 }
 
 // ============================================================================
@@ -609,16 +611,16 @@ export async function fetchCheckinStats(eventId: string): Promise<CheckinStats> 
  * POST /api/attendance/checkin/
  * Check in an attendee by QR token.
  */
-export async function checkinByQR(qrToken: string): Promise<CheckinResponse> {
-  return post("/attendance/checkin/", { qr_token: qrToken });
+export async function checkinByQR(qrToken: string, date?: string): Promise<CheckinResponse> {
+  return post("/attendance/checkin/", { qr_token: qrToken, ...(date ? { date } : {}) });
 }
 
 /**
  * POST /api/attendance/{registration_id}/manual-checkin/
  * Check in an attendee manually by registration ID.
  */
-export async function manualCheckin(registrationId: string): Promise<CheckinResponse> {
-  return post(`/attendance/${registrationId}/manual-checkin/`);
+export async function manualCheckin(registrationId: string, date?: string): Promise<CheckinResponse> {
+  return post(`/attendance/${registrationId}/manual-checkin/`, date ? { date } : {});
 }
 
 /**
@@ -774,8 +776,9 @@ export const fetchUser = fetchCurrentUser;
 // New Endpoints
 // ============================================================================
 
-export async function revokeCheckin(registrationId: string): Promise<void> {
-  return del(`/attendance/${registrationId}/manual-checkin/`);
+export async function revokeCheckin(registrationId: string, date?: string): Promise<void> {
+  const query = date ? `?date=${encodeURIComponent(date)}` : "";
+  return del(`/attendance/${registrationId}/manual-checkin/${query}`);
 }
 
 export async function deleteRegistration(registrationId: string): Promise<void> {

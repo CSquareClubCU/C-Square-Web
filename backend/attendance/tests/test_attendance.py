@@ -290,3 +290,124 @@ class TestAttendanceExportView:
         api_client.force_authenticate(user=student)
         response = api_client.get(f'/api/attendance/{event.id}/export/')
         assert response.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# Multi-Day / Non-Continuous Tests
+# ---------------------------------------------------------------------------
+
+@pytest.mark.django_db
+class TestMultiDayCheckin:
+    def test_multi_day_checkin_flow(self, api_client, admin_user, student):
+        import datetime
+        now = timezone.now()
+        start = now
+        end = now + timedelta(days=2)
+        event = Event.objects.create(
+            title='Multi Day Hackathon',
+            description='D',
+            event_type=EventType.WORKSHOP,
+            start_datetime=start,
+            end_datetime=end,
+            venue='Hall A',
+            capacity=100,
+            registration_deadline=start,
+            created_by=admin_user,
+            is_continuous=False,
+            is_checkin_active=True,
+            status=EventStatus.PUBLISHED,
+        )
+        reg = Registration.objects.create(
+            event=event,
+            user=student,
+            status=RegistrationStatus.APPROVED,
+            qr_token=uuid.uuid4(),
+        )
+        record = AttendanceRecord.objects.create(
+            registration=reg,
+            event=event,
+            user=student,
+        )
+
+        day1_date = timezone.localtime(start).date()
+        day2_date = day1_date + datetime.timedelta(days=1)
+
+        api_client.force_authenticate(user=admin_user)
+        # Check-in day 1
+        res1 = api_client.post(
+            f'/api/attendance/{reg.id}/manual-checkin/',
+            {'date': str(day1_date)},
+            format='json',
+        )
+        assert res1.status_code == 200
+        assert res1.data['already_checked_in'] is False
+        assert record.daily_checkins.filter(date=day1_date).exists()
+
+        # Check-in day 2 via QR
+        res2 = api_client.post(
+            '/api/attendance/checkin/',
+            {'qr_token': str(reg.qr_token), 'date': str(day2_date)},
+            format='json',
+        )
+        assert res2.status_code == 200
+        assert res2.data['already_checked_in'] is False
+        assert record.daily_checkins.filter(date=day2_date).exists()
+        assert record.daily_checkins.count() == 2
+
+        # Check stats for day 1 vs day 2
+        stats_day1 = api_client.get(f'/api/events/{event.id}/checkin-stats/?date={day1_date}')
+        assert stats_day1.status_code == 200
+        assert stats_day1.data['checked_in'] == 1
+
+        # Revoke day 1
+        del_res = api_client.delete(f'/api/attendance/{reg.id}/manual-checkin/?date={day1_date}')
+        assert del_res.status_code == 200
+        assert not record.daily_checkins.filter(date=day1_date).exists()
+        assert record.daily_checkins.filter(date=day2_date).exists()
+
+    def test_multi_day_csv_export(self, api_client, admin_user, student):
+        import datetime
+        now = timezone.now()
+        start = now
+        end = now + timedelta(days=2)
+        event = Event.objects.create(
+            title='Multi Day Workshop',
+            description='D',
+            event_type=EventType.WORKSHOP,
+            start_datetime=start,
+            end_datetime=end,
+            venue='Hall A',
+            capacity=100,
+            registration_deadline=start,
+            created_by=admin_user,
+            is_continuous=False,
+            is_checkin_active=True,
+            status=EventStatus.PUBLISHED,
+        )
+        reg = Registration.objects.create(
+            event=event,
+            user=student,
+            status=RegistrationStatus.APPROVED,
+            qr_token=uuid.uuid4(),
+        )
+        record = AttendanceRecord.objects.create(
+            registration=reg,
+            event=event,
+            user=student,
+        )
+
+        day1_date = timezone.localtime(start).date()
+        day2_date = day1_date + datetime.timedelta(days=1)
+
+        # Check in on day 1
+        services.checkin_manual(reg.id, admin_user, target_date=day1_date)
+
+        buf = services.export_attendance_csv(event, admin_user)
+        csv_text = buf.getvalue()
+
+        assert 'Day 1' in csv_text
+        assert 'Day 2' in csv_text
+        assert 'Total Days Attended' in csv_text
+        assert student.email in csv_text
+        assert 'Yes' in csv_text
+

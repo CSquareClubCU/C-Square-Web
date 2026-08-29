@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from attendance import services
-from attendance.serializers import AttendanceRecordSerializer, QRCheckinSerializer
+from attendance.serializers import AttendanceRecordSerializer, QRCheckinSerializer, ManualCheckinSerializer
 from core.exceptions import AppError
 from core.pagination import StandardPagination
 from core.permissions import IsAdmin, IsAdminOrVolunteer
@@ -75,6 +75,7 @@ class QRCheckinView(APIView):
             raise AppError('VALIDATION_ERROR', 'Invalid input.', fields=serializer.errors)
 
         qr_token = serializer.validated_data['qr_token']
+        target_date = serializer.validated_data.get('date')
         
         # Track if already checked in before calling service
         was_already = False
@@ -82,11 +83,16 @@ class QRCheckinView(APIView):
             import uuid
             from registrations.models import Registration
             reg = Registration.objects.get(qr_token=uuid.UUID(qr_token))
-            was_already = reg.attendance_record.is_checked_in
+            if reg.event.is_continuous:
+                was_already = reg.attendance_record.is_checked_in
+            else:
+                from django.utils import timezone
+                d = target_date if target_date else timezone.localtime().date()
+                was_already = reg.attendance_record.daily_checkins.filter(date=d).exists()
         except (Registration.DoesNotExist, AttributeError, ValueError, TypeError):
             pass
 
-        record = services.checkin_by_qr(qr_token=qr_token, marked_by=request.user)
+        record = services.checkin_by_qr(qr_token=qr_token, marked_by=request.user, target_date=target_date)
         return Response(_build_checkin_response(record, was_already))
 
 
@@ -99,17 +105,29 @@ class ManualCheckinView(APIView):
     permission_classes = [IsAdminOrVolunteer]
 
     def post(self, request, registration_id):
+        serializer = ManualCheckinSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise AppError('VALIDATION_ERROR', 'Invalid input.', fields=serializer.errors)
+
+        target_date = serializer.validated_data.get('date')
         try:
             from attendance.models import AttendanceRecord
-            was_already = AttendanceRecord.objects.get(
+            rec = AttendanceRecord.objects.get(
                 registration_id=registration_id
-            ).is_checked_in
+            )
+            if rec.event.is_continuous:
+                was_already = rec.is_checked_in
+            else:
+                from django.utils import timezone
+                d = target_date if target_date else timezone.localtime().date()
+                was_already = rec.daily_checkins.filter(date=d).exists()
         except (AttendanceRecord.DoesNotExist, ValueError, TypeError):
             was_already = False
 
         record = services.checkin_manual(
             registration_id=registration_id,
             marked_by=request.user,
+            target_date=target_date,
         )
         return Response(_build_checkin_response(record, was_already))
 

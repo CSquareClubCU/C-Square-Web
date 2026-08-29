@@ -253,7 +253,7 @@ def remove_volunteer(event: Event, assignment_id: UUID) -> None:
     )
 
 
-def get_checkin_stats(event: Event, requesting_user) -> dict:
+def get_checkin_stats(event: Event, requesting_user, target_date=None) -> dict:
     """
     Get live check-in statistics for an event.
 
@@ -281,11 +281,25 @@ def get_checkin_stats(event: Event, requesting_user) -> dict:
 
     # Compute stats from attendance records (graceful fallback if app not built yet)
     try:
-        from attendance.models import AttendanceRecord
+        from attendance.models import AttendanceRecord, DailyCheckIn
         total_approved = AttendanceRecord.objects.filter(event=event).count()
-        checked_in = AttendanceRecord.objects.filter(
-            event=event, is_checked_in=True
-        ).count()
+        if event.is_continuous:
+            checked_in = AttendanceRecord.objects.filter(
+                event=event, is_checked_in=True
+            ).count()
+        else:
+            if target_date:
+                if isinstance(target_date, str):
+                    from django.utils.dateparse import parse_date
+                    target_date = parse_date(target_date)
+            else:
+                from django.utils import timezone
+                target_date = timezone.localtime().date()
+            
+            checked_in = DailyCheckIn.objects.filter(
+                attendance_record__event=event,
+                date=target_date,
+            ).count() if target_date else 0
     except ImportError:
         total_approved = 0
         checked_in = 0

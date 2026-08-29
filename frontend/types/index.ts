@@ -224,6 +224,11 @@ export interface AttendanceRecord {
   checked_in_at: string | null;
   check_in_method: CheckInMethod | null;
   marked_by_email: string | null;
+  daily_checkins?: {
+    date: string;
+    checked_in_at: string;
+    check_in_method: CheckInMethod | null;
+  }[];
 }
 
 /** Response from POST /attendance/checkin/ and /manual-checkin/ */
