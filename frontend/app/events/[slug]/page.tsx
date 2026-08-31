@@ -9,7 +9,7 @@ import remarkGfm from "remark-gfm";
 
 const REMARK_PLUGINS = [remarkGfm];
 import { fetchEventById, fetchCurrentUser, registerForEvent, cancelRegistration, fetchMyRegistrations } from "@/lib/api";
-import { formatDate, formatTime } from "@/lib/utils";
+import { formatDate, formatTime, formatDateRange } from "@/lib/utils";
 import {
   MapPin,
   Clock,
@@ -387,9 +387,11 @@ export default function EventDetailPage() {
                   {/* Info List with Vertical Line Accent */}
                   <div className="relative pl-5 border-l-2 border-[#111111] mb-8 space-y-6">
                     <div>
-                      <p className="text-[11px] font-semibold text-[#898989] uppercase tracking-widest mb-1">Runs From</p>
+                      <p className="text-[11px] font-semibold text-[#898989] uppercase tracking-widest mb-1">
+                        {new Date(event.start_datetime).toDateString() === new Date(event.end_datetime).toDateString() ? "Date" : "Runs From"}
+                      </p>
                       <p className="font-semibold text-[#111111] text-[16px]">
-                        {new Date(event.start_datetime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(event.end_datetime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {formatDateRange(event.start_datetime, event.end_datetime)}
                       </p>
                     </div>
                     <div>

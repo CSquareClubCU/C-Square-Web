@@ -167,13 +167,13 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
                 'end_datetime': 'End datetime must be after start datetime.'
             })
 
-        # registration_deadline must be before start_datetime
+        # registration_deadline cannot be after end_datetime
         deadline = data.get('registration_deadline') or getattr(
             self.instance, 'registration_deadline', None
         )
-        if start and deadline and deadline >= start:
+        if end and deadline and deadline > end:
             raise serializers.ValidationError({
-                'registration_deadline': 'Registration deadline must be before the event start.'
+                'registration_deadline': 'Registration deadline cannot be after the event ends.'
             })
 
         # Team size fields required if is_team_event=True
