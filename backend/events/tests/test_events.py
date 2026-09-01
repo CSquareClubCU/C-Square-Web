@@ -392,24 +392,47 @@ class TestEventListView:
         assert response.status_code == 400
         assert 'end_datetime' in response.data['error']['fields']
 
-    def test_create_team_event_requires_team_size(self, api_client, admin_user):
+    def test_create_event_with_deadline_during_event_hours_succeeds(self, api_client, admin_user):
         api_client.force_authenticate(user=admin_user)
         now = timezone.now()
         payload = {
-            'title': 'Hackathon',
-            'description': 'D',
+            'title': '2-Day Hackathon',
+            'description': '<p>Hackathon with active registration during event</p>',
             'event_type': 'hackathon',
-            'start_datetime': (now + timedelta(days=10)).isoformat(),
-            'end_datetime': (now + timedelta(days=11)).isoformat(),
-            'venue': 'V',
+            'start_datetime': (now + timedelta(days=2)).isoformat(),
+            'end_datetime': (now + timedelta(days=4)).isoformat(),
+            'venue': 'Main Auditorium',
             'capacity': 100,
-            'registration_deadline': (now + timedelta(days=8)).isoformat(),
+            # Deadline is during the event (Day 3, between start Day 2 and end Day 4)
+            'registration_deadline': (now + timedelta(days=3)).isoformat(),
             'is_team_event': True,
-            # missing min_team_size and max_team_size
+            'min_team_size': 2,
+            'max_team_size': 4,
+            'status': 'draft',
+        }
+        response = api_client.post('/api/events/', payload, format='json')
+        assert response.status_code == 201
+        assert response.data['title'] == '2-Day Hackathon'
+
+    def test_create_event_with_deadline_after_end_returns_400(self, api_client, admin_user):
+        api_client.force_authenticate(user=admin_user)
+        now = timezone.now()
+        payload = {
+            'title': 'Bad Deadline Workshop',
+            'description': '<p>Workshop</p>',
+            'event_type': 'workshop',
+            'start_datetime': (now + timedelta(days=2)).isoformat(),
+            'end_datetime': (now + timedelta(days=3)).isoformat(),
+            'venue': 'Room 101',
+            'capacity': 30,
+            # Deadline is after end_datetime (Day 4 > Day 3)
+            'registration_deadline': (now + timedelta(days=4)).isoformat(),
             'status': 'draft',
         }
         response = api_client.post('/api/events/', payload, format='json')
         assert response.status_code == 400
+        assert 'registration_deadline' in response.data['error']['fields']
+
 
 
 # ---------------------------------------------------------------------------
