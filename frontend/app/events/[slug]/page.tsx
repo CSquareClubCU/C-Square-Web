@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 const REMARK_PLUGINS = [remarkGfm];
-import { fetchEventById, fetchCurrentUser, registerForEvent, cancelRegistration, fetchMyRegistrations } from "@/lib/api";
+import { fetchEventById, fetchCurrentUser, registerForEvent, cancelRegistration, fetchMyRegistrations, joinTeam } from "@/lib/api";
 import { formatDate, formatTime, formatDateRange } from "@/lib/utils";
 import {
   MapPin,
@@ -68,8 +68,11 @@ function useCountdown(targetDate: string | undefined) {
   return timeLeft;
 }
 
-export default function EventDetailPage() {
+function EventDetailContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const inviteCode = searchParams.get("team") || searchParams.get("join_code") || searchParams.get("code") || "";
+
   const [event, setEvent] = useState<Event | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [myRegistration, setMyRegistration] = useState<Registration | null>(null);
@@ -118,7 +121,16 @@ export default function EventDetailPage() {
     setRegError(null);
     try {
       const reg = await registerForEvent(event.id);
-      setMyRegistration(reg);
+      let updatedReg = reg;
+      if (inviteCode && event.is_team_event) {
+        try {
+          const joinedTeam = await joinTeam(reg.id, inviteCode.trim().toUpperCase());
+          updatedReg = { ...reg, team: joinedTeam };
+        } catch (teamErr) {
+          console.error("Auto-joining team failed:", teamErr);
+        }
+      }
+      setMyRegistration(updatedReg);
       // registered_count only counts approved registrations — only increment if auto-approved
       if (reg.status === 'approved') {
         setEvent((prev) => prev ? { ...prev, registered_count: prev.registered_count + 1 } : prev);
@@ -446,6 +458,9 @@ export default function EventDetailPage() {
                     {showTeamSection && (
                       <TeamStatusWidget 
                         registration={myRegistration}
+                        eventSlug={event.slug}
+                        eventTitle={event.title}
+                        initialJoinCode={inviteCode}
                         onTeamUpdated={(team: Team | null) => {
                           setMyRegistration(prev => prev ? { ...prev, team } : null);
                         }}
@@ -481,7 +496,7 @@ export default function EventDetailPage() {
                            !canRegister ? "Unavailable" : "Apply now"}
                         </Button>
                       ) : (
-                        <Link href={`/login?next=/events/${event.slug}`}>
+                        <Link href={`/login?next=${encodeURIComponent(inviteCode ? `/events/${event.slug}?team=${inviteCode}` : `/events/${event.slug}`)}`}>
                           <Button className="w-full bg-[#111111] text-[#ffffff] hover:bg-[#242424] shadow-sm" disabled={!canRegister}>
                             {canRegister ? "Log in to Apply" : "Unavailable"}
                           </Button>
@@ -511,5 +526,19 @@ export default function EventDetailPage() {
           
         </div>
       </div>
+  );
+}
+
+export default function EventDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full min-h-screen bg-white flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#FF5A00]" />
+        </div>
+      }
+    >
+      <EventDetailContent />
+    </Suspense>
   );
 }

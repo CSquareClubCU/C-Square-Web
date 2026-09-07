@@ -15,6 +15,7 @@ import qrcode
 
 from core.exceptions import AppError
 from core.utils.email import (
+    send_email,
     send_registration_approved_email,
     send_registration_rejected_email,
     send_registration_submitted_email,

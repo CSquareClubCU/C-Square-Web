@@ -1,28 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
-import { Loader2, Users, Key, Copy, CheckCircle2 } from "lucide-react";
+import { Loader2, Users, Key, Copy, CheckCircle2, Link as LinkIcon, Share2 } from "lucide-react";
 import { createTeam, joinTeam, leaveTeam } from "@/lib/api";
 import { Registration, Team } from "@/types";
 
 interface TeamStatusWidgetProps {
   registration: Registration;
+  eventSlug?: string;
+  eventTitle?: string;
+  initialJoinCode?: string;
   onTeamUpdated: (team: Team | null) => void;
 }
 
-export default function TeamStatusWidget({ registration, onTeamUpdated }: TeamStatusWidgetProps) {
+export default function TeamStatusWidget({ 
+  registration, 
+  eventSlug,
+  eventTitle,
+  initialJoinCode = "",
+  onTeamUpdated 
+}: TeamStatusWidgetProps) {
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"idle" | "create" | "join">("idle");
+  const [mode, setMode] = useState<"idle" | "create" | "join">(
+    initialJoinCode && !registration.team ? "join" : "idle"
+  );
   const [teamName, setTeamName] = useState("");
-  const [joinCode, setJoinCode] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [joinCode, setJoinCode] = useState(initialJoinCode || "");
+  const [copiedType, setCopiedType] = useState<"code" | "link" | null>(null);
   const [leaveConfirm, setLeaveConfirm] = useState(false);
   
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
   const team = registration.team;
+
+  useEffect(() => {
+    if (initialJoinCode && !registration.team) {
+      setJoinCode(initialJoinCode.toUpperCase());
+      setMode("join");
+    }
+  }, [initialJoinCode, registration.team]);
 
   async function handleCreateTeam(e: React.FormEvent) {
     e.preventDefault();
@@ -79,13 +97,52 @@ export default function TeamStatusWidget({ registration, onTeamUpdated }: TeamSt
     }
   }
 
-  const copyCode = () => {
+  const getInviteUrl = () => {
+    if (typeof window === "undefined" || !team?.join_code) return "";
+    const origin = window.location.origin;
+    const path = eventSlug ? `/events/${eventSlug}` : window.location.pathname;
+    return `${origin}${path}?team=${team.join_code}`;
+  };
+
+  const copyCode = async () => {
     if (team?.join_code) {
-      navigator.clipboard.writeText(team.join_code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(team.join_code);
+      setCopiedType("code");
+      setTimeout(() => setCopiedType(null), 2000);
       setSuccessMsg("Join code copied!");
       setTimeout(() => setSuccessMsg(""), 3000);
+    }
+  };
+
+  const copyLink = async () => {
+    const inviteUrl = getInviteUrl();
+    if (inviteUrl) {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopiedType("link");
+      setTimeout(() => setCopiedType(null), 2000);
+      setSuccessMsg("Invite link copied!");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    }
+  };
+
+  const shareTeam = async () => {
+    const inviteUrl = getInviteUrl();
+    if (!inviteUrl) return;
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Join team ${team?.name}`,
+          text: `Join my team "${team?.name}" for ${eventTitle || "the event"} on C-Square!`,
+          url: inviteUrl,
+        });
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          await copyLink();
+        }
+      }
+    } else {
+      await copyLink();
     }
   };
 
@@ -108,16 +165,45 @@ export default function TeamStatusWidget({ registration, onTeamUpdated }: TeamSt
             <>
               <div className="flex items-center gap-2 mt-4 p-2 bg-[#ffffff] border border-[#e5e7eb] rounded-[8px]">
                 <Key className="w-4 h-4 text-[#6b7280] shrink-0 ml-1" />
-                <span className="text-[14px] text-[#6b7280] flex-1 font-mono">{team.join_code}</span>
-                <button 
-                  onClick={copyCode}
-                  className="p-1.5 hover:bg-[#f3f4f6] rounded-[6px] transition-colors"
-                  title="Copy Join Code"
-                >
-                  {copied ? <CheckCircle2 className="w-4 h-4 text-[#10b981]" /> : <Copy className="w-4 h-4 text-[#6b7280]" />}
-                </button>
+                <span className="text-[14px] font-mono text-[#111111] font-semibold flex-1 tracking-wider">{team.join_code}</span>
+                <div className="flex items-center gap-1">
+                  <button 
+                    type="button"
+                    onClick={copyCode}
+                    className="p-1.5 hover:bg-[#f3f4f6] rounded-[6px] transition-colors flex items-center gap-1 text-[12px] font-medium text-[#4b5563]"
+                    title="Copy Join Code"
+                  >
+                    {copiedType === "code" ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#10b981]" />
+                    ) : (
+                      <Copy className="w-4 h-4 text-[#6b7280]" />
+                    )}
+                    <span className="hidden sm:inline">Code</span>
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={copyLink}
+                    className="p-1.5 hover:bg-[#f3f4f6] rounded-[6px] transition-colors flex items-center gap-1 text-[12px] font-medium text-[#4b5563]"
+                    title="Copy Invite Link"
+                  >
+                    {copiedType === "link" ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#10b981]" />
+                    ) : (
+                      <LinkIcon className="w-4 h-4 text-[#6b7280]" />
+                    )}
+                    <span className="hidden sm:inline">Link</span>
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={shareTeam}
+                    className="p-1.5 hover:bg-[#f3f4f6] rounded-[6px] transition-colors flex items-center gap-1 text-[12px] font-medium text-[#3b82f6]"
+                    title="Share Team"
+                  >
+                    <Share2 className="w-4 h-4 text-[#3b82f6]" />
+                  </button>
+                </div>
               </div>
-              <p className="text-[12px] text-[#6b7280] mt-2">Share this code with your teammates to let them join.</p>
+              <p className="text-[12px] text-[#6b7280] mt-2">Share this code or invite link with teammates to let them join.</p>
             </>
           )}
         </div>
@@ -206,7 +292,7 @@ export default function TeamStatusWidget({ registration, onTeamUpdated }: TeamSt
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="flex-1 bg-[#111111] text-white hover:bg-[#242424]">
+            <Button type="submit" disabled={loading || !teamName.trim()} className="flex-1 bg-[#111111] text-white hover:bg-[#242424]">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create"}
             </Button>
           </div>
@@ -217,10 +303,10 @@ export default function TeamStatusWidget({ registration, onTeamUpdated }: TeamSt
         <form onSubmit={handleJoinTeam} className="space-y-3">
           <input
             className="flex h-10 w-full rounded-md border border-[#e5e7eb] bg-transparent px-3 py-2 text-sm placeholder:text-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#111111] disabled:cursor-not-allowed disabled:opacity-50 font-mono uppercase placeholder:normal-case"
-            placeholder="Enter 6-character join code"
+            placeholder="Enter 8-character join code"
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-            maxLength={6}
+            maxLength={10}
             disabled={loading}
             autoFocus
           />
@@ -234,7 +320,7 @@ export default function TeamStatusWidget({ registration, onTeamUpdated }: TeamSt
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="flex-1 bg-[#111111] text-white hover:bg-[#242424]">
+            <Button type="submit" disabled={loading || !joinCode.trim()} className="flex-1 bg-[#111111] text-white hover:bg-[#242424]">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Join"}
             </Button>
           </div>
