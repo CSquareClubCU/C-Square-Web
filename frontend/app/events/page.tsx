@@ -374,7 +374,7 @@ export default function EventsPage() {
 
           <>
             {/* Split Flagship Event Card */}
-            {flagshipEvent && searchQuery === "" && (
+            {flagshipEvent && isFlagshipDisplayed && activeStatus === "Upcoming" && searchQuery === "" && (
               <FadeUp className="mb-12">
                 <span className="text-sm md:text-base font-black text-[#111] uppercase tracking-widest block mb-4">
                   Flagship Event
