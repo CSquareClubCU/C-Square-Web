@@ -465,17 +465,10 @@ export default function EventsPage() {
                           <span className="text-xl sm:text-2xl font-black text-white">Certificates & Merch</span>
                         </div>
                       )}
-
-                      <div className="text-left sm:text-right">
-                        <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest block mb-1">Teams / Capacity</span>
-                        <span className="text-xl sm:text-2xl font-black text-white">
-                          {flagshipEvent.capacity ? `${flagshipEvent.capacity}+ Spots` : "Open to All"}
-                        </span>
-                      </div>
                     </div>
 
                     <p className="mt-6 pt-5 border-t border-white/10 text-[10px] md:text-xs text-white/40 font-medium">
-                      {flagshipEvent.is_team_event ? `${flagshipEvent.min_team_size}-${flagshipEvent.max_team_size} members per team.` : "Individual participation."} 
+                      {flagshipEvent.is_team_event ? (flagshipEvent.min_team_size && flagshipEvent.max_team_size ? `${flagshipEvent.min_team_size}-${flagshipEvent.max_team_size} members per team.` : "Team participation.") : "Individual participation."} 
                       {flagshipEvent.is_open_to_external ? " Open to CU students and external participants." : " Exclusive to CU students."}
                     </p>
                   </div>
