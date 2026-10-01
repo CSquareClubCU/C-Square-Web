@@ -445,10 +445,6 @@ export default function Home() {
                   <div className="text-[10px] font-semibold tracking-[0.15em] text-white/50 uppercase mb-2">PRIZE POOL</div>
                   <div className="text-3xl md:text-4xl font-bold">{prizePool}</div>
                 </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-semibold tracking-[0.15em] text-white/50 uppercase mb-2">CAPACITY</div>
-                  <div className="text-3xl md:text-4xl font-bold">{flagship.capacity ? `${flagship.capacity}+` : "Open"}</div>
-                </div>
               </div>
               
               <div className="relative z-10 mt-6 pt-5 border-t border-white/10 text-xs md:text-sm text-white/50 font-medium">
