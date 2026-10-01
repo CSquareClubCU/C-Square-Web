@@ -76,9 +76,13 @@ export default function EventsPage() {
       });
   }, []);
 
-  // Use the event marked as flagship
+  // Use the upcoming event marked as flagship
   const flagshipEvent = useMemo(() => {
-    return events.find((e) => e.is_flagship) || null;
+    return events.find((e) => {
+      if (!e.is_flagship || e.status !== "published") return false;
+      const isConcluded = e.end_datetime ? new Date(e.end_datetime) < new Date() : new Date(e.start_datetime) < new Date();
+      return !isConcluded;
+    }) || null;
   }, [events]);
 
   const timeLeft = useCountdown(flagshipEvent?.start_datetime);
